@@ -6,50 +6,71 @@ classdef sdk
     
     properties
     end
-
-    methods (Static)
-        function init()
+    
+    methods (Static,Hidden)
+        function make_mex()
             %
-            %   adinstruments.sdk.init()
-            %TODO: Get base path automatically
-            %TODO: Check if lib is loaded first ...
-            %TODO: Fix warning in header
-           lib_path = 'C:\Users\Jim\Documents\ADInstruments\SimpleDataFileSDK\bin\ADIDatIOWin.dll';
-            hdr_path = 'C:\Users\Jim\Documents\ADInstruments\SimpleDataFileSDK\adidat\include\ADIDatCAPI_ml.h';
-
-            %unloadlibrary('ADIDatIOWin')
-            loadlibrary(lib_path,hdr_path,'mfilename','wtf.m')
-            %loadlibrary(lib_path,@wtf) %'mfilename','wtf.m') 
-        end
-        function openFile(file_path,is_read_only)
-           %
-           %     adinstruments.sdk.openFile(file_path,true)
-           %
-           %
-           %
-           
-          % wtf = libpointer('ADI_FileHandle__Ptr');
-           %file_handle_pointer = libpointer('voidPtr',wtf);
-           file_handle_pointer = libpointer('ADI_FileHandle__PtrPtr');
+            %   adinstruments.sdk.make_mex
             
-           %wtf = libpointer('voidPtr',int32(0));
-           if is_read_only
-               file_open_mode = 0; %'kOpenFileForReadOnly';
-           else
-               file_open_mode = 1; %'kOpenFileForReadAndWrite';
-           end
-           %result = calllib('ADIDatIOWin','ADI_OpenFile',int16(file_path),file_handle_pointer,file_open_mode);
-           
-           result = calllib('ADIDatIOWin','ADI_OpenFile',int16(file_path),wtf,file_open_mode);
-           %0 - failure
-           keyboard
-           temp = get(file_handle_pointer,'Value');
-           fprintf('file_id: %d\n',temp.unused);
-           if ischar(result)
-           fprintf('Result: %s\n',result)
-           else
-             fprintf('Result: %d\n',result)  
-           end
+            base_path = sl.dir.getMyBasePath;
+            wd = cd;
+            cd(base_path)
+            try
+                
+                mex('sdk_mex.cpp','ADIDatIOWin.lib')
+                %Extra files:
+                %------------------------
+                
+                file_names = cell(1,3);
+                file_names{1} = 'ADIDatIOWin_thunk_pcwin64.exp';
+                file_names{2} = 'ADIDatIOWin_thunk_pcwin64.lib';
+                file_names{3} = 'ADIDatIOWin_thunk_pcwin64.obj';
+                
+                for iFile = 1:3
+                    cur_file_path = fullfile(base_path,file_names{iFile});
+                    %Let's avoid a warning by checking first ...
+                    if exist(cur_file_path,'file')
+                        delete(cur_file_path)
+                    end
+                end
+                
+                %Go back to where we started.
+                cd(wd)
+            catch ME
+                cd(wd)
+                rethrow(ME)
+            end
+            
+        end
+    end
+    
+    methods (Static)
+        %This was the old approach
+        % % % %         function init()
+        % % % %             %
+        % % % %             %   adinstruments.sdk.init()
+        % % % %             %TODO: Get base path automatically
+        % % % %             %TODO: Check if lib is loaded first ...
+        % % % %             %TODO: Fix warning in header
+        % % % %            lib_path = 'C:\Users\Jim\Documents\ADInstruments\SimpleDataFileSDK\bin\ADIDatIOWin.dll';
+        % % % %             hdr_path = 'C:\Users\Jim\Documents\ADInstruments\SimpleDataFileSDK\adidat\include\ADIDatCAPI_ml.h';
+        % % % %
+        % % % %             %unloadlibrary('ADIDatIOWin')
+        % % % %             loadlibrary(lib_path,hdr_path,'mfilename','wtf.m')
+        % % % %             %loadlibrary(lib_path,@wtf) %'mfilename','wtf.m')
+        % % % %         end
+        function file = openFile(file_path,is_read_only)
+            %
+            %     adinstruments.sdk.openFile(file_path,true)
+            %
+            %
+            %
+            
+            file_handle = sdk_mex(0,file_path);
+            
+        end
+        function closeFile(file)
+            
         end
         function getNumberOfRecords()
             %
@@ -78,7 +99,7 @@ classdef sdk
             set(file_handle_pointer,'Value',struct('unused',int32(1474689060)))
             n_channels_pointer = libpointer('longPtr');
             result = calllib('ADIDatIOWin','ADI_GetNumberOfChannels',wtf3,n_channels_pointer);
-           %ADI_GetNumberOfChannels(ADI_FileHandle fileH, long* nChannels); 
+            %ADI_GetNumberOfChannels(ADI_FileHandle fileH, long* nChannels);
         end
         function resolveErrorCode()
             
@@ -98,7 +119,7 @@ classdef sdk
       kResultFileNotFound        = 0x80030002L,       // failure to find the specified file (check the path)
 
 
-      //Start of error codes specific to this API      
+      //Start of error codes specific to this API
       kResultADICAPIMsgBase        = 0xA0049000L,
 
       kResultFileIOError  = kResultADICAPIMsgBase,    // file IO error - could not read/write file
@@ -110,7 +131,7 @@ classdef sdk
       kResultBufferTooSmall                          // the buffer passed to a function to receive data (e.g. comment text) was not big enough to receive all the data.
       
                                                       // new result codes must be added at the end
-      } ADIResultCode; 
+      } ADIResultCode;
             %}
         end
     end

@@ -8,7 +8,23 @@
 #include "mex.h"
 #include "ADIDatCAPI_mex.h"
 #include <string>
+#include <iostream>
+#include <sstream>
 
+void getWCHAR(char *orig, wchar_t *new_string)
+{
+//http://msdn.microsoft.com/en-us/library/ms235631%28VS.80%29.aspx
+    
+    
+    
+    size_t origsize = strlen(orig) + 1;
+    const size_t newsize = 1000; //MS example uses 100, let's use 1000!
+    size_t convertedChars = 0;
+    wchar_t wcstring[newsize];
+    mbstowcs_s(&convertedChars, wcstring, origsize, orig, _TRUNCATE);
+    wcscat_s(wcstring, L" (wchar_t *)");
+    new_string = wcstring;
+}
 
 void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] )
 {
@@ -35,6 +51,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] )
     
     //Outputs
     //===================================
+    //TODO: This could change if 64 bit ...
     plhs[0] = mxCreateNumericMatrix(1,1,mxINT32_CLASS,mxREAL);
     
     // edit([matlabroot '/extern/examples/mex/explore.c']);
@@ -46,23 +63,38 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] )
     
     if (option == 0)
     {
+        //  ADI_OpenFile
+        //
+        //  [file_handle,str] = sdk_mex(0,file_path)
+        //
+        //  
         
-        //fileH  = ADI_FileHandle(0);
-
+        char *c_file_path = mxArrayToString(prhs[1]);
+        wchar_t *w_file_path;
+        
+        getWCHAR(c_file_path,w_file_path);
+        
+        //Why doesn't this print????
+        //-----------------------------------
+        //std::wostringstream wsout;
+        //wsout << w_file_path << std::endl;
+        //printf("path: %s",wsout.str().c_str());
+        
+ 
         result = ADI_OpenFile(path, &fileH, kOpenFileForReadOnly);
-
-        //printf("Result: [s[%d]]
-        //printf("Result: %x\n",result);
 
         if (result == 0)
         {
             printf("unused: %d\n",fileH->unused);
-            //Size 4 - not sure if this will change to 8 ...
-            //Might need to have a check ...
-            //printf("pointer size: %d\n",sizeof(fileH));
+            //TODO: Implement pointer size checking
             printf("pointer_value: %d\n",fileH);
+            x[0] = (int)fileH;
         }
-        x[0] = (int)fileH;
+        else {
+          //TODO: return error msg as well ...   
+          x[0] = 0   
+        }
+        
     }
     else if (option == 1)
     {

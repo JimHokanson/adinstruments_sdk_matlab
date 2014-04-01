@@ -29,6 +29,11 @@
 * \ADIDatFileSDK_license_end
 */
 
+//JAH Modifications
+//- removed trailing comma in enumerations
+//- made enumerations typedef and added explicit alias
+
+
 #ifndef ADIDatCAPI_H__
 #define ADIDatCAPI_H__
 

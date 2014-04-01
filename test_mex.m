@@ -1,7 +1,7 @@
-mex sdk_test.cpp ADIDatIOWin.lib
+adinstruments.sdk.make_mex()
 
-a = sdk_test(0)
+a = adinstruments.sdk_mex(0,file_path)
 
 c = sdk_test(2)
 
-b = sdk_test(1,a)
+b = adinstruments.sdk_mex(1,a)
