@@ -1,6 +1,6 @@
 mex sdk_test.cpp ADIDatIOWin.lib
 
-sdk_test(0)
+a = sdk_test(0)
 
 c = sdk_test(2)
 
