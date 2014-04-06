@@ -1,7 +1,15 @@
+%Assumes file_path is already defined
+
 adinstruments.sdk.make_mex()
 
-a = adinstruments.sdk_mex(0,file_path)
+adfile = adinstruments.sdk.openFile(file_path);
 
-c = sdk_test(2)
+%These will be moved to being properties of adfile ...
+n_records = adinstruments.sdk.getNumberOfRecords(adfile.file_handle);
 
-b = adinstruments.sdk_mex(1,a)
+n_channels = adinstruments.sdk.getNumberOfChannels(adfile.file_handle);
+
+
+%f = sdk_test(2)
+
+%[c,d] = adinstruments.sdk_mex(1,b)
