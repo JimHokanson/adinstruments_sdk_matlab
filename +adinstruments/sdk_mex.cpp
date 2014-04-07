@@ -11,55 +11,89 @@
 #include <iostream>
 #include <sstream>
 
+//TODO: It would be nice to template these ...
+void setLongOutput(mxArray *plhs[],int index, long value)
+{
+    
+    //Sets a single scalar value at the output location specified
+    //  
+    //  Inputs:
+    //  ------------------------------------
+    //  plhs  : The output data
+    //  index : which index to set the data for (0 based)
+    //  value : The value to assign to that particular output
+    //
+    //  Example: (In Matlab)
+    // [a,b] = testFunction()
+    // 
+    //  Let's say we are trying to set b to 5
+    //
+    //  setLongOutput(plhs,1,5)
+    
+    //NOTE: We've hardcoded the output to be a scalar
+    plhs[index] = mxCreateNumericMatrix(1,1,mxINT32_CLASS,mxREAL);
+    long *p_value;
+    p_value    = (long *)mxGetData(plhs[1]);
+    p_value[0] = value;   
+}
+
+int getLongInput(const mxArray *prhs[], int index)
+{
+    //TODO: Finish documentation
+    //
+    //  
+    //  getLongInput(prhs,2)
+    //
+    //  Assumes scalar value 
+    
+    int *p_value;
+    p_value = (int *)mxGetData(prhs[index]);
+    
+    //Return only first value (assume only 1 value)
+    return p_value[0]; 
+}
+//===================================================================
+
 ADI_FileHandle getFileHandle(const mxArray *prhs[])
 {
     
-    //TODO: Test code without this function, then add this and test
-    
+    //TODO: I can replace this now with a call to getLongInput ...
     int *input_file_handle;
     input_file_handle = (int *)mxGetData(prhs[1]);
     return ADI_FileHandle(input_file_handle[0]);
-    
-}
-
-void getWCHAR(char *orig, wchar_t *new_string)
-{
-//http://msdn.microsoft.com/en-us/library/ms235631%28VS.80%29.aspx
-    
-//This is currently not used. I had problems with it. Just passing
-//in a int16 array instead.
-    
-    size_t origsize = strlen(orig) + 1;
-    const size_t newsize = 1000; //MS example uses 100, let's use 1000!
-    size_t convertedChars = 0;
-    wchar_t wcstring[newsize];
-    mbstowcs_s(&convertedChars, wcstring, origsize, orig, _TRUNCATE);
-    wcscat_s(wcstring, L" (wchar_t *)");
-    new_string = wcstring;
 }
 
 void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     //Documentation of the calling forms is given within each if clause
     
-    double function_option;   //Which function to call
-    int *out_result; //Each function will return a result code as well as
-    //possibly other values ...
-    
-    int *input_file_handle;
-    int file_handle_value; //This will be needed for 
-    //http://msdn.microsoft.com/en-us/library/ms235631%28VS.80%29.aspx
-    
-    ADIResultCode result;
-    
-    //http://stackoverflow.com/questions/4470553/initialization-parenthesis-vs-equals-sign
-    ADI_FileHandle fileH(0); //Pointer to ADI_FileHandle__
+    ADI_FileHandle fileH(0);
     
     //TODO: This could change if 64 bit ...
+    //-----------------------------------------------
+    ADIResultCode result;
+    int *out_result; //Each function will return a result code as well as
+    //possibly other values ..
     plhs[0]    = mxCreateNumericMatrix(1,1,mxINT32_CLASS,mxREAL);
     out_result = (int *) mxGetData(plhs[0]);
     
-    function_option = mxGetScalar(prhs[0]);
+    
+    //Which function to call
+    double function_option = mxGetScalar(prhs[0]);   
+    
+    // 2 ADI_GetNumberOfChannels
+    // 3 # of ticks in record
+    // 4 tick period
+    // 5 samples in record
+    // 6 get comments accessor
+    // 7 close comments accessor
+    // 8 get cmment info
+    // 9 next comment
+    // 10 ADI_GetSamples
+    // 11 ADI_GetUnitsName
+    // 12 ADI_GetChannelName
+    // 13 ADI_CloseFile
+    
     
     if (function_option == 0)
     {
@@ -68,25 +102,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  [result_code,file_handle] = sdk_mex(0,file_path)
         
         wchar_t *w_file_path = (wchar_t *)mxGetData(prhs[1]);
-        
-        //Conversion of input string (char) to wchar_t for function call
-        //char    *c_file_path = mxArrayToString(prhs[1]);
-        //wchar_t *w_file_path = L"F:\\GSK\\140204 control cmg.adicht";
-        
-        //getWCHAR(c_file_path,w_file_path);
-        
-        //Why doesn't this print????
-        //wprintf???
-        //-----------------------------------
-        //std::wostringstream wsout;
-        //wsout << w_file_path << std::endl;
-        //printf("path: %s",wsout.str().c_str());
-        
-        //http://stackoverflow.com/questions/6608942/how-can-cstring-be-passed-to-format-string-s
-        //wprintf(L"Test: %s\n",w_file_path);
- 
+         
         result        = ADI_OpenFile(w_file_path, &fileH, kOpenFileForReadOnly);
-
         out_result[0] = result;
 
         int *fh_pointer;
@@ -105,57 +122,56 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  [result_code,n_records] = sdk_mex(1,file_handle)
         
         long nRecords = 0;
- 
-        //TODO: Make this a function ...
-        input_file_handle = (int *)mxGetData(prhs[1]);
-        fileH  = ADI_FileHandle(input_file_handle[0]);
-        //-----------------------------------------
+        fileH         = getFileHandle(prhs);
         
-        
-        
+        //ADIResultCode ADI_GetNumberOfRecords(ADI_FileHandle fileH, long* nRecords);
         result        = ADI_GetNumberOfRecords(fileH,&nRecords);
         out_result[0] = result;
-        
-        plhs[1]    = mxCreateNumericMatrix(1,1,mxINT32_CLASS,mxREAL);
-        long *p_nRecords;
-        p_nRecords = (long *)mxGetData(plhs[1]);
-        p_nRecords[0] = nRecords; 
+        setLongOutput(plhs,1,nRecords);
         
     }
     else if (function_option == 2)
     {
-        //DLLEXPORT ADIResultCode ADI_GetNumberOfChannels(ADI_FileHandle fileH, long* nChannels);
-        //
-        //ADI_GetNumberOfChannels
+        //  ADI_GetNumberOfChannels
         //  ========================================================
         //  [result_code,n_channels] = sdk_mex(2,file_handle)
         
         long nChannels = 0;
         fileH          = getFileHandle(prhs);
+        
+        //ADIResultCode ADI_GetNumberOfChannels(ADI_FileHandle fileH, long* nChannels);
         result         = ADI_GetNumberOfChannels(fileH,&nChannels);
         out_result[0]  = result;
-        
-        plhs[1]     = mxCreateNumericMatrix(1,1,mxINT32_CLASS,mxREAL);
-        long *p_nChannels;
-        p_nChannels = (long *)mxGetData(plhs[1]);
-        p_nChannels[0] = nChannels;
+        setLongOutput(plhs,1,nChannels);
     }
     else if (function_option == 3)
     {
+        //  ADI_GetNumTicksInRecord
+        //  ======================================================
+        //  [result,n_ticks] = sdk_mex(3,file_handle,record_idx_0b)
+        
         fileH          = getFileHandle(prhs);
-        //DLLEXPORT ADIResultCode ADI_GetNumTicksInRecord(ADI_FileHandle fileH, long record, long* nTicks);
+        
+        //0 or 1 based ...
+        long record = getLongInput(prhs,2);
+        long nTicks = 0;
+        
+        //ADIResultCode ADI_GetNumTicksInRecord(ADI_FileHandle fileH, long record, long* nTicks);
+        result         = ADI_GetNumTicksInRecord(fileH,record,&nTicks);
+        out_result[0]  = result;
+        setLongOutput(plhs,1,nTicks);   
     }
     else if (function_option == 4)
     {
         fileH          = getFileHandle(prhs);
-        //DLLEXPORT ADIResultCode ADI_GetRecordTickPeriod(ADI_FileHandle fileH, long channel, long record, 
-      //double* secsPerTick);
+        //ADIResultCode ADI_GetRecordTickPeriod(ADI_FileHandle fileH, long channel, long record, double* secsPerTick);
+        
+        
     }
     else if (function_option == 5)
     {
         fileH          = getFileHandle(prhs);
-           //DLLEXPORT ADIResultCode ADI_GetNumSamplesInRecord(ADI_FileHandle fileH, long channel, long record, 
-      //long* nSamples);
+        //ADIResultCode ADI_GetNumSamplesInRecord(ADI_FileHandle fileH, long channel, long record, long* nSamples);
     }
     else if (function_option == 6)
     {
