@@ -11,6 +11,31 @@
 #include <iostream>
 #include <sstream>
 
+void setDoubleOutput(mxArray *plhs[],int index, double value)
+{
+    
+    //Sets a single scalar value at the output location specified
+    //  
+    //  Inputs:
+    //  ------------------------------------
+    //  plhs  : The output data
+    //  index : which index to set the data for (0 based)
+    //  value : The value to assign to that particular output
+    //
+    //  Example: (In Matlab)
+    // [a,b] = testFunction()
+    // 
+    //  Let's say we are trying to set b to 5
+    //
+    //  setLongOutput(plhs,1,5)
+    
+    //NOTE: We've hardcoded the output to be a scalar
+    plhs[index] = mxCreateNumericMatrix(1,1,mxDOUBLE_CLASS,mxREAL);
+    double *p_value;
+    p_value    = (double *)mxGetData(plhs[1]);
+    p_value[0] = value;   
+}
+
 //TODO: It would be nice to template these ...
 void setLongOutput(mxArray *plhs[],int index, long value)
 {
@@ -164,14 +189,27 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     else if (function_option == 4)
     {
         fileH          = getFileHandle(prhs);
-        //ADIResultCode ADI_GetRecordTickPeriod(ADI_FileHandle fileH, long channel, long record, double* secsPerTick);
         
+        long record  = getLongInput(prhs,2); 
+        long channel = getLongInput(prhs,3);
+        double secsPerTick = 0;
+        
+        //ADIResultCode ADI_GetRecordTickPeriod(ADI_FileHandle fileH, long channel, long record, double* secsPerTick);
+        out_result[0] = ADI_GetRecordTickPeriod(fileH,channel,record,&secsPerTick);
+        setDoubleOutput(plhs,1,secsPerTick);
         
     }
     else if (function_option == 5)
     {
         fileH          = getFileHandle(prhs);
+        
+        long record   = getLongInput(prhs,2); 
+        long channel  = getLongInput(prhs,3);
+        long nSamples = 0;
+        
         //ADIResultCode ADI_GetNumSamplesInRecord(ADI_FileHandle fileH, long channel, long record, long* nSamples);
+        out_result[0] = ADI_GetNumSamplesInRecord(fileH,channel,record,&nSamples);
+        setLongOutput(plhs,1,nSamples);  
     }
     else if (function_option == 6)
     {

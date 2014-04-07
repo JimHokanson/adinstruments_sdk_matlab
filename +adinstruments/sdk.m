@@ -109,15 +109,28 @@ classdef sdk
             n_ticks_in_record = double(n_ticks_in_record);
             
         end
-        function s_per_tick = getTickPeriod(file_handle)
+        function s_per_tick = getTickPeriod(file_handle,record_idx_0b,channel_idx_0b)
             %
             %
+            %   s_per_tick = adinstruments.sdk.getTickPeriod(file_handle,record_idx_0b,channel_idx_0b)
+            %
+            %   Outputs:
+            %   ===========================================================
             %   
+            %
+            %   STATUS: DONE
             
-            [result_code,s_per_tick] = adinstruments.sdk_mex(4,file_handle,record_idx_0b);
+            [result_code,s_per_tick] = adinstruments.sdk_mex(4,file_handle,int32(record_idx_0b),int32(channel_idx_0b));
         end
-        function n_samples = getNSamplesInRecord(file_handle)
-           [result_code,n_samples] = adinstruments.sdk_mex
+        function n_samples = getNSamplesInRecord(file_handle,record_idx_0b,channel_idx_0b)
+            %
+            %
+            %
+            %
+            %   TODO: UNFINISHED
+            
+           [result_code,n_samples] = adinstruments.sdk_mex(5,file_handle,int32(record_idx_0b),int32(channel_idx_0b));
+           n_samples = double(n_samples);
         end
         function resolveErrorCode()
            %NOT YET IMPLEMENTED
