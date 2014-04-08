@@ -46,6 +46,7 @@ classdef sdk
     end
     
     methods (Static)
+        
         function file = openFile(file_path)
             %
             %     file = adinstruments.sdk.openFile(file_path)
@@ -56,15 +57,20 @@ classdef sdk
             
             [result_code,file_handle] = adinstruments.sdk_mex(0,[int16(file_path) 0]);
             
+            adinstruments.sdk.handleErrorCode(result_code)
+            
             file = adinstruments.file(file_path,file_handle);
             
         end
         function closeFile(file_handle)
             %
             %
-            %   Status: Causing problems   
+            %   Status: Seems Fine
+            %   - I think I was running into a problem when trying
+            %       to clear the file after the mex file had been cleared
             
-           result_code = adinstruments.sdk_mex(13,file_handle); 
+           result_code = adinstruments.sdk_mex(13,file_handle);
+           adinstruments.sdk.handleErrorCode(result_code)
         end
         function n_records = getNumberOfRecords(file_handle)
             %
@@ -75,6 +81,7 @@ classdef sdk
             
             
             [result_code,n_records] = adinstruments.sdk_mex(1,file_handle);
+            adinstruments.sdk.handleErrorCode(result_code)
             n_records = double(n_records);
         end
         function n_channels = getNumberOfChannels(file_handle)
@@ -92,6 +99,7 @@ classdef sdk
             %   Status: DONE
             
             [result_code,n_channels] = adinstruments.sdk_mex(2,file_handle);
+            adinstruments.sdk.handleErrorCode(result_code)
             n_channels = double(n_channels);
         end
         function n_ticks_in_record = getNTicksInRecord(file_handle,record_idx_0b)
@@ -106,6 +114,7 @@ classdef sdk
             %   Status: DONE
             
             [result_code,n_ticks_in_record] = adinstruments.sdk_mex(3,file_handle,int32(record_idx_0b));
+            adinstruments.sdk.handleErrorCode(result_code)
             n_ticks_in_record = double(n_ticks_in_record);
             
         end
@@ -121,6 +130,7 @@ classdef sdk
             %   STATUS: DONE
             
             [result_code,s_per_tick] = adinstruments.sdk_mex(4,file_handle,int32(record_idx_0b),int32(channel_idx_0b));
+            adinstruments.sdk.handleErrorCode(result_code)
         end
         function n_samples = getNSamplesInRecord(file_handle,record_idx_0b,channel_idx_0b)
             %
@@ -130,10 +140,52 @@ classdef sdk
             %   TODO: UNFINISHED
             
            [result_code,n_samples] = adinstruments.sdk_mex(5,file_handle,int32(record_idx_0b),int32(channel_idx_0b));
+           adinstruments.sdk.handleErrorCode(result_code)
            n_samples = double(n_samples);
         end
-        function resolveErrorCode()
+        function comments_h = getCommentAccessor(file_handle,record_idx_0b)
+            %
+            %
+            %   comments_h = adinstruments.sdk.getCommentAccessor(file_handle,record_idx_0b)
+            
+           [result_code,comments_h] = adinstruments.sdk_mex(6,file_handle,int32(record_idx_0b));
+           %-1610313723 - data requested not present
+           %presumably this indicates no comments in the given record
+           
+           adinstruments.sdk.handleErrorCode(result_code)
+        end
+        function closeCommentAccessor(comments_h)
+            %
+            %
+            %   adinstruments.sdk.closeCommentAccessor(comments_h);         
+            
+           result_code = adinstruments.sdk_mex(7,comments_h);
+           adinstruments.sdk.handleErrorCode(result_code);
+        end
+        function result_code = advanceComments(comments_h)
+            %
+            %
+            %   result_code = adinstruments.sdk.advanceComments(comments_h);
+            
+           result_code = adinstruments.sdk_mex(9,comments_h); 
+        end
+        function comment_info = getCommentInfo(comments_h)
+            
+        end
+        function handleErrorCode(result_code)
+            %
+            %
+            %   adinstruments.sdk.handleErrorCode(result_code)
+            %
            %NOT YET IMPLEMENTED
+           if result_code == 0
+               %We're good
+           else
+               keyboard
+               err_msg = adinstruments.sdk_mex(14,result_code);
+              %TODO: Get more in depth info on error
+              %error('Function call threw an error') 
+           end
         end
     end
     

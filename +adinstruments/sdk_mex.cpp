@@ -62,6 +62,8 @@ void setLongOutput(mxArray *plhs[],int index, long value)
     p_value[0] = value;   
 }
 
+
+
 int getLongInput(const mxArray *prhs[], int index)
 {
     //TODO: Finish documentation
@@ -79,6 +81,20 @@ int getLongInput(const mxArray *prhs[], int index)
 }
 //===================================================================
 
+// void setHandle(mxArray *plhs[],int index, long value)
+// {
+// 
+//             int *fh_pointer;
+//         plhs[1]    = mxCreateNumericMatrix(1,1,mxINT32_CLASS,mxREAL);
+//         fh_pointer = (int *) mxGetData(plhs[1]);
+//         if (result == 0)
+//             fh_pointer[0] = (int)fileH;
+//         else
+//             fh_pointer[0] = 0;
+//     
+//     
+// }
+
 ADI_FileHandle getFileHandle(const mxArray *prhs[])
 {
     
@@ -88,11 +104,25 @@ ADI_FileHandle getFileHandle(const mxArray *prhs[])
     return ADI_FileHandle(input_file_handle[0]);
 }
 
+ADI_CommentsHandle getCommentsHandle(const mxArray *prhs[])
+{
+    
+    //TODO: I can replace this now with a call to getLongInput ...
+    int *input_file_handle;
+    input_file_handle = (int *)mxGetData(prhs[1]);
+    return ADI_CommentsHandle(input_file_handle[0]);
+}
+
+//=========================================================================
 void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     //Documentation of the calling forms is given within each if clause
     
     ADI_FileHandle fileH(0);
+    
+    ADI_FileHandle fileH2(0);
+    
+    int fileH3;
     
     //TODO: This could change if 64 bit ...
     //-----------------------------------------------
@@ -122,7 +152,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     
     if (function_option == 0)
     {
-        //  ADI_OpenFile
+        //  ADI_OpenFile   <>   openFile
         //  ===================================================
         //  [result_code,file_handle] = sdk_mex(0,file_path)
         
@@ -142,7 +172,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else if (function_option == 1)
     {
-        //  ADI_GetNumberOfRecords
+        //  ADI_GetNumberOfRecords   <>   getNumberOfRecords
         //  ======================================================
         //  [result_code,n_records] = sdk_mex(1,file_handle)
         
@@ -157,7 +187,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else if (function_option == 2)
     {
-        //  ADI_GetNumberOfChannels
+        //  ADI_GetNumberOfChannels   <>   getNumberOfChannels
         //  ========================================================
         //  [result_code,n_channels] = sdk_mex(2,file_handle)
         
@@ -171,7 +201,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else if (function_option == 3)
     {
-        //  ADI_GetNumTicksInRecord
+        //  ADI_GetNumTicksInRecord   <>   getNTicksInRecord
         //  ======================================================
         //  [result,n_ticks] = sdk_mex(3,file_handle,record_idx_0b)
         
@@ -188,6 +218,10 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else if (function_option == 4)
     {
+        //  ADI_GetRecordTickPeriod  <>  getTickPeriod
+        //  =========================================================
+        //  [result,s_per_tick] = sdk_mex(4,file_handle,record_idx_0b,channel_idx_0b)
+        
         fileH          = getFileHandle(prhs);
         
         long record  = getLongInput(prhs,2); 
@@ -201,6 +235,10 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else if (function_option == 5)
     {
+        //  ADI_GetNumSamplesInRecord  <>  getNSamplesInRecord
+        //  ========================================================
+        //  [result_code,n_samples] = sdk_mex(5,file_handle,record_idx_0b,channel_idx_0b);
+        
         fileH          = getFileHandle(prhs);
         
         long record   = getLongInput(prhs,2); 
@@ -213,33 +251,66 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else if (function_option == 6)
     {
-        fileH          = getFileHandle(prhs);
-          //DLLEXPORT ADIResultCode ADI_CreateCommentsAccessor(ADI_FileHandle fileH, long record, 
-      //ADI_CommentsHandle* commentsH); 
+        //  ADI_CreateCommentsAccessor  <>  getCommentAccessor
+        //  ========================================================
+        //  [result_code,comments_h] = sdk_mex(6,file_handle,record_idx_0b);
+        
+        ADI_CommentsHandle commentsH(0);
+        fileH         = getFileHandle(prhs);
+        long record   = getLongInput(prhs,2); 
+        
+        //ADIResultCode ADI_CreateCommentsAccessor(ADI_FileHandle fileH, long record, ADI_CommentsHandle* commentsH); 
+        result = ADI_CreateCommentsAccessor(fileH,record,&commentsH);
+        out_result[0] = result;
+         
+        int *p_c;
+        plhs[1]    = mxCreateNumericMatrix(1,1,mxINT32_CLASS,mxREAL);
+        p_c = (int *) mxGetData(plhs[1]);
+        if (result == 0)
+            p_c[0] = (int)commentsH;
+        else
+            p_c[0] = 0;
     }
     else if (function_option == 7)
     {
-        fileH          = getFileHandle(prhs);
-        //DLLEXPORT ADIResultCode ADI_CloseCommentsAccessor(ADI_CommentsHandle *commentsH);
-
+        //  ADI_CloseCommentsAccessor   <>   closeCommentAccessor
+        //  ======================================================== 
+        //  result_code = sdk_mex(7,comments_h);
+        
+        ADI_CommentsHandle commentsH = getCommentsHandle(prhs);
+        
+        //ADIResultCode ADI_CloseCommentsAccessor(ADI_CommentsHandle *commentsH);
+        out_result[0] = ADI_CloseCommentsAccessor(&commentsH);
     }
     else if (function_option == 8)
     {
-        fileH          = getFileHandle(prhs);
-      //   DLLEXPORT ADIResultCode ADI_GetCommentInfo(ADI_CommentsHandle commentsH, long *tickPos, long *channel, long *commentNum, wchar_t* text, 
-      //long maxChars, long *textLen);
+        //  ADI_GetCommentInfo   <>   getCommentInfo
+        //  ====================================================
+        //  NOT YET IMPLEMENTED: output might change
+        //  [result_code,comment_info] = ...  
+        
+        ADI_CommentsHandle commentsH = getCommentsHandle(prhs);
+      //ADIResultCode ADI_GetCommentInfo(ADI_CommentsHandle commentsH, long *tickPos, long *channel, long *commentNum, wchar_t* text,long maxChars, long *textLen);
     }
     else if (function_option == 9)
     {
-        fileH          = getFileHandle(prhs);
+
+        //  ADI_NextComment  <>  
+        //  ==================================================
+        
+        ADI_CommentsHandle commentsH = getCommentsHandle(prhs);
            // Advances the comments accessor to the next comment in the record
             // Params: ADI_CommentsHandle       - handle to a comments accessor
             // Returns kResultNoData if this accessor has reached the end of the comments in the record.
         
-            //DLLEXPORT ADIResultCode ADI_NextComment(ADI_CommentsHandle commentsH);
+            //ADIResultCode ADI_NextComment(ADI_CommentsHandle commentsH);
+        out_result[0] = ADI_NextComment(commentsH);
     }
     else if (function_option == 10)
     {
+        //  ADI_GetSamples   <>    
+        //  =================================================
+        
         fileH          = getFileHandle(prhs);
           // Retrieves a block of sample data from the file into a buffer. Samples are in physical 
    // prefixed units.
@@ -261,6 +332,9 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else if (function_option == 11)
     {
+        //  ADI_GetUnitsName   <>   
+        //  =======================================
+        
            // Retrieves the prefixed units of a channel, as a string.
    // Params: fileH     - ADI_FileHandle for the open file
    //         channel   - the unit's channel (starting from 0)
@@ -276,6 +350,9 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else if (function_option == 12)
     {
+         //  ADI_GetChannelName   <>   
+        
+        
          // Retrieves the name of a channel, as a string.
    // Params: fileH    - ADI_FileHandle for the open file
    //         channel  - the channel index (starting from 0)
@@ -291,11 +368,43 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else if (function_option == 13)
     {
+
         fileH          = getFileHandle(prhs);
         result         = ADI_CloseFile(&fileH);
         out_result[0]  = result;
     }
-    
+    else if (function_option == 14)
+    {
+        //  ADI_GetErrorMessage
+        //  ==============================================================
+        //  err_msg = sdk_mex(14,error_code)
+        
+            plhs[0] = mxCreateNumericMatrix(1,200,mxINT16_CLASS,mxREAL);
+            long *p_value;
+            p_value    = (long *)mxGetData(plhs[0]);
+        
+            long textLen = 0;
+            
+            ADIResultCode code = (ADIResultCode)getLongInput(prhs,1); 
+            
+        //ADIResultCode code = 
+        
+// // //            // Retrieves a text description of a result code returned from an API call.
+// // //    // Params: code     - an ADIResultCode value
+// // //    //         message  - null-terminated text for the error message [outparam]
+// // //    //         maxChars - the size used for the buffer. Must not exceed this when copying 
+// // //    //                    text into the buffer
+// // //    //         textLen  - receives the number of characters needed to hold the full comment text, 
+// // //    //                     even if parameter text is NULL (optional, may be NULL) [outparam]
+// // //    // Return: returns kResultBufferTooSmall if maxChars was too small to receive the full title text.
+// // //    // Return: a ADIResultCode for result of the operation
+// // //    DLLEXPORT ADIResultCode ADI_GetErrorMessage(ADIResultCode code, wchar_t* messageOut, 
+// // //       long maxChars, long *textLen);
+        
+        //ADIResultCode ADI_GetErrorMessage(ADIResultCode code, wchar_t* messageOut, long maxChars, long *textLen);
+        
+        out_result[0] = ADI_GetErrorMessage(code, (wchar_t*) p_value, 200, &textLen);
+    }
     else
     {
         out_result[0] = 3; 

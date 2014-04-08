@@ -21,7 +21,8 @@ classdef file < sl.obj.handle_light
     
     %Make read only?
     properties
-       file_handle %int32 or int64 - depends on bits ... 
+       file_handle %int32 or int64 - depends on bits ...
+       comment_accessor
     end
     
     methods
@@ -49,14 +50,26 @@ classdef file < sl.obj.handle_light
            obj.temp_secs_per_tick = adinstruments.sdk.getTickPeriod(file_handle,0,0);
            obj.temp_n_samples     = adinstruments.sdk.getNSamplesInRecord(file_handle,0,0);
            
+           keyboard
+           
+           comments_h = adinstruments.sdk.getCommentAccessor(file_handle,0);
+           result_code = adinstruments.sdk.advanceComments(comments_h);
+           
+           adinstruments.sdk.closeCommentAccessor(comments_h);
+           
         end
     end
     methods
           %This is causing a prog crash for some reason
-%         function delete(obj)
-%            %TODO: On delete, close file in mex
-%            adinstruments.sdk.closeFile(obj.file_handle);
-%         end
+        function delete(obj)
+           %TODO: On delete, close file in mex
+           
+           %I think the problem is if the mex file clears then 
+           %this calls the new mex file ...
+           %- then you get a seg fault
+           fprintf(2,'Testing!\n');
+           adinstruments.sdk.closeFile(obj.file_handle);
+        end
     end
     
 end
