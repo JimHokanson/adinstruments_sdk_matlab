@@ -50,9 +50,10 @@ classdef file < sl.obj.handle_light
            obj.temp_secs_per_tick = adinstruments.sdk.getTickPeriod(file_handle,0,0);
            obj.temp_n_samples     = adinstruments.sdk.getNSamplesInRecord(file_handle,0,0);
            
+           %JAH: At this point
            keyboard
            
-           comments_h = adinstruments.sdk.getCommentAccessor(file_handle,0);
+           comments_h  = adinstruments.sdk.getCommentAccessor(file_handle,3);
            result_code = adinstruments.sdk.advanceComments(comments_h);
            
            adinstruments.sdk.closeCommentAccessor(comments_h);
@@ -67,7 +68,7 @@ classdef file < sl.obj.handle_light
            %I think the problem is if the mex file clears then 
            %this calls the new mex file ...
            %- then you get a seg fault
-           fprintf(2,'Testing!\n');
+           fprintf(2,'Deleting file object! (temp message, will remove)\n');
            adinstruments.sdk.closeFile(obj.file_handle);
         end
     end

@@ -16,7 +16,7 @@ classdef sdk
             wd = cd;
             cd(base_path)
             try
-                                
+                
                 mex('sdk_mex.cpp','ADIDatIOWin.lib')
                 
                 %Extra files:
@@ -69,8 +69,8 @@ classdef sdk
             %   - I think I was running into a problem when trying
             %       to clear the file after the mex file had been cleared
             
-           result_code = adinstruments.sdk_mex(13,file_handle);
-           adinstruments.sdk.handleErrorCode(result_code)
+            result_code = adinstruments.sdk_mex(13,file_handle);
+            adinstruments.sdk.handleErrorCode(result_code)
         end
         function n_records = getNumberOfRecords(file_handle)
             %
@@ -125,7 +125,7 @@ classdef sdk
             %
             %   Outputs:
             %   ===========================================================
-            %   
+            %
             %
             %   STATUS: DONE
             
@@ -139,53 +139,86 @@ classdef sdk
             %
             %   TODO: UNFINISHED
             
-           [result_code,n_samples] = adinstruments.sdk_mex(5,file_handle,int32(record_idx_0b),int32(channel_idx_0b));
-           adinstruments.sdk.handleErrorCode(result_code)
-           n_samples = double(n_samples);
+            [result_code,n_samples] = adinstruments.sdk_mex(5,file_handle,int32(record_idx_0b),int32(channel_idx_0b));
+            adinstruments.sdk.handleErrorCode(result_code)
+            n_samples = double(n_samples);
         end
         function comments_h = getCommentAccessor(file_handle,record_idx_0b)
             %
             %
             %   comments_h = adinstruments.sdk.getCommentAccessor(file_handle,record_idx_0b)
             
-           [result_code,comments_h] = adinstruments.sdk_mex(6,file_handle,int32(record_idx_0b));
-           %-1610313723 - data requested not present
-           %presumably this indicates no comments in the given record
-           
-           adinstruments.sdk.handleErrorCode(result_code)
+            [result_code,comments_h] = adinstruments.sdk_mex(6,file_handle,int32(record_idx_0b));
+            if mod(result_code,16) == 5
+                
+                %TODO: Do I want to do the literal error check here ???
+                
+                %See:
+                %http://forum.adinstruments.com/viewtopic.php?f=7&t=551
+                
+                %Then there are no comments
+                %-1610313723 - data requested not present => xA0049005
+                comments_h  = 0;
+            else
+                adinstruments.sdk.handleErrorCode(result_code)
+            end
+            
+            %TODO: Do I want to return a comments object ...???
+            
+            
         end
         function closeCommentAccessor(comments_h)
             %
             %
-            %   adinstruments.sdk.closeCommentAccessor(comments_h);         
+            %   adinstruments.sdk.closeCommentAccessor(comments_h);
             
-           result_code = adinstruments.sdk_mex(7,comments_h);
-           adinstruments.sdk.handleErrorCode(result_code);
+            %TODO: Do I want to check for a null comment handle
+            %and ignore it or just it pass ???
+            if comments_h == 0
+                return
+            end
+            
+            result_code = adinstruments.sdk_mex(7,comments_h);
+            adinstruments.sdk.handleErrorCode(result_code);
         end
         function result_code = advanceComments(comments_h)
             %
             %
             %   result_code = adinstruments.sdk.advanceComments(comments_h);
             
-           result_code = adinstruments.sdk_mex(9,comments_h); 
+            %TODO: replace with better result code
+            %See getCommentAccessor for similar handling ...
+            
+            result_code = adinstruments.sdk_mex(9,comments_h);
         end
         function comment_info = getCommentInfo(comments_h)
             
         end
-        function handleErrorCode(result_code)
+        function handleErrorCode(result_code,function_name)
             %
             %
             %   adinstruments.sdk.handleErrorCode(result_code)
             %
-           %NOT YET IMPLEMENTED
-           if result_code == 0
-               %We're good
-           else
-               keyboard
-               err_msg = adinstruments.sdk_mex(14,result_code);
-              %TODO: Get more in depth info on error
-              %error('Function call threw an error') 
-           end
+            
+            %TODO: Allow only getting the string (make separate function)
+            
+            %Relevant forum post:
+            %http://forum.adinstruments.com/viewtopic.php?f=7&t=551
+            
+            %TODO: Replace with stack evaluation to pull this out
+            %automagically
+            
+            if ~exist('function_name','var')
+                function_name = 'unspecified__fix_me';
+            end
+            
+            if result_code == 0
+                %We're good
+            else
+                [~,err_msg,err_msg_len] = adinstruments.sdk_mex(14,int32(result_code));
+                err_msg = char(err_msg(1:err_msg_len));
+                error(sprintf('ADINSTRUMENTS:SDK:%s',function_name),err_msg);
+            end
         end
     end
     
