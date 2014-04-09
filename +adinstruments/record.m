@@ -4,9 +4,11 @@ classdef record < sl.obj.handle_light
     %   adinstruments.record
     
     properties
-        record_id %0 based id
-        n_ticks
-        comments
+        record_id   %0 based id
+        n_ticks     %# of samples of highest sampling rate channel
+        comments    %adinstruments.comment
+        dt_tick
+        fs_tick
     end
     
     properties (Hidden)

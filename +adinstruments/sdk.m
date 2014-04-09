@@ -1,8 +1,10 @@
 classdef sdk
-    %UNTITLED Summary of this class goes here
-    %   Detailed explanation goes here
-    
-    %http://www.mathworks.com/help/matlab/matlab_external/passing-arguments-to-shared-library-functions.html#f44412
+    %
+    %   Class: adinstruments.sdk
+    %
+    %
+    %   tick - sampling rate of fastest channel
+    %
     
     properties
     end
@@ -45,8 +47,11 @@ classdef sdk
         end
     end
     
+    %TODO: Create standard names for input
+    %file_h - ADI_FileHandle
+    %record - record id, 0 based ...
+    
     methods (Static)
-        
         function file = openFile(file_path)
             %
             %     file = adinstruments.sdk.openFile(file_path)
@@ -72,7 +77,7 @@ classdef sdk
             result_code = adinstruments.sdk_mex(13,file_handle);
             adinstruments.sdk.handleErrorCode(result_code)
         end
-        function n_records = getNumberOfRecords(file_handle)
+        function n_records  = getNumberOfRecords(file_handle)
             %
             %
             %   n_records = adinstruments.sdk.getNumberOfRecords(file_handle)
@@ -118,21 +123,21 @@ classdef sdk
             n_ticks_in_record = double(n_ticks_in_record);
             
         end
-        function s_per_tick = getTickPeriod(file_handle,record_idx_0b,channel_idx_0b)
+        function dt_tick    = getTickPeriod(file_handle,record_idx_0b,channel_idx_0b)
             %
             %
-            %   s_per_tick = adinstruments.sdk.getTickPeriod(file_handle,record_idx_0b,channel_idx_0b)
+            %   dt_tick = adinstruments.sdk.getTickPeriod(file_handle,record_idx_0b,channel_idx_0b)
             %
             %   Outputs:
             %   ===========================================================
-            %
+            %   dt_tick
             %
             %   STATUS: DONE
             
-            [result_code,s_per_tick] = adinstruments.sdk_mex(4,file_handle,int32(record_idx_0b),int32(channel_idx_0b));
+            [result_code,dt_tick] = adinstruments.sdk_mex(4,file_handle,int32(record_idx_0b),int32(channel_idx_0b));
             adinstruments.sdk.handleErrorCode(result_code)
         end
-        function n_samples = getNSamplesInRecord(file_handle,record_idx_0b,channel_idx_0b)
+        function n_samples  = getNSamplesInRecord(file_handle,record_idx_0b,channel_idx_0b)
             %
             %
             %
@@ -140,9 +145,14 @@ classdef sdk
             %   TODO: UNFINISHED
             
             [result_code,n_samples] = adinstruments.sdk_mex(5,file_handle,int32(record_idx_0b),int32(channel_idx_0b));
-            adinstruments.sdk.handleErrorCode(result_code)
+            %result_code 1 => "the operation completed successfully"
+            if result_code ~= 0 && result_code ~= 1
+                adinstruments.sdk.handleErrorCode(result_code)
+            end
             n_samples = double(n_samples);
         end
+        
+        %Comment specific functions
         function comments_h = getCommentAccessor(file_handle,record_idx_0b)
             %
             %
@@ -181,7 +191,7 @@ classdef sdk
             result_code = adinstruments.sdk_mex(7,comments_h);
             adinstruments.sdk.handleErrorCode(result_code);
         end
-        function has_comment = advanceComments(comments_h)
+        function has_comment  = advanceComments(comments_h)
             %
             %
             %   result_code = adinstruments.sdk.advanceComments(comments_h);
@@ -200,19 +210,87 @@ classdef sdk
         end
         function comment_info = getCommentInfo(comments_h)
             %
-            %   
+            %
             %   comment_info = adinstruments.sdk.getCommentInfo(comments_h)
             
-           [result_code,comment_string_data,comment_length,tick_pos,channel,comment_num] = adinstruments.sdk_mex(8,comments_h);
-           if result_code == 0
-               comment_string = adinstruments.sdk.getStringFromOutput(comment_string_data,comment_length);
-               comment_info   = adinstruments.comment(comment_string,tick_pos,channel,comment_num);
-           else 
-               adinstruments.sdk.handleErrorCode(result_code);
-               comment_info = [];
-           end
-
-
+            [result_code,comment_string_data,comment_length,tick_pos,channel,comment_num] = adinstruments.sdk_mex(8,comments_h);
+            if result_code == 0
+                comment_string = adinstruments.sdk.getStringFromOutput(comment_string_data,comment_length);
+                comment_info   = adinstruments.comment(comment_string,tick_pos,channel,comment_num);
+            else
+                adinstruments.sdk.handleErrorCode(result_code);
+                comment_info = [];
+            end
+        end
+        
+        function output_data  = getChannelData(file_h,record_0b,channel_0b,start_sample_0b,n_samples_get,get_samples)
+            %
+            %
+            %   INPUTS
+            %   ========================================
+            %   channel_0b : channel to get the data from, 0 based, i.e.
+            %                first channel is channel 0
+            %   record_0b  : record to get the data from
+            %   start_sample_0b : first sample to get
+            %   n_samples :
+            %   get_samples :
+            %
+            
+            c = @int32;
+            
+            data_type = int32(0);
+            if ~get_samples
+                %get in tick units
+                data_type = bitset(data_type,32);
+            end
+            
+            [result_code,data,n_returned] = adinstruments.sdk_mex(10,file_h,c(channel_0b),...
+                c(record_0b),c(start_sample_0b),c(n_samples_get),data_type);
+            
+            adinstruments.sdk.handleErrorCode(result_code)
+            
+            if n_returned ~= n_samples_get
+                %TODO: truncate data
+                error('Why was this truncated???')
+            end
+            
+            output_data = double(data); %Matlab can get finicky working with singles
+            
+        end
+        function units = getUnits(file_h,record,channel)
+            %
+            %
+            %   channel_name = adinstruments.sdk.getChannelName(file_h,channel)
+            %
+            
+            c = @int32;
+            
+            [result_code,str_data,str_length] = adinstruments.sdk_mex(11,file_h,c(record),c(channel));
+            
+            if result_code == 0 || result_code == 1
+                units = adinstruments.sdk.getStringFromOutput(str_data,str_length);
+            else
+                adinstruments.sdk.handleErrorCode(result_code);
+                units = '';
+            end
+            
+        end
+        function channel_name = getChannelName(file_h,channel)
+            %
+            %
+            %   channel_name = adinstruments.sdk.getChannelName(file_h,channel)
+            %
+            c = @int32;
+            
+            [result_code,str_data,str_length] = adinstruments.sdk_mex(12,file_h,c(channel));
+            
+            if result_code == 0
+                channel_name = adinstruments.sdk.getStringFromOutput(str_data,str_length);
+            else
+                adinstruments.sdk.handleErrorCode(result_code);
+                channel_name = '';
+            end
+            
         end
         function handleErrorCode(result_code)
             %
@@ -246,8 +324,8 @@ classdef sdk
             %
             %   error_msg = adinstruments.sdk.getErrorMessage(result_code)
             
-        	[~,err_msg_data,err_msg_len] = adinstruments.sdk_mex(14,int32(result_code));
-        	error_msg = adinstruments.sdk.getStringFromOutput(err_msg_data,err_msg_len);
+            [~,err_msg_data,err_msg_len] = adinstruments.sdk_mex(14,int32(result_code));
+            error_msg = adinstruments.sdk.getStringFromOutput(err_msg_data,err_msg_len);
         end
         function str = getStringFromOutput(int16_data,str_length)
             %

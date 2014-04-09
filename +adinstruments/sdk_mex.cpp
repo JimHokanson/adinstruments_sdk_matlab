@@ -163,7 +163,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
         //  ADI_OpenFile   <>   openFile
         //  ===================================================
-        //  [result_code,file_handle] = sdk_mex(0,file_path)
+        //  [result_code,file_h] = sdk_mex(0,file_path)
         
         wchar_t *w_file_path = (wchar_t *)mxGetData(prhs[1]);
         
@@ -343,78 +343,75 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else if (function_option == 10)
     {
-        //  ADI_GetSamples   <>  
+        //  ADI_GetSamples   <>   getChannelData
         //  ===========================================================
-        //  [result,data,n_returned] = sdk_mex(10,file_h,channel_0b,record_0b,startPos,nLength)
+        //  [result,data,n_returned] = sdk_mex(10,file_h,channel_0b,record_0b,startPos,nLength,dataType)
         
         fileH          = getFileHandle(prhs);
         
-        //JAH TODO: At this point ...
-        long channel  = getLongInput(prhs,3);
-        long record   = getLongInput(prhs,4);
-        long startPos = getLongInput(prhs,5);
-        long nLength  = getLongInput(prhs,6);
+        long channel  = getLongInput(prhs,2);
+        long record   = getLongInput(prhs,3);
+        long startPos = getLongInput(prhs,4);
+        long nLength  = getLongInput(prhs,5);
         
+        ADICDataFlags dataType = static_cast<ADICDataFlags>(getLongInput(prhs,6)); 
         
+        plhs[1]     = mxCreateNumericMatrix(1,(mwSize)nLength,mxSINGLE_CLASS,mxREAL);
+        float *data = (float *)mxGetData(plhs[1]);
         
-        mxCreateNumericMatrix(1,(mwSize)nLength,mxSINGLE_CLASS,mxREAL)
-        
+        long returned = 0;
         // Retrieves a block of sample data from the file into a buffer. Samples are in physical
         // prefixed units.
-        // Params: fileH    - ADI_FileHandle for the open file
-        //         channel  - the channel containing the desired data (starting from 0)
-        //         record   - the record containing the start position of the desired data
-        //                    (starting from 0)
-        //         startPos - the start position as an offset from the start of the record (0)
-        //         nLength  - number of elements (ticks/samples) to retrieve
-        //         dataType - specifies the type of data (ticks or samples) to retrieve
-        //         data     - pointer to a float array of 'nLength' in size
-        //                    e.g. float* data=(float*)malloc(sizeof(float*kDataSize)); [outparam]
-        //         returned - the number of samples actually returned by the function (may be less
-        //                    than the amount requested) [outparam]
-        // Return: a ADIResultCode for result of the operation
         //DLLEXPORT ADIResultCode ADI_GetSamples(ADI_FileHandle fileH, long channel, long record, long startPos,
         //  ADICDataFlags dataType, long nLength, float* data, long* returned);
-        out_result[0] = ADI_GetSamples(fileH,channel,record,startPos,dataType,nLength,data,returned)
+        out_result[0] = ADI_GetSamples(fileH,channel,record,startPos,dataType,nLength,data,&returned);
         
+        setLongOutput(plhs,2,returned);
         
-        
+        //out_result[0] = 4;
     }
     else if (function_option == 11)
     {
-        //  ADI_GetUnitsName   <>
+        //  ADI_GetUnitsName   <>  getUnits
         //  =======================================
+        //  [result_code,str_data,str_length] = sdk_mex(11,file_h,record,channel);
+        
+        //Inputs
+        fileH        = getFileHandle(prhs);
+        long record  = getLongInput(prhs,2);
+        long channel = getLongInput(prhs,3);
+        
+        //Outputs
+        long textLen      = 0;
+        wchar_t *unitsOut = getStringOutputPointer(plhs,1);
+        
         
         // Retrieves the prefixed units of a channel, as a string.
-        // Params: fileH     - ADI_FileHandle for the open file
-        //         channel   - the unit's channel (starting from 0)
-        //         record    - the unit's record (starting from 0)
-        //         units     - buffer to receive null terminated text for the units name (optional, may be NULL) [outparam]
-        //         maxChars  - the size of the text buffer in wchar_t s. The text will be truncated to fit in this size
-        //         textLen   - receives the number of characters needed to hold the full comment text,
-        //                     even if parameter text is NULL (optional, may be NULL) [outparam]
-        // Return: returns kResultBufferTooSmall if maxChars was too small to receive the full comment text.
-        // Return: a ADIResultCode for result of the operation
-        //    DLLEXPORT ADIResultCode ADI_GetUnitsName(ADI_FileHandle fileH, long channel, long record, wchar_t* units,
-        //  long maxChars, long *textLen);
+        //
+        //ADIResultCode ADI_GetUnitsName(ADI_FileHandle fileH, long channel, long record, wchar_t* units, long maxChars, long *textLen);
+        out_result[0] = ADI_GetUnitsName(fileH, channel, record, unitsOut, MAX_STRING_LENGTH, &textLen);        
+        setLongOutput(plhs,2,textLen);
     }
     else if (function_option == 12)
     {
-        //  ADI_GetChannelName   <>
+        //  ADI_GetChannelName   <>   getChannelName
+        //  =============================================
+        //  [result_code,str_data,str_length] = sdk_mex(12,file_h,channel);
         
+
+        //Inputs
+        fileH        = getFileHandle(prhs);
+        long channel = getLongInput(prhs,2); 
         
+        //Outputs
+        long textLen        = 0;
+        wchar_t *nameOut    = getStringOutputPointer(plhs,1);
+                
         // Retrieves the name of a channel, as a string.
-        // Params: fileH    - ADI_FileHandle for the open file
-        //         channel  - the channel index (starting from 0)
-        //         name    - null-terminated text for the name [outparam]
-        //         maxChars - the size used for the buffer. Must not exceed this when copying
-        //                    text into the buffer
-        //         textLen   - receives the number of characters needed to hold the full comment text,
-        //                     even if parameter text is NULL (optional, may be NULL) [outparam]
-        // Return: returns kResultBufferTooSmall if maxChars was too small to receive the full title text.
-        // Return: a ADIResultCode for result of the operation
-        // DLLEXPORT ADIResultCode ADI_GetChannelName(ADI_FileHandle fileH, long channel, wchar_t* name,
-        //   long maxChars, long *textLen);
+        
+        //ADIResultCode ADI_GetChannelName(ADI_FileHandle fileH, long channel, wchar_t* name, long maxChars, long *textLen);
+        out_result[0] = ADI_GetChannelName(fileH, channel, nameOut, MAX_STRING_LENGTH, &textLen);        
+        setLongOutput(plhs,2,textLen);
     }
     else if (function_option == 13)
     {
@@ -439,9 +436,15 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         setLongOutput(plhs,2,textLen);
         
     }
+    else if (function_option == 15)
+    {
+        
+    }
     else
     {
         out_result[0] = 3;
     }
     
+    //ADI_GetRecordSamplePeriod
+    //ADI_GetRecordTime
 }

@@ -45,14 +45,25 @@ classdef file < sl.obj.handle_light
            
            obj.records = [temp{:}];
            
+           temp = cell(1,obj.n_channels);
            
-           %Some more random testing, this will be moved ...
-           obj.temp_secs_per_tick = adinstruments.sdk.getTickPeriod(file_handle,0,0);
-           obj.temp_n_samples     = adinstruments.sdk.getNSamplesInRecord(file_handle,0,0);
+           for iChan = 1:obj.n_channels
+              temp{iChan} = adinstruments.channel(file_handle,iChan-1,obj.n_records);
+           end
            
-           %JAH: At this point
            keyboard
-
+           
+% % %            %Some more random testing, this will be moved ...
+% % %            obj.temp_secs_per_tick = adinstruments.sdk.getTickPeriod(file_handle,3,0);
+% % %            obj.temp_n_samples     = adinstruments.sdk.getNSamplesInRecord(file_handle,3,0);
+% % %            
+% % %            
+% % %            n_ticks_in_record = adinstruments.sdk.getNTicksInRecord(file_handle,3);
+% % %            
+% % %            %JAH: At this point
+% % %            keyboard
+% % % 
+% % %            wtf = adinstruments.sdk.getChannelData(file_handle,3,0,0,9143450,true);
            
         end
     end
