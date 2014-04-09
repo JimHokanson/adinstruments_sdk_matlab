@@ -296,7 +296,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  ADI_GetCommentInfo   <>   getCommentInfo
         //  ====================================================
         //  [result_code,comment_string,comment_length,tick_pos,channel,comment_num] = sdk_mex(8,comment_h)
-        
+        //
+        //  Status: Done
         
         ADI_CommentsHandle commentsH = getCommentsHandle(prhs);
         
@@ -332,6 +333,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  result_code = adinstruments.sdk_mex(9,comments_h);
         //
         //  Returns kResultNoData if there are no more comments ...
+        //
+        //  Status: Done
         
         ADI_CommentsHandle commentsH = getCommentsHandle(prhs);
 
@@ -340,10 +343,22 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else if (function_option == 10)
     {
-        //  ADI_GetSamples   <>
-        //  =================================================
+        //  ADI_GetSamples   <>  
+        //  ===========================================================
+        //  [result,data,n_returned] = sdk_mex(10,file_h,channel_0b,record_0b,startPos,nLength)
         
         fileH          = getFileHandle(prhs);
+        
+        //JAH TODO: At this point ...
+        long channel  = getLongInput(prhs,3);
+        long record   = getLongInput(prhs,4);
+        long startPos = getLongInput(prhs,5);
+        long nLength  = getLongInput(prhs,6);
+        
+        
+        
+        mxCreateNumericMatrix(1,(mwSize)nLength,mxSINGLE_CLASS,mxREAL)
+        
         // Retrieves a block of sample data from the file into a buffer. Samples are in physical
         // prefixed units.
         // Params: fileH    - ADI_FileHandle for the open file
@@ -360,6 +375,9 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         // Return: a ADIResultCode for result of the operation
         //DLLEXPORT ADIResultCode ADI_GetSamples(ADI_FileHandle fileH, long channel, long record, long startPos,
         //  ADICDataFlags dataType, long nLength, float* data, long* returned);
+        out_result[0] = ADI_GetSamples(fileH,channel,record,startPos,dataType,nLength,data,returned)
+        
+        
         
     }
     else if (function_option == 11)
