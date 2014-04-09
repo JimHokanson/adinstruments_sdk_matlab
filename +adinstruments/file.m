@@ -52,11 +52,7 @@ classdef file < sl.obj.handle_light
            
            %JAH: At this point
            keyboard
-           
-           comments_h  = adinstruments.sdk.getCommentAccessor(file_handle,3);
-           result_code = adinstruments.sdk.advanceComments(comments_h);
-           
-           adinstruments.sdk.closeCommentAccessor(comments_h);
+
            
         end
     end

@@ -295,23 +295,46 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
         //  ADI_GetCommentInfo   <>   getCommentInfo
         //  ====================================================
-        //  NOT YET IMPLEMENTED: output might change
-        //  [result_code,comment_info] = ...
+        //  [result_code,comment_string,comment_length,tick_pos,channel,comment_num] = sdk_mex(8,comment_h)
+        
         
         ADI_CommentsHandle commentsH = getCommentsHandle(prhs);
-        //ADIResultCode ADI_GetCommentInfo(ADI_CommentsHandle commentsH, long *tickPos, long *channel, long *commentNum, wchar_t* text,long maxChars, long *textLen);
+        
+        wchar_t *messageOut = getStringOutputPointer(plhs,1);
+        long tickPos    = 0;
+        long channel    = 0;
+        long commentNum = 0;
+        long textLen    = 0;
+        
+        
+       //ADIResultCode ADI_GetCommentInfo(ADI_CommentsHandle commentsH, long *tickPos, long *channel, long *commentNum, wchar_t* text,long maxChars, long *textLen);
+       //          tickPos                 - receives the tick position of the comment in the record [outparam]
+       //          commentNum              - receives the number of the comment [outparam]
+       //          channel                 - receives the channel of the comment (-1 for all channel comments) [outparam]
+       //          text                    - buffer to receive null terminated text for the comment (optional, may be NULL) [outparam]
+       //          maxChars                - the size of the text buffer in wchar_t s. The text will be truncated to fit in this size
+       //          textLen                 - receives the number of characters needed to hold the full comment text, 
+       //                                    even if parameter text is NULL (optional, may be NULL) [outparam]
+        
+        out_result[0] = ADI_GetCommentInfo(commentsH,&tickPos,&channel,&commentNum,messageOut,MAX_STRING_LENGTH,&textLen);
+    
+        setLongOutput(plhs,2,textLen);
+        setLongOutput(plhs,3,tickPos);
+        setLongOutput(plhs,4,channel);
+        setLongOutput(plhs,5,commentNum);
+        
     }
     else if (function_option == 9)
     {
         
-        //  ADI_NextComment  <>
+        //  ADI_NextComment  <>  advanceComments
         //  ==================================================
+        //  result_code = adinstruments.sdk_mex(9,comments_h);
+        //
+        //  Returns kResultNoData if there are no more comments ...
         
         ADI_CommentsHandle commentsH = getCommentsHandle(prhs);
-        // Advances the comments accessor to the next comment in the record
-        // Params: ADI_CommentsHandle       - handle to a comments accessor
-        // Returns kResultNoData if this accessor has reached the end of the comments in the record.
-        
+
         //ADIResultCode ADI_NextComment(ADI_CommentsHandle commentsH);
         out_result[0] = ADI_NextComment(commentsH);
     }
@@ -394,10 +417,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         ADIResultCode code  = (ADIResultCode)getLongInput(prhs,1);
         
         //ADIResultCode ADI_GetErrorMessage(ADIResultCode code, wchar_t* messageOut, long maxChars, long *textLen);
-        out_result[0] = ADI_GetErrorMessage(code, messageOut, MAX_STRING_LENGTH, &textLen);
-        
-        printf("Length %d\n",textLen);
-        
+        out_result[0] = ADI_GetErrorMessage(code, messageOut, MAX_STRING_LENGTH, &textLen);        
         setLongOutput(plhs,2,textLen);
         
     }

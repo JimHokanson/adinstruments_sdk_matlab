@@ -181,7 +181,7 @@ classdef sdk
             result_code = adinstruments.sdk_mex(7,comments_h);
             adinstruments.sdk.handleErrorCode(result_code);
         end
-        function result_code = advanceComments(comments_h)
+        function has_comment = advanceComments(comments_h)
             %
             %
             %   result_code = adinstruments.sdk.advanceComments(comments_h);
@@ -189,16 +189,38 @@ classdef sdk
             %TODO: replace with better result code
             %See getCommentAccessor for similar handling ...
             
+            has_comment = true;
             result_code = adinstruments.sdk_mex(9,comments_h);
-        end
-        function comment_info = getCommentInfo(comments_h)
+            if mod(result_code,16) == 5
+                has_comment = false;
+            else
+                adinstruments.sdk.handleErrorCode(result_code);
+            end
             
         end
-        function handleErrorCode(result_code,function_name)
+        function comment_info = getCommentInfo(comments_h)
+            %
+            %   
+            %   comment_info = adinstruments.sdk.getCommentInfo(comments_h)
+            
+           [result_code,comment_string_data,comment_length,tick_pos,channel,comment_num] = adinstruments.sdk_mex(8,comments_h);
+           if result_code == 0
+               comment_string = adinstruments.sdk.getStringFromOutput(comment_string_data,comment_length);
+               comment_info   = adinstruments.comment(comment_string,tick_pos,channel,comment_num);
+           else 
+               adinstruments.sdk.handleErrorCode(result_code);
+               comment_info = [];
+           end
+
+
+        end
+        function handleErrorCode(result_code)
             %
             %
             %   adinstruments.sdk.handleErrorCode(result_code)
             %
+            %   If there is an error this function will throw an error
+            %   and display the relevant error string given the error code
             
             %TODO: Allow only getting the string (make separate function)
             
@@ -208,17 +230,37 @@ classdef sdk
             %TODO: Replace with stack evaluation to pull this out
             %automagically
             
-            if ~exist('function_name','var')
-                function_name = 'unspecified__fix_me';
+            if result_code ~= 0
+                temp      = sl.stack.calling_function_info;
+                errorID   = sprintf('ADINSTRUMENTS:SDK:%s',temp.name);
+                error_msg = adinstruments.sdk.getErrorMessage(result_code);
+                %TODO: Create a clean id - move to a function
+                
+                errorID = regexprep(errorID,'\.',':');
+                
+                error(errorID,[errorID '  ' error_msg]);
             end
+        end
+        function error_msg = getErrorMessage(result_code)
+            %
+            %
+            %   error_msg = adinstruments.sdk.getErrorMessage(result_code)
             
-            if result_code == 0
-                %We're good
-            else
-                [~,err_msg,err_msg_len] = adinstruments.sdk_mex(14,int32(result_code));
-                err_msg = char(err_msg(1:err_msg_len));
-                error(sprintf('ADINSTRUMENTS:SDK:%s',function_name),err_msg);
-            end
+        	[~,err_msg_data,err_msg_len] = adinstruments.sdk_mex(14,int32(result_code));
+        	error_msg = adinstruments.sdk.getStringFromOutput(err_msg_data,err_msg_len);
+        end
+        function str = getStringFromOutput(int16_data,str_length)
+            %
+            %   This is a helper function for whenever we get a string out.
+            %
+            %   str = adinstruments.sdk.getStringFromOutput(int16_data,str_length)
+            %
+            %   TODO: Make hidden
+            %
+            
+            %str_length - apparently contains the null character, we'll
+            %ignore the null character here ...
+            str = char(int16_data(1:str_length-1));
         end
     end
     
