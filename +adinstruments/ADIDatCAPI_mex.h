@@ -30,6 +30,7 @@
 */
 
 //JAH Modifications
+//====================================================
 //- removed trailing comma in enumerations
 //- made enumerations typedef and added explicit alias
 

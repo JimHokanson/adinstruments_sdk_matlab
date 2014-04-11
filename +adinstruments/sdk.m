@@ -1,10 +1,27 @@
 classdef sdk
     %
-    %   Class: adinstruments.sdk
+    %   Class: 
+    %   adinstruments.sdk
+    %
+    %   This 
     %
     %
-    %   tick - sampling rate of fastest channel
+    %   Some definitions:
+    %   =================================================
+    %   tick   : sampling rate of fastest channel
+    %   record : Records can be somewhat equivalent to trials or blocks
+    %       in other experimental setups. Each file can consist of 1 or
+    %       more records. Each time the start/stop button is pressed a new
+    %       record is created. Additionally, changes to the channel setup
+    %       warrant creation of a new record (such as a change in the
+    %       sampling rate)
+    %   
     %
+    %   NOTE:
+    %   Since Matlab's importing is subpar, but since it allows calling
+    %   static methods from an instance of a class, one can instiate this
+    %   class to allow shorter calling of the static methods of the class.
+    %   
     
     properties
     end
@@ -14,8 +31,11 @@ classdef sdk
             %
             %   adinstruments.sdk.make_mex
             
+            %TODO: Move code locally
             base_path = sl.dir.getMyBasePath;
-            wd = cd;
+            
+            
+            wd = cd; %wd - working directory
             cd(base_path)
             try
                 
@@ -31,7 +51,8 @@ classdef sdk
                 
                 for iFile = 1:3
                     cur_file_path = fullfile(base_path,file_names{iFile});
-                    %Let's avoid a warning by checking first ...
+                    %Let's avoid a warning by checking first (delete throws
+                    %a warning when the file is not present)
                     if exist(cur_file_path,'file')
                         delete(cur_file_path)
                     end
@@ -52,61 +73,68 @@ classdef sdk
     %record - record id, 0 based ...
     
     methods (Static)
+        %File specific functions
+        %------------------------------------------------------------------
         function file = openFile(file_path)
             %
-            %     file = adinstruments.sdk.openFile(file_path)
+            %   file = adinstruments.sdk.openFile(file_path)
             %
-            %   NOTE: Currently only reading is supported ...
+            %   NOTE: Only reading is supported.
             %
-            %   STATUS: Done, except result code is not handled
+            %   STATUS: DONE
             
-            [result_code,file_handle] = adinstruments.sdk_mex(0,[int16(file_path) 0]);
+            %NOTE: I had trouble with the unicode string conversion so per
+            %some Mathworks forum post I am just using a null terminated
+            %array of int16s
+            [result_code,pointer_value] = adinstruments.sdk_mex(0,[int16(file_path) 0]);
+            
+            file_h = adinstruments.file_handle(pointer_value);
             
             adinstruments.sdk.handleErrorCode(result_code)
             
-            file = adinstruments.file(file_path,file_handle);
+            file = adinstruments.file(file_path,file_h);
             
         end
-        function closeFile(file_handle)
+        function closeFile(pointer_value)
             %
+            %   adinstruments.sdk.closeFile(file_h)
             %
-            %   Status: Seems Fine
-            %   - I think I was running into a problem when trying
-            %       to clear the file after the mex file had been cleared
+            %   Status: DONE
             
-            result_code = adinstruments.sdk_mex(13,file_handle);
+            result_code = adinstruments.sdk_mex(13,pointer_value);
             adinstruments.sdk.handleErrorCode(result_code)
         end
-        function n_records  = getNumberOfRecords(file_handle)
+        function n_records  = getNumberOfRecords(file_h)
             %
             %
             %   n_records = adinstruments.sdk.getNumberOfRecords(file_handle)
             %
             %   Status: DONE
             
-            
-            [result_code,n_records] = adinstruments.sdk_mex(1,file_handle);
+            [result_code,n_records] = adinstruments.sdk_mex(1,file_h.pointer_value);
             adinstruments.sdk.handleErrorCode(result_code)
             n_records = double(n_records);
         end
-        function n_channels = getNumberOfChannels(file_handle)
+        function n_channels = getNumberOfChannels(file_h)
             %
             %
-            %   n_channels = adinstruments.sdk.getNumberOfChannels(file_handle)
+            %   n_channels = adinstruments.sdk.getNumberOfChannels(file_h)
             %
             %   Outputs:
             %   ===========================================================
             %   n_channels : The # of physical channels of recorded data
             %   across all records. For some records some channels may not
             %   have any data. A channel is identified by (??? name ??,
-            %   hardware id????)
+            %   hardware id????, i.e. what makes channel unique?)
             %
             %   Status: DONE
             
-            [result_code,n_channels] = adinstruments.sdk_mex(2,file_handle);
+            [result_code,n_channels] = adinstruments.sdk_mex(2,file_h.pointer_value);
             adinstruments.sdk.handleErrorCode(result_code)
             n_channels = double(n_channels);
         end
+        %Record specific functions
+        %------------------------------------------------------------------
         function n_ticks_in_record = getNTicksInRecord(file_handle,record_idx_0b)
             %
             %
@@ -137,22 +165,8 @@ classdef sdk
             [result_code,dt_tick] = adinstruments.sdk_mex(4,file_handle,int32(record_idx_0b),int32(channel_idx_0b));
             adinstruments.sdk.handleErrorCode(result_code)
         end
-        function n_samples  = getNSamplesInRecord(file_handle,record_idx_0b,channel_idx_0b)
-            %
-            %
-            %
-            %
-            %   TODO: UNFINISHED
-            
-            [result_code,n_samples] = adinstruments.sdk_mex(5,file_handle,int32(record_idx_0b),int32(channel_idx_0b));
-            %result_code 1 => "the operation completed successfully"
-            if result_code ~= 0 && result_code ~= 1
-                adinstruments.sdk.handleErrorCode(result_code)
-            end
-            n_samples = double(n_samples);
-        end
-        
         %Comment specific functions
+        %------------------------------------------------------------------
         function comments_h = getCommentAccessor(file_handle,record_idx_0b)
             %
             %
@@ -222,7 +236,29 @@ classdef sdk
                 comment_info = [];
             end
         end
-        
+        %Channel specific functions
+        %------------------------------------------------------------------
+        function n_samples  = getNSamplesInRecord(file_h,record,channel)
+            %
+            %
+            %   n_samples  = adinstruments.sdk.getNSamplesInRecord(file_handle,record,channel)
+            %
+            %   INPUTS
+            %   ===========================================
+            %   record  : (0 based)
+            %   channel : (0 based)
+            %
+            %   Status: DONE
+            
+            [result_code,n_samples] = adinstruments.sdk_mex(5,file_h,int32(record),int32(channel));
+            %result_code 1 => "the operation completed successfully"
+            %
+            %I think "1" occurs for a null channel which has no data
+            if result_code ~= 0 && result_code ~= 1
+                adinstruments.sdk.handleErrorCode(result_code)
+            end
+            n_samples = double(n_samples);
+        end
         function output_data  = getChannelData(file_h,record_0b,channel_0b,start_sample_0b,n_samples_get,get_samples)
             %
             %
@@ -292,6 +328,8 @@ classdef sdk
             end
             
         end
+        %Helper functions
+        %------------------------------------------------------------------
         function handleErrorCode(result_code)
             %
             %

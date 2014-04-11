@@ -1,6 +1,12 @@
 classdef channel < handle
     %
     %   Class: adinstruments.channel
+    %
+    %
+    %   TODOs
+    %   ===================================================
+    %   1) The call to tick period needs to be replace with a call to
+    %   getting the sampling frequency
     
     properties
        id 
@@ -42,7 +48,6 @@ classdef channel < handle
            obj.n_samples = temp_n_samples;
            obj.dt = temp_tick_period;
            obj.fs = 1./(obj.dt);
-           
         end
     end
     
