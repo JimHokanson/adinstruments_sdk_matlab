@@ -97,7 +97,14 @@ classdef sdk
         end
         function closeFile(pointer_value)
             %
-            %   adinstruments.sdk.closeFile(file_h)
+            %   adinstruments.sdk.closeFile(pointer_value)
+            %
+            %   Since this method should only be called by:
+            %    adinstruments.file_handle.delete()
+            %
+            %   and since that is the deconstructor method of that object
+            %   it seemed weird to pass in that object ot this method, so
+            %   instead the pointer value is passed in directly.
             %
             %   Status: DONE
             
@@ -105,9 +112,11 @@ classdef sdk
             adinstruments.sdk.handleErrorCode(result_code)
         end
         function n_records  = getNumberOfRecords(file_h)
+            %getNumberOfRecords  Get the number of records for a file.
             %
+            %   n_records = adinstruments.sdk.getNumberOfRecords(file_h)
             %
-            %   n_records = adinstruments.sdk.getNumberOfRecords(file_handle)
+            %   See definition of the "records" in the definition section.
             %
             %   Status: DONE
             
@@ -116,7 +125,7 @@ classdef sdk
             n_records = double(n_records);
         end
         function n_channels = getNumberOfChannels(file_h)
-            %
+            %getNumberOfChannels  Get # of channels for a file.
             %
             %   n_channels = adinstruments.sdk.getNumberOfChannels(file_h)
             %
@@ -135,8 +144,10 @@ classdef sdk
         end
         %Record specific functions
         %------------------------------------------------------------------
-        function n_ticks_in_record = getNTicksInRecord(file_handle,record_idx_0b)
+        function n_ticks_in_record = getNTicksInRecord(file_h,record)
             %
+            %
+            %   n_ticks_in_record = getNTicksInRecord(file_h,record)
             %
             %   Outputs:
             %   ===========================================================
@@ -146,79 +157,76 @@ classdef sdk
             %
             %   Status: DONE
             
-            [result_code,n_ticks_in_record] = adinstruments.sdk_mex(3,file_handle,int32(record_idx_0b));
+            c = @int32;
+            
+            [result_code,n_ticks_in_record] = adinstruments.sdk_mex(3,file_h.pointer_value,c(record));
             adinstruments.sdk.handleErrorCode(result_code)
             n_ticks_in_record = double(n_ticks_in_record);
             
         end
-        function dt_tick    = getTickPeriod(file_handle,record_idx_0b,channel_idx_0b)
+        function dt_tick = getTickPeriod(file_h,record,channel)
             %
             %
-            %   dt_tick = adinstruments.sdk.getTickPeriod(file_handle,record_idx_0b,channel_idx_0b)
+            %   dt_tick = adinstruments.sdk.getTickPeriod(file_handle,record,channel)
             %
             %   Outputs:
             %   ===========================================================
-            %   dt_tick
+            %   dt_tick : 
             %
             %   STATUS: DONE
             
-            [result_code,dt_tick] = adinstruments.sdk_mex(4,file_handle,int32(record_idx_0b),int32(channel_idx_0b));
+            c = @int32;
+            
+            [result_code,dt_tick] = adinstruments.sdk_mex(4,file_h.pointer_value,c(record),c(channel));
             adinstruments.sdk.handleErrorCode(result_code)
         end
         %Comment specific functions
         %------------------------------------------------------------------
-        function comments_h = getCommentAccessor(file_handle,record_idx_0b)
+        function comments_h = getCommentAccessor(file_h,record)
             %
             %
             %   comments_h = adinstruments.sdk.getCommentAccessor(file_handle,record_idx_0b)
+            %
+            %   comments_h :adinstruments.comment_handle 
             
-            [result_code,comments_h] = adinstruments.sdk_mex(6,file_handle,int32(record_idx_0b));
-            if mod(result_code,16) == 5
-                
-                %TODO: Do I want to do the literal error check here ???
-                
-                %See:
-                %http://forum.adinstruments.com/viewtopic.php?f=7&t=551
-                
-                %Then there are no comments
-                %-1610313723 - data requested not present => xA0049005
-                comments_h  = 0;
+            c = @int32;
+            
+            [result_code,comment_pointer] = adinstruments.sdk_mex(6,file_h.pointer_value,c(record));
+            if adinstruments.sdk.isMissingCommentError(result_code)
+                %
+                %   Checks for the "no comments" error
+                %
+              
+                comments_h  = adinstruments.comment_handle(0,false,record);
             else
                 adinstruments.sdk.handleErrorCode(result_code)
-            end
-            
-            %TODO: Do I want to return a comments object ...???
-            
-            
+                comments_h  = adinstruments.comment_handle(comment_pointer,true,record);
+            end            
         end
         function closeCommentAccessor(comments_h)
             %
             %
             %   adinstruments.sdk.closeCommentAccessor(comments_h);
             
-            %TODO: Do I want to check for a null comment handle
-            %and ignore it or just it pass ???
-            if comments_h == 0
+            if ~comments_h.is_valid
                 return
             end
             
-            result_code = adinstruments.sdk_mex(7,comments_h);
+            result_code = adinstruments.sdk_mex(7,comments_h.pointer_value);
             adinstruments.sdk.handleErrorCode(result_code);
         end
         function has_comment  = advanceComments(comments_h)
             %
             %
             %   result_code = adinstruments.sdk.advanceComments(comments_h);
+
+            result_code = adinstruments.sdk_mex(9,comments_h.pointer_value);
             
-            %TODO: replace with better result code
-            %See getCommentAccessor for similar handling ...
-            
-            has_comment = true;
-            result_code = adinstruments.sdk_mex(9,comments_h);
-            if mod(result_code,16) == 5
+            if adinstruments.sdk.isMissingCommentError(result_code)
                 has_comment = false;
             else
                 adinstruments.sdk.handleErrorCode(result_code);
+                has_comment = true;
             end
             
         end
@@ -228,6 +236,7 @@ classdef sdk
             %   comment_info = adinstruments.sdk.getCommentInfo(comments_h)
             
             [result_code,comment_string_data,comment_length,tick_pos,channel,comment_num] = adinstruments.sdk_mex(8,comments_h);
+            
             if result_code == 0
                 comment_string = adinstruments.sdk.getStringFromOutput(comment_string_data,comment_length);
                 comment_info   = adinstruments.comment(comment_string,tick_pos,channel,comment_num);
@@ -259,8 +268,10 @@ classdef sdk
             end
             n_samples = double(n_samples);
         end
-        function output_data  = getChannelData(file_h,record_0b,channel_0b,start_sample_0b,n_samples_get,get_samples)
+        function output_data  = getChannelData(file_h,record,channel,start_sample,n_samples_get,get_samples)
             %
+            %
+            %   output_data  = getChannelData(file_h,record,channel,start_sample,n_samples_get,get_samples)
             %
             %   INPUTS
             %   ========================================
@@ -280,8 +291,8 @@ classdef sdk
                 data_type = bitset(data_type,32);
             end
             
-            [result_code,data,n_returned] = adinstruments.sdk_mex(10,file_h,c(channel_0b),...
-                c(record_0b),c(start_sample_0b),c(n_samples_get),data_type);
+            [result_code,data,n_returned] = adinstruments.sdk_mex(10,file_h,c(channel),...
+                c(record),c(start_sample),c(n_samples_get),data_type);
             
             adinstruments.sdk.handleErrorCode(result_code)
             
@@ -298,11 +309,13 @@ classdef sdk
             %
             %   channel_name = adinstruments.sdk.getChannelName(file_h,channel)
             %
+            %   Status: DONE
             
             c = @int32;
             
             [result_code,str_data,str_length] = adinstruments.sdk_mex(11,file_h,c(record),c(channel));
             
+            %TODO: Replace with function call to isGoodResultCode
             if result_code == 0 || result_code == 1
                 units = adinstruments.sdk.getStringFromOutput(str_data,str_length);
             else
@@ -316,6 +329,8 @@ classdef sdk
             %
             %   channel_name = adinstruments.sdk.getChannelName(file_h,channel)
             %
+            %   Status: DONE
+            
             c = @int32;
             
             [result_code,str_data,str_length] = adinstruments.sdk_mex(12,file_h,c(channel));
@@ -330,6 +345,24 @@ classdef sdk
         end
         %Helper functions
         %------------------------------------------------------------------
+        function is_missing_comment_code = isMissingCommentError(result_code)
+            %
+            %
+            %   is_missing_comment_code = adinstruments.sdk.isMissingCommentError(result_code)
+            
+              
+            %TODO: Do I want to do the literal error check here instead
+            %of the mod????
+            
+            %Relevant Link:
+            %http://forum.adinstruments.com/viewtopic.php?f=7&t=551
+
+            %If there are no comments, the result_code is:
+            %-1610313723 - data requested not present => xA0049005
+            
+            is_missing_comment_code = mod(result_code,16) == 5;
+            
+        end
         function handleErrorCode(result_code)
             %
             %
@@ -337,9 +370,7 @@ classdef sdk
             %
             %   If there is an error this function will throw an error
             %   and display the relevant error string given the error code
-            
-            %TODO: Allow only getting the string (make separate function)
-            
+                        
             %Relevant forum post:
             %http://forum.adinstruments.com/viewtopic.php?f=7&t=551
             

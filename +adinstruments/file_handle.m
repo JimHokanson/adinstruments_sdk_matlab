@@ -16,6 +16,8 @@ classdef (Hidden) file_handle < handle
            obj.pointer_value = pointer_value;
         end
         function delete(obj)
+           %
+           %    
            adinstruments.sdk.closeFile(obj.pointer_value);
         end
     end

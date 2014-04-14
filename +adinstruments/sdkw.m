@@ -12,7 +12,7 @@ classdef sdkw
     end
     
     methods (Static)
-        function comments = getAllCommentsForRecord(file_handle,record_0b)
+        function comments = getAllCommentsForRecord(file_h,record_0b)
             %
             %
             %   comments = adinstruments.sdkw.getAllCommentsForRecord(file_handle,record_0b)
@@ -21,18 +21,14 @@ classdef sdkw
             %TODO: Add sort by time or id 
             
             MAX_NUMBER_COMMENTS = 1000; %NOTE: Overflow of this value
-            %just causes things to slow down, not a critical error
+            %just causes things to slow down, it is not a critical error
             
             sdk = adinstruments.sdk;
             
             temp_comments_ca = cell(1,MAX_NUMBER_COMMENTS);
-            comments_h = sdk.getCommentAccessor(file_handle,record_0b);
-            
-            %NOTE: If the above call fails, it returns 0, let's change that
-            %interface, create two outputs ...
-            
-            %TODO: Replace with object and prop for testing ...
-            if comments_h == 0
+            comments_h = sdk.getCommentAccessor(file_h,record_0b);
+
+            if ~comments_h.is_valid
                comments = [];
                return
             end

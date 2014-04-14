@@ -1,4 +1,4 @@
-classdef channel < handle
+classdef (Hidden) channel < handle
     %
     %   Class: adinstruments.channel
     %

@@ -1,4 +1,4 @@
-classdef record < sl.obj.handle_light
+classdef (Hidden) record < sl.obj.handle_light
     %
     %   Class:
     %   adinstruments.record
@@ -12,17 +12,17 @@ classdef record < sl.obj.handle_light
     end
     
     properties (Hidden)
-       file_handle 
+       file_h %adinstruments.file_handle
     end
     
     methods
-        function obj = record(record_id,file_handle)
-           obj.file_handle = file_handle;
-           obj.record_id   = record_id;
+        function obj = record(record_id,file_h)
+           obj.file_h    = file_h;
+           obj.record_id = record_id;
            
-           obj.n_ticks  = adinstruments.sdk.getNTicksInRecord(file_handle,record_id);
+           obj.n_ticks  = adinstruments.sdk.getNTicksInRecord(file_h,record_id);
            
-           obj.comments = adinstruments.sdkw.getAllCommentsForRecord(file_handle,record_id);
+           obj.comments = adinstruments.sdkw.getAllCommentsForRecord(file_h,record_id);
         end
     end
     
