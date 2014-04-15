@@ -259,7 +259,9 @@ classdef sdk
             %
             %   Status: DONE
             
-            [result_code,n_samples] = adinstruments.sdk_mex(5,file_h,int32(record),int32(channel));
+            c = @int32;
+            
+            [result_code,n_samples] = adinstruments.sdk_mex(5,file_h,c(record),c(channel));
             %result_code 1 => "the operation completed successfully"
             %
             %I think "1" occurs for a null channel which has no data
@@ -285,7 +287,7 @@ classdef sdk
             
             c = @int32;
             
-            data_type = int32(0);
+            data_type = c(0);
             if ~get_samples
                 %get in tick units
                 data_type = bitset(data_type,32);
@@ -313,7 +315,7 @@ classdef sdk
             
             c = @int32;
             
-            [result_code,str_data,str_length] = adinstruments.sdk_mex(11,file_h,c(record),c(channel));
+            [result_code,str_data,str_length] = adinstruments.sdk_mex(11,file_h.pointer_value,c(record),c(channel));
             
             %TODO: Replace with function call to isGoodResultCode
             if result_code == 0 || result_code == 1
@@ -333,7 +335,7 @@ classdef sdk
             
             c = @int32;
             
-            [result_code,str_data,str_length] = adinstruments.sdk_mex(12,file_h,c(channel));
+            [result_code,str_data,str_length] = adinstruments.sdk_mex(12,file_h.pointer_value,c(channel));
             
             if result_code == 0
                 channel_name = adinstruments.sdk.getStringFromOutput(str_data,str_length);
