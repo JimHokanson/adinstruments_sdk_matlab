@@ -27,9 +27,9 @@ classdef sdk
     end
     
     methods (Static,Hidden)
-        function make_mex()
+        function makeMex()
             %
-            %   adinstruments.sdk.make_mex
+            %   adinstruments.sdk.makeMex
             
             %TODO: Move code locally
             base_path = sl.dir.getMyBasePath;
@@ -289,8 +289,10 @@ classdef sdk
                 data_type = bitset(data_type,32);
             end
             
-            [result_code,data,n_returned] = adinstruments.sdk_mex(10,file_h,c(channel),...
-                c(record),c(start_sample),c(n_samples_get),data_type);
+            [result_code,data,n_returned] = adinstruments.sdk_mex(10,...
+                        file_h.pointer_value,c(channel),...
+                        c(record),c(start_sample),...
+                        c(n_samples_get),data_type);
             
             adinstruments.sdk.handleErrorCode(result_code)
             
