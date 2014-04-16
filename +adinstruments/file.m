@@ -10,33 +10,25 @@ classdef (Hidden) file < sl.obj.handle_light
     properties
        n_records
        n_channels
-       records
-       channel_specs
+       records       %adinstruments.record
+       channel_specs %adinstruments.channel
     end
-    
-    properties
-       %These will be changed ...
-       temp_secs_per_tick
-       temp_n_samples
-    end
-    
-    %Make read only?
-    properties
-       file_handle %int32 or int64 - depends on bits ...
-       comment_accessor
-    end
-    
+
     methods
         function obj = file(file_path,file_h)
            %
            %    Created by the sdk
+           %
+           %    See Also:
+           %    
            
            obj.file_path   = file_path;
-           obj.file_handle = file_h;
            
            obj.n_records  = adinstruments.sdk.getNumberOfRecords(file_h);
            obj.n_channels = adinstruments.sdk.getNumberOfChannels(file_h);
            
+           %Get record objects
+           %-------------------------------------------
            temp = cell(1,obj.n_records);
            
            for iRec = 1:obj.n_records
@@ -46,9 +38,12 @@ classdef (Hidden) file < sl.obj.handle_light
            
            obj.records = [temp{:}];
            
+           %Get channel objects
+           %-------------------------------------------
            temp = cell(1,obj.n_channels);
            
            for iChan = 1:obj.n_channels
+              %NOTE: pass in id as 0 based 
               temp{iChan} = adinstruments.channel(file_h,iChan-1,obj.n_records);
            end
            

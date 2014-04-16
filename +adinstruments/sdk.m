@@ -68,10 +68,6 @@ classdef sdk
         end
     end
     
-    %TODO: Create standard names for input
-    %file_h - ADI_FileHandle
-    %record - record id, 0 based ...
-    
     methods (Static)
         %File specific functions
         %------------------------------------------------------------------
@@ -80,6 +76,10 @@ classdef sdk
             %   file = adinstruments.sdk.openFile(file_path)
             %
             %   NOTE: Only reading is supported.
+            %
+            %   Outputs
+            %   ===============================================
+            %   file :adinstruments.file
             %
             %   STATUS: DONE
             
@@ -203,30 +203,29 @@ classdef sdk
                 comments_h  = adinstruments.comment_handle(comment_pointer,true,record);
             end            
         end
-        function closeCommentAccessor(comments_h)
+        function closeCommentAccessor(pointer_value)
             %
             %
-            %   adinstruments.sdk.closeCommentAccessor(comments_h);
+            %   adinstruments.sdk.closeCommentAccessor(pointer_value);
+            %
+            %   This should only be called by:
+            %   adinstruments.comment_handle
             
-            if ~comments_h.is_valid
-                return
-            end
-            
-            result_code = adinstruments.sdk_mex(7,comments_h.pointer_value);
+            result_code = adinstruments.sdk_mex(7,pointer_value);
             adinstruments.sdk.handleErrorCode(result_code);
         end
-        function has_comment  = advanceComments(comments_h)
+        function has_another_comment  = advanceComments(comments_h)
             %
             %
-            %   result_code = adinstruments.sdk.advanceComments(comments_h);
+            %   has_another_comment = adinstruments.sdk.advanceComments(comments_h);
 
             result_code = adinstruments.sdk_mex(9,comments_h.pointer_value);
             
             if adinstruments.sdk.isMissingCommentError(result_code)
-                has_comment = false;
+                has_another_comment = false;
             else
                 adinstruments.sdk.handleErrorCode(result_code);
-                has_comment = true;
+                has_another_comment = true;
             end
             
         end
@@ -235,7 +234,7 @@ classdef sdk
             %
             %   comment_info = adinstruments.sdk.getCommentInfo(comments_h)
             
-            [result_code,comment_string_data,comment_length,tick_pos,channel,comment_num] = adinstruments.sdk_mex(8,comments_h);
+            [result_code,comment_string_data,comment_length,tick_pos,channel,comment_num] = adinstruments.sdk_mex(8,comments_h.pointer_value);
             
             if result_code == 0
                 comment_string = adinstruments.sdk.getStringFromOutput(comment_string_data,comment_length);
@@ -247,7 +246,7 @@ classdef sdk
         end
         %Channel specific functions
         %------------------------------------------------------------------
-        function n_samples  = getNSamplesInRecord(file_h,record,channel)
+        function n_samples    = getNSamplesInRecord(file_h,record,channel)
             %
             %
             %   n_samples  = adinstruments.sdk.getNSamplesInRecord(file_handle,record,channel)
@@ -261,11 +260,9 @@ classdef sdk
             
             c = @int32;
             
-            [result_code,n_samples] = adinstruments.sdk_mex(5,file_h,c(record),c(channel));
-            %result_code 1 => "the operation completed successfully"
-            %
-            %I think "1" occurs for a null channel which has no data
-            if result_code ~= 0 && result_code ~= 1
+            [result_code,n_samples] = adinstruments.sdk_mex(5,file_h.pointer_value,c(record),c(channel));
+
+            if ~adinstruments.sdk.checkNullChannelErrorCodes(result_code)
                 adinstruments.sdk.handleErrorCode(result_code)
             end
             n_samples = double(n_samples);
@@ -306,7 +303,7 @@ classdef sdk
             output_data = double(data); %Matlab can get finicky working with singles
             
         end
-        function units = getUnits(file_h,record,channel)
+        function units        = getUnits(file_h,record,channel)
             %
             %
             %   channel_name = adinstruments.sdk.getChannelName(file_h,channel)
@@ -345,8 +342,35 @@ classdef sdk
             end
             
         end
+        function dt_channel   = getSamplePeriod(file_h,channel,record)
+            %
+            %
+            %   dt_channel   = getSamplePeriod(file_h,channel,record)
+            %
+            
+            c = @int32; 
+            
+           [result_code,dt_channel] = adinstruments.sdk_mex(15,file_h.pointer_value,c(record),c(channel));
+           if ~adinstruments.sdk.checkNullChannelErrorCodes(result_code)
+              adinstruments.sdk.handleErrorCode(result_code)
+           end
+        end
         %Helper functions
         %------------------------------------------------------------------
+        function is_ok = checkNullChannelErrorCodes(result_code)
+           %
+           %
+           %    is_ok = adinstruments.sdk.checkNullChannelErrorCodes(result_code)
+           %
+           %    For some reason there is a non-zero error code when
+           %    retrieving information about a channel during a record in
+           %    which there is no data for that channel. The error message
+           %    is: "the operation completed successfully"
+           
+           is_ok = result_code == 0 || result_code == 1;
+           %result_code == 1
+           %"the operation completed successfully"
+        end
         function is_missing_comment_code = isMissingCommentError(result_code)
             %
             %

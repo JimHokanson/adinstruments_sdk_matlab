@@ -18,7 +18,9 @@ classdef sdkw
             %   comments = adinstruments.sdkw.getAllCommentsForRecord(file_handle,record_0b)
             %
             
-            %TODO: Add sort by time or id 
+            %TODO: Add sort by time or id
+            %
+            %NOTE: I'm not sure in what order the comments are returned ...
             
             MAX_NUMBER_COMMENTS = 1000; %NOTE: Overflow of this value
             %just causes things to slow down, it is not a critical error
@@ -35,18 +37,18 @@ classdef sdkw
             
             %Once the accessor is retrieved, the first comment can be
             %accessed.
-            temp_comments_ca{1} = sdk.getCommentInfo(comments_h);
+            temp_comments_ca{1} = comments_h.getCurrentComment();
             
             cur_comment_index = 1;
-            while sdk.advanceComments(comments_h)
+            while comments_h.advanceCommentPointer()
                cur_comment_index = cur_comment_index + 1;
                %fprintf(2,'Getting comment: %d\n',cur_comment_index);
-               temp_comments_ca{cur_comment_index} = sdk.getCommentInfo(comments_h);
+               temp_comments_ca{cur_comment_index} = comments_h.getCurrentComment();
             end
             
             comments = [temp_comments_ca{1:cur_comment_index}];
             
-            adinstruments.sdk.closeCommentAccessor(comments_h);
+            comments_h.close();
         end
     end
     

@@ -34,7 +34,7 @@ void setDoubleOutput(mxArray *plhs[],int index, double value)
     //NOTE: We've hardcoded the output to be a scalar
     plhs[index] = mxCreateNumericMatrix(1,1,mxDOUBLE_CLASS,mxREAL);
     double *p_value;
-    p_value    = (double *)mxGetData(plhs[1]);
+    p_value    = (double *)mxGetData(plhs[index]);
     p_value[0] = value;
 }
 
@@ -83,22 +83,11 @@ int getLongInput(const mxArray *prhs[], int index)
 }
 //===================================================================
 
-// void setHandle(mxArray *plhs[],int index, long value)
-// {
-//
-//             int *fh_pointer;
-//         plhs[1]    = mxCreateNumericMatrix(1,1,mxINT32_CLASS,mxREAL);
-//         fh_pointer = (int *) mxGetData(plhs[1]);
-//         if (result == 0)
-//             fh_pointer[0] = (int)fileH;
-//         else
-//             fh_pointer[0] = 0;
-//
-//
-// }
-
 ADI_FileHandle getFileHandle(const mxArray *prhs[])
 {
+    //
+    //  NOTE: This assumes that the file handle will be the second input
+    //  to the function, after the function option (i.e. index 1)
     
     //TODO: I can replace this now with a call to getLongInput ...
     int *input_file_handle;
@@ -415,6 +404,9 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else if (function_option == 13)
     {
+        //  ADI_CloseFile   <>   closeFile
+        //  ==============================================================
+        //  
         
         fileH          = getFileHandle(prhs);
         result         = ADI_CloseFile(&fileH);
@@ -422,7 +414,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else if (function_option == 14)
     {
-        //  ADI_GetErrorMessage
+        //  ADI_GetErrorMessage   <>   getErrorMessage
         //  ==============================================================
         //  err_msg = sdk_mex(14,error_code)
         
@@ -438,11 +430,22 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else if (function_option == 15)
     {
+       //   ADI_GetRecordSamplePeriod   <>   getSamplePeriod
+       //   ==============================================================
+       //   [result_code,dt_channel] = sdk_mex(15,file_h,record,channel)    
         
+        fileH        = getFileHandle(prhs);
+        long record  = getLongInput(prhs,2);
+        long channel = getLongInput(prhs,3);
+        double secsPerSample = 0;
+        
+        out_result[0] = ADI_GetRecordSamplePeriod(fileH, channel, record, &secsPerSample); 
+        setDoubleOutput(plhs,1,secsPerSample);
     }
     else
     {
-        out_result[0] = 3;
+        mexErrMsgIdAndTxt("adinstruments:sdk_mex",
+           "Invalid function option");
     }
     
     //ADI_GetRecordSamplePeriod
