@@ -193,10 +193,6 @@ classdef sdk
             
             [result_code,comment_pointer] = adinstruments.sdk_mex(6,file_h.pointer_value,c(record));
             if adinstruments.sdk.isMissingCommentError(result_code)
-                %
-                %   Checks for the "no comments" error
-                %
-              
                 comments_h  = adinstruments.comment_handle(0,false,record);
             else
                 adinstruments.sdk.handleErrorCode(result_code)
@@ -238,7 +234,7 @@ classdef sdk
             
             if result_code == 0
                 comment_string = adinstruments.sdk.getStringFromOutput(comment_string_data,comment_length);
-                comment_info   = adinstruments.comment(comment_string,tick_pos,channel,comment_num);
+                comment_info   = adinstruments.comment(comment_string,tick_pos,channel,comment_num,comments_h.record);
             else
                 adinstruments.sdk.handleErrorCode(result_code);
                 comment_info = [];
@@ -270,7 +266,8 @@ classdef sdk
         function output_data  = getChannelData(file_h,record,channel,start_sample,n_samples_get,get_samples)
             %
             %
-            %   output_data  = getChannelData(file_h,record,channel,start_sample,n_samples_get,get_samples)
+            %   output_data  = adinstruments.sdk.getChannelData(...
+            %                       file_h,record,channel,start_sample,n_samples_get,get_samples)
             %
             %   INPUTS
             %   ========================================
@@ -279,7 +276,9 @@ classdef sdk
             %   record_0b  : record to get the data from
             %   start_sample_0b : first sample to get
             %   n_samples :
-            %   get_samples :
+            %   get_samples : If true data is returned as samples, if
+            %   false, the data are upsampled (sample & hold) to the
+            %   highest rate ...
             %
             
             c = @int32;

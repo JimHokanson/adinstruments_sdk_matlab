@@ -49,6 +49,12 @@ classdef (Hidden) file < sl.obj.handle_light
            
            obj.channel_specs = [temp{:}];           
         end
+        function summarizeRecords(obj)
+           %For each record:
+           %# of comments
+           %which channels contain data
+           %duration of the record
+        end
     end
     
 end
