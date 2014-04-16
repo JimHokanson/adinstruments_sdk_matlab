@@ -8,7 +8,7 @@ to Matlab.
 General parts include:
 
 - sdk class/package (see adinstruments.sdk) - this is the Matlab code that directly interfaces with the mex code
-- sdk_mex (see adinstruments.sdk_mex) - this 
+- sdk_mex (see adinstruments.sdk_mex) - this is the actual mex code which calls the ADInstruments dll
 
 ==============
 Current Status
@@ -16,7 +16,7 @@ Current Status
 
 Although the SDK supports reading and writing, I have currently only exposed, and only plan on exposing, the reading portion.
 
-I am currently finishing exposure of the read methods.
+The methods are nearly all exposed, but I am still working on the interface for calling these methods.
 
 =====
 Usage
@@ -26,5 +26,5 @@ Currently the SDK requires 32 bit Matlab (sorry :/)
 
 .. code-block:: matlab
 
-   adfile = adinstruments.sdk.openFile(file_path);
+   f = adinstruments.readFile(file_path)
 
