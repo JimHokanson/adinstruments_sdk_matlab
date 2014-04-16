@@ -10,6 +10,12 @@ General parts include:
 - sdk class/package (see adinstruments.sdk) - this is the Matlab code that directly interfaces with the mex code
 - sdk_mex (see adinstruments.sdk_mex) - this is the actual mex code which calls the ADInstruments dll
 
+==========
+Motivation
+==========
+
+LabChart provides functionality for exporting data to a '.mat' file, although I have yet to get it to work. I also would prefer not to have files that are simply copies of the original data but in a different format. This code allows reading data directly from LabChart data files.
+
 ==============
 Current Status
 ==============
