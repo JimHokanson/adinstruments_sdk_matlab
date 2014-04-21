@@ -3,19 +3,29 @@
  *      mex sdk_test.cpp ADIDatIOWin.lib
  *
  *      adinstruments.sdk.make_mex()
+ *
+ *      http://www.mathworks.com/help/matlab/matlab_external/passing-arguments-to-shared-library-functions.html
+ *
  */
 
 #define MAX_STRING_LENGTH 500
 
 #include "mex.h"
 #include "ADIDatCAPI_mex.h"
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <stdint.h> //For getting numbers I understand int64_t
+//#include <stdint.h> //For getting numbers I understand, e.g. int64_t
 #include <ctime>
 
-//Insufficient resolution in casting to int
+//When creating a file handle we'll include this value as well along with 
+//the pointer. If we clear
+//the mex function, we'll observe a value mismatch between this 
+//(new) value and
+//the value being passed around with the file handle. This will let us know:
+//1) Not to use the file handle in subsequent mex calls (it is invalid)
+//2) If deleting the file handle, not to actually call delete
+//
+//  TODO: Does clearing the mex without calling delete cause a memory leak???
+//  i.e. on clearing the mex do we need to first call the delete functions?
+// 
 int start_time = (int)time(0);
 
 void setDoubleOutput(mxArray *plhs[],int index, double value)
@@ -114,7 +124,8 @@ ADI_FileHandle getFileHandle(const mxArray *prhs[], int *is_bad)
     {
        if (is_bad == 0)
        {
-           //Then this is an error, can't use pointer
+            mexErrMsgIdAndTxt("adinstruments:sdk_mex",
+                "Reference to file has been cleared in mex");
        }else
        {    
            //Pass back to caller notice not to use pointer for deleting
@@ -457,10 +468,12 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             //Then file handle reference is still valid ...
             result         = ADI_CloseFile(&fileH);
             out_result[0]  = result;
+            //printf("Closed\n");
         }
         else
         {
             out_result[0]  = 0;
+            //printf("No closed\n");
         }
     }
     else if (function_option == 14)
