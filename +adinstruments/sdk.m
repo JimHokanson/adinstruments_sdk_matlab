@@ -71,7 +71,7 @@ classdef sdk
     methods (Static)
         %File specific functions
         %------------------------------------------------------------------
-        function file = openFile(file_path)
+        function file_h = openFile(file_path)
             %
             %   file = adinstruments.sdk.openFile(file_path)
             %
@@ -91,9 +91,7 @@ classdef sdk
             file_h = adinstruments.file_handle(pointer_value);
             
             adinstruments.sdk.handleErrorCode(result_code)
-            
-            file = adinstruments.file(file_path,file_h);
-            
+
         end
         function closeFile(pointer_value)
             %
