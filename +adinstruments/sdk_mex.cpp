@@ -12,6 +12,11 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <stdint.h> //For getting numbers I understand int64_t
+#include <ctime>
+
+//Insufficient resolution in casting to int
+int start_time = (int)time(0);
 
 void setDoubleOutput(mxArray *plhs[],int index, double value)
 {
@@ -78,21 +83,52 @@ int getLongInput(const mxArray *prhs[], int index)
     int *p_value;
     p_value = (int *)mxGetData(prhs[index]);
     
+    //Compare start time
+    
     //Return only first value (assume only 1 value)
     return p_value[0];
 }
 //===================================================================
 
-ADI_FileHandle getFileHandle(const mxArray *prhs[])
+ADI_FileHandle getFileHandle(const mxArray *prhs[], int *is_bad)
 {
+    //
+    //  - pass in 0 for is_bad pointer to indicate throwing error on mismatch
+    //     - this error would occur if clearing the mex and still holding
+    //     variables to the 
+    //
+    //int isDelete
+    
     //
     //  NOTE: This assumes that the file handle will be the second input
     //  to the function, after the function option (i.e. index 1)
     
     //TODO: I can replace this now with a call to getLongInput ...
-    int *input_file_handle;
-    input_file_handle = (int *)mxGetData(prhs[1]);
-    return ADI_FileHandle(input_file_handle[0]);
+    int *file_handle_stuffs;
+    file_handle_stuffs = (int *)mxGetData(prhs[1]);
+    
+    int start_time_of_pointer = file_handle_stuffs[1];
+    
+    //Handling valid pointer
+    if  (start_time_of_pointer != start_time)
+    {
+       if (is_bad == 0)
+       {
+           //Then this is an error, can't use pointer
+       }else
+       {    
+           //Pass back to caller notice not to use pointer for deleting
+           *is_bad = 1;
+       }
+    }
+            
+       
+            
+    //TODO: Check with current value
+    //mismatch - throw error, unless deleting
+    //for delete, pass back something that says not to delete
+    
+    return ADI_FileHandle(file_handle_stuffs[0]);
 }
 
 ADI_CommentsHandle getCommentsHandle(const mxArray *prhs[])
@@ -160,12 +196,17 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         out_result[0] = result;
         
         int *fh_pointer;
-        plhs[1]    = mxCreateNumericMatrix(1,1,mxINT32_CLASS,mxREAL);
+        plhs[1]    = mxCreateNumericMatrix(1,2,mxINT32_CLASS,mxREAL);
         fh_pointer = (int *) mxGetData(plhs[1]);
         if (result == 0)
+        {
             fh_pointer[0] = (int)fileH;
+            fh_pointer[1] = start_time;
+        }
         else
+        {
             fh_pointer[0] = 0;
+        }
         
     }
     else if (function_option == 1)
@@ -175,7 +216,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  [result_code,n_records] = sdk_mex(1,file_handle)
         
         long nRecords = 0;
-        fileH         = getFileHandle(prhs);
+        fileH         = getFileHandle(prhs,0);
         
         //ADIResultCode ADI_GetNumberOfRecords(ADI_FileHandle fileH, long* nRecords);
         result        = ADI_GetNumberOfRecords(fileH,&nRecords);
@@ -190,7 +231,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  [result_code,n_channels] = sdk_mex(2,file_handle)
         
         long nChannels = 0;
-        fileH          = getFileHandle(prhs);
+        fileH          = getFileHandle(prhs,0);
         
         //ADIResultCode ADI_GetNumberOfChannels(ADI_FileHandle fileH, long* nChannels);
         result         = ADI_GetNumberOfChannels(fileH,&nChannels);
@@ -203,7 +244,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  ======================================================
         //  [result,n_ticks] = sdk_mex(3,file_handle,record_idx_0b)
         
-        fileH          = getFileHandle(prhs);
+        fileH          = getFileHandle(prhs,0);
         
         //0 or 1 based ...
         long record = getLongInput(prhs,2);
@@ -220,7 +261,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  =========================================================
         //  [result,s_per_tick] = sdk_mex(4,file_handle,record_idx_0b,channel_idx_0b)
         
-        fileH          = getFileHandle(prhs);
+        fileH          = getFileHandle(prhs,0);
         
         long record  = getLongInput(prhs,2);
         long channel = getLongInput(prhs,3);
@@ -237,7 +278,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  ========================================================
         //  [result_code,n_samples] = sdk_mex(5,file_handle,record_idx_0b,channel_idx_0b);
         
-        fileH          = getFileHandle(prhs);
+        fileH          = getFileHandle(prhs,0);
         
         long record   = getLongInput(prhs,2);
         long channel  = getLongInput(prhs,3);
@@ -254,7 +295,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  [result_code,comments_h] = sdk_mex(6,file_handle,record_idx_0b);
         
         ADI_CommentsHandle commentsH(0);
-        fileH         = getFileHandle(prhs);
+        fileH         = getFileHandle(prhs,0);
         long record   = getLongInput(prhs,2);
         
         //ADIResultCode ADI_CreateCommentsAccessor(ADI_FileHandle fileH, long record, ADI_CommentsHandle* commentsH);
@@ -336,7 +377,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  ===========================================================
         //  [result,data,n_returned] = sdk_mex(10,file_h,channel_0b,record_0b,startPos,nLength,dataType)
         
-        fileH          = getFileHandle(prhs);
+        fileH          = getFileHandle(prhs,0);
         
         long channel  = getLongInput(prhs,2);
         long record   = getLongInput(prhs,3);
@@ -366,7 +407,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  [result_code,str_data,str_length] = sdk_mex(11,file_h,record,channel);
         
         //Inputs
-        fileH        = getFileHandle(prhs);
+        fileH        = getFileHandle(prhs,0);
         long record  = getLongInput(prhs,2);
         long channel = getLongInput(prhs,3);
         
@@ -389,7 +430,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         
 
         //Inputs
-        fileH        = getFileHandle(prhs);
+        fileH        = getFileHandle(prhs,0);
         long channel = getLongInput(prhs,2); 
         
         //Outputs
@@ -408,9 +449,19 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  ==============================================================
         //  
         
-        fileH          = getFileHandle(prhs);
-        result         = ADI_CloseFile(&fileH);
-        out_result[0]  = result;
+        int is_bad = 0;
+        
+        fileH          = getFileHandle(prhs,&is_bad);
+        if (is_bad == 0)
+        {
+            //Then file handle reference is still valid ...
+            result         = ADI_CloseFile(&fileH);
+            out_result[0]  = result;
+        }
+        else
+        {
+            out_result[0]  = 0;
+        }
     }
     else if (function_option == 14)
     {
@@ -434,7 +485,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
        //   ==============================================================
        //   [result_code,dt_channel] = sdk_mex(15,file_h,record,channel)    
         
-        fileH        = getFileHandle(prhs);
+        fileH        = getFileHandle(prhs,0);
         long record  = getLongInput(prhs,2);
         long channel = getLongInput(prhs,3);
         double secsPerSample = 0;
