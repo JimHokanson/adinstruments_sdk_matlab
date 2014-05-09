@@ -2,31 +2,23 @@
  *
  *      mex sdk_test.cpp ADIDatIOWin.lib
  *
- *      adinstruments.sdk.make_mex()
+ *      adinstruments.sdk.makeMex()
  *
  *      http://www.mathworks.com/help/matlab/matlab_external/passing-arguments-to-shared-library-functions.html
  *
  */
 
-#define MAX_STRING_LENGTH 500
+#define MAX_STRING_LENGTH 500 //I decided to avoid trying to deal with any 
+//sort of dynamic allocation. Since strings aren't that long, I'm fine
+//hardcoding this value for now, assuming that this value is plenty large
 
 #include "mex.h"
 #include "ADIDatCAPI_mex.h"
-//#include <stdint.h> //For getting numbers I understand, e.g. int64_t
 #include <ctime>
 
-//When creating a file handle we'll include this value as well along with 
-//the pointer. If we clear
-//the mex function, we'll observe a value mismatch between this 
-//(new) value and
-//the value being passed around with the file handle. This will let us know:
-//1) Not to use the file handle in subsequent mex calls (it is invalid)
-//2) If deleting the file handle, not to actually call delete
-//
-//  TODO: Does clearing the mex without calling delete cause a memory leak???
-//  i.e. on clearing the mex do we need to first call the delete functions?
-// 
-int start_time = (int)time(0);
+
+int ref_count = 0; //NYI
+int locked = 0;
 
 void setDoubleOutput(mxArray *plhs[],int index, double value)
 {
@@ -162,6 +154,14 @@ wchar_t *getStringOutputPointer(mxArray *plhs[],int index)
 void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     //Documentation of the calling forms is given within each if clause
+    
+    if (!locked)
+    {
+        //TODO: Implement allowing unlock by reference counting
+        mexLock();
+        locked = 1;
+    }
+        
     
     ADI_FileHandle fileH(0);
     
@@ -460,21 +460,9 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  ==============================================================
         //  
         
-        int is_bad = 0;
-        
-        fileH          = getFileHandle(prhs,&is_bad);
-        if (is_bad == 0)
-        {
-            //Then file handle reference is still valid ...
-            result         = ADI_CloseFile(&fileH);
-            out_result[0]  = result;
-            //printf("Closed\n");
-        }
-        else
-        {
-            out_result[0]  = 0;
-            //printf("No closed\n");
-        }
+        fileH          = getFileHandle(prhs,0);
+        result         = ADI_CloseFile(&fileH);
+        out_result[0]  = result;
     }
     else if (function_option == 14)
     {

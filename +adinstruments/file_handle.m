@@ -7,18 +7,19 @@ classdef (Hidden) file_handle < handle
     %   When no one holds it the file will be closed.
     
     properties
-       pointer_value %Pointer to the file object in the mex code. This gets
-       %cast to ADI_FileHandle in the mex code.
+        pointer_value %Pointer to the file object in the mex code. This gets
+        %cast to ADI_FileHandle in the mex code.
     end
     
     methods
         function obj = file_handle(pointer_value)
-           obj.pointer_value = pointer_value;
+            obj.pointer_value = pointer_value;
         end
         function delete(obj)
-           %
-           %    
-           adinstruments.sdk.closeFile(obj.pointer_value);
+            %
+            %
+            
+            adinstruments.sdk.closeFile(obj.pointer_value);
         end
     end
     

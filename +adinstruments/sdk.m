@@ -1,9 +1,9 @@
 classdef sdk
     %
-    %   Class: 
+    %   Class:
     %   adinstruments.sdk
     %
-    %   This 
+    %   This
     %
     %
     %   Some definitions:
@@ -15,13 +15,13 @@ classdef sdk
     %       record is created. Additionally, changes to the channel setup
     %       warrant creation of a new record (such as a change in the
     %       sampling rate)
-    %   
+    %
     %
     %   NOTE:
     %   Since Matlab's importing is subpar, but since it allows calling
     %   static methods from an instance of a class, one can instiate this
     %   class to allow shorter calling of the static methods of the class.
-    %   
+    %
     
     properties
     end
@@ -31,8 +31,11 @@ classdef sdk
             %
             %   adinstruments.sdk.makeMex
             
+            %TODO: allow unlocking
+            
             %TODO: Move code locally
             base_path = sl.dir.getMyBasePath;
+            
             
             
             wd = cd; %wd - working directory
@@ -68,6 +71,8 @@ classdef sdk
         end
     end
     
+    %NOTE: In Matlab the functions can be easily visualized by folding all
+    %the code and then expanding this methods block
     methods (Static)
         %File specific functions
         %------------------------------------------------------------------
@@ -77,11 +82,14 @@ classdef sdk
             %
             %   NOTE: Only reading is supported.
             %
+            %   Inputs
+            %   ===============================================
+            %   file_path : char
+            %       Full path to the file.
+            %
             %   Outputs
             %   ===============================================
-            %   file :adinstruments.file
-            %
-            %   STATUS: DONE
+            %   file : adinstruments.file_handle
             
             %NOTE: I had trouble with the unicode string conversion so per
             %some Mathworks forum post I am just using a null terminated
@@ -91,7 +99,7 @@ classdef sdk
             file_h = adinstruments.file_handle(pointer_value);
             
             adinstruments.sdk.handleErrorCode(result_code)
-
+            
         end
         function closeFile(pointer_value)
             %
@@ -103,8 +111,6 @@ classdef sdk
             %   and since that is the deconstructor method of that object
             %   it seemed weird to pass in that object ot this method, so
             %   instead the pointer value is passed in directly.
-            %
-            %   Status: DONE
             
             result_code = adinstruments.sdk_mex(13,pointer_value);
             adinstruments.sdk.handleErrorCode(result_code)
@@ -115,8 +121,6 @@ classdef sdk
             %   n_records = adinstruments.sdk.getNumberOfRecords(file_h)
             %
             %   See definition of the "records" in the definition section.
-            %
-            %   Status: DONE
             
             [result_code,n_records] = adinstruments.sdk_mex(1,file_h.pointer_value);
             adinstruments.sdk.handleErrorCode(result_code)
@@ -145,7 +149,15 @@ classdef sdk
         function n_ticks_in_record = getNTicksInRecord(file_h,record)
             %
             %
-            %   n_ticks_in_record = getNTicksInRecord(file_h,record)
+            %   n_ticks_in_record = adinstruments.sdk.getNTicksInRecord(file_h,record)
+            %
+            %   Returns the # of samples of channels with the highest data
+            %   rate.
+            %
+            %   Inputs:
+            %   =====================================
+            %   record : double
+            %       Record #, 1 based.
             %
             %   Outputs:
             %   ===========================================================
@@ -154,10 +166,8 @@ classdef sdk
             %       sampling rate
             %
             %   Status: DONE
-            
-            c = @int32;
-            
-            [result_code,n_ticks_in_record] = adinstruments.sdk_mex(3,file_h.pointer_value,c(record));
+
+            [result_code,n_ticks_in_record] = adinstruments.sdk_mex(3,file_h.pointer_value,c0(record));
             adinstruments.sdk.handleErrorCode(result_code)
             n_ticks_in_record = double(n_ticks_in_record);
             
@@ -169,13 +179,11 @@ classdef sdk
             %
             %   Outputs:
             %   ===========================================================
-            %   dt_tick : 
+            %   dt_tick :
             %
             %   STATUS: DONE
             
-            c = @int32;
-            
-            [result_code,dt_tick] = adinstruments.sdk_mex(4,file_h.pointer_value,c(record),c(channel));
+            [result_code,dt_tick] = adinstruments.sdk_mex(4,file_h.pointer_value,c0(record),c0(channel));
             adinstruments.sdk.handleErrorCode(result_code)
         end
         %Comment specific functions
@@ -185,17 +193,15 @@ classdef sdk
             %
             %   comments_h = adinstruments.sdk.getCommentAccessor(file_handle,record_idx_0b)
             %
-            %   comments_h :adinstruments.comment_handle 
+            %   comments_h :adinstruments.comment_handle
             
-            c = @int32;
-            
-            [result_code,comment_pointer] = adinstruments.sdk_mex(6,file_h.pointer_value,c(record));
+            [result_code,comment_pointer] = adinstruments.sdk_mex(6,file_h.pointer_value,c0(record));
             if adinstruments.sdk.isMissingCommentError(result_code)
                 comments_h  = adinstruments.comment_handle(0,false,record);
             else
                 adinstruments.sdk.handleErrorCode(result_code)
                 comments_h  = adinstruments.comment_handle(comment_pointer,true,record);
-            end            
+            end
         end
         function closeCommentAccessor(pointer_value)
             %
@@ -212,7 +218,7 @@ classdef sdk
             %
             %
             %   has_another_comment = adinstruments.sdk.advanceComments(comments_h);
-
+            
             result_code = adinstruments.sdk_mex(9,comments_h.pointer_value);
             
             if adinstruments.sdk.isMissingCommentError(result_code)
@@ -243,7 +249,7 @@ classdef sdk
         function n_samples    = getNSamplesInRecord(file_h,record,channel)
             %
             %
-            %   n_samples  = adinstruments.sdk.getNSamplesInRecord(file_handle,record,channel)
+            %   n_samples  = adinstruments.sdk.getNSamplesInRecord(file_h,record,channel)
             %
             %   INPUTS
             %   ===========================================
@@ -251,14 +257,9 @@ classdef sdk
             %   channel : (0 based)
             %
             %   Status: DONE
-            
-            c = @int32;
-            
-            [result_code,n_samples] = adinstruments.sdk_mex(5,file_h.pointer_value,c(record),c(channel));
 
-            if ~adinstruments.sdk.checkNullChannelErrorCodes(result_code)
-                adinstruments.sdk.handleErrorCode(result_code)
-            end
+            [result_code,n_samples] = adinstruments.sdk_mex(5,file_h.pointer_value,c0(record),c0(channel));
+            adinstruments.sdk.handleErrorCode(result_code)
             n_samples = double(n_samples);
         end
         function output_data  = getChannelData(file_h,record,channel,start_sample,n_samples_get,get_samples)
@@ -279,8 +280,6 @@ classdef sdk
             %   highest rate ...
             %
             
-            c = @int32;
-            
             data_type = c(0);
             if ~get_samples
                 %get in tick units
@@ -288,9 +287,9 @@ classdef sdk
             end
             
             [result_code,data,n_returned] = adinstruments.sdk_mex(10,...
-                        file_h.pointer_value,c(channel),...
-                        c(record),c(start_sample),...
-                        c(n_samples_get),data_type);
+                file_h.pointer_value,c0(channel),...
+                c0(record),c0(start_sample),...
+                c(n_samples_get),data_type);
             
             adinstruments.sdk.handleErrorCode(result_code)
             
@@ -303,15 +302,12 @@ classdef sdk
             
         end
         function units        = getUnits(file_h,record,channel)
+            %getUnits
             %
-            %
-            %   channel_name = adinstruments.sdk.getChannelName(file_h,channel)
-            %
-            %   Status: DONE
+            %   units = adinstruments.sdk.getUnits(file_h,record,channel)
+
             
-            c = @int32;
-            
-            [result_code,str_data,str_length] = adinstruments.sdk_mex(11,file_h.pointer_value,c(record),c(channel));
+            [result_code,str_data,str_length] = adinstruments.sdk_mex(11,file_h.pointer_value,c0(record),c0(channel));
             
             %TODO: Replace with function call to isGoodResultCode
             if result_code == 0 || result_code == 1
@@ -329,9 +325,7 @@ classdef sdk
             %
             %   Status: DONE
             
-            c = @int32;
-            
-            [result_code,str_data,str_length] = adinstruments.sdk_mex(12,file_h.pointer_value,c(channel));
+            [result_code,str_data,str_length] = adinstruments.sdk_mex(12,file_h.pointer_value,c0(channel));
             
             if result_code == 0
                 channel_name = adinstruments.sdk.getStringFromOutput(str_data,str_length);
@@ -341,47 +335,75 @@ classdef sdk
             end
             
         end
-        function dt_channel   = getSamplePeriod(file_h,channel,record)
+        function dt_channel   = getSamplePeriod(file_h,record,channel)
             %
             %
             %   dt_channel   = getSamplePeriod(file_h,channel,record)
             %
+            %   This should return the sample period, the inverse of the
+            %   sampling rate, for a single channel.
+            %
+            %   For channels with NO SAMPLES, the dt returned is NaN
+            %
+            %   Alternatively, I can ask:
+            %   A) # of ticks in record
+            %   B) tick period
+            %   C) # of samples in record
+            %
+            %   sample period = 
             
-            c = @int32; 
+            n_samples_in_record = adinstruments.sdk.getNSamplesInRecord(file_h,record,channel);
+            if n_samples_in_record == 0
+                dt_channel = NaN;
+                return
+            end
             
-           [result_code,dt_channel] = adinstruments.sdk_mex(15,file_h.pointer_value,c(record),c(channel));
-           if ~adinstruments.sdk.checkNullChannelErrorCodes(result_code)
-              adinstruments.sdk.handleErrorCode(result_code)
-           end
+%             n_ticks_in_record   = adinstruments.sdk.getNTicksInRecord(file_h,record);
+%             tick_dt             = adinstruments.sdk.getTickPeriod(file_h,record,channel);
+%             dt_channel_temp = tick_dt * n_ticks_in_record/n_samples_in_record;
+            
+            [result_code,dt_channel] = adinstruments.sdk_mex(15,file_h.pointer_value,c0(record),c0(channel));
+
+            adinstruments.sdk.handleErrorCode(result_code)
         end
         %Helper functions
         %------------------------------------------------------------------
         function is_ok = checkNullChannelErrorCodes(result_code)
-           %
-           %
-           %    is_ok = adinstruments.sdk.checkNullChannelErrorCodes(result_code)
-           %
-           %    For some reason there is a non-zero error code when
-           %    retrieving information about a channel during a record in
-           %    which there is no data for that channel. The error message
-           %    is: "the operation completed successfully"
-           
-           is_ok = result_code == 0 || result_code == 1;
-           %result_code == 1
-           %"the operation completed successfully"
+            %
+            %
+            %    is_ok = adinstruments.sdk.checkNullChannelErrorCodes(result_code)
+            %
+            %    For some reason there is a non-zero error code when
+            %    retrieving information about a channel during a record in
+            %    which there is no data for that channel. The error message
+            %    is: "the operation completed successfully"
+            
+            is_ok = result_code == 0 || result_code == 1;
+            %result_code == 1
+            %"the operation completed successfully"
+        end
+        function hex_value = resultCodeToHex(result_code)
+            %
+            %   hex_value = adinstruments.sdk.handleErrorCode(result_code)
+            %
+            %   Returns the hex_value of the result code for comparision
+            %   with the values in the C header.
+            
+            temp      = typecast(result_code,'uint32');
+            hex_value = dec2hex(temp);
         end
         function is_missing_comment_code = isMissingCommentError(result_code)
             %
             %
             %   is_missing_comment_code = adinstruments.sdk.isMissingCommentError(result_code)
             
-              
+            
             %TODO: Do I want to do the literal error check here instead
             %of the mod????
             
             %Relevant Link:
             %http://forum.adinstruments.com/viewtopic.php?f=7&t=551
-
+            
             %If there are no comments, the result_code is:
             %-1610313723 - data requested not present => xA0049005
             
@@ -395,23 +417,53 @@ classdef sdk
             %
             %   If there is an error this function will throw an error
             %   and display the relevant error string given the error code
-                        
+            
             %Relevant forum post:
             %http://forum.adinstruments.com/viewtopic.php?f=7&t=551
             
-            %TODO: Replace with stack evaluation to pull this out
-            %automagically
-            
-            if result_code ~= 0
+            if ~adinstruments.sdk.checkNullChannelErrorCodes(result_code)
+            %if result_code ~= 0
                 temp      = sl.stack.calling_function_info;
                 errorID   = sprintf('ADINSTRUMENTS:SDK:%s',temp.name);
                 error_msg = adinstruments.sdk.getErrorMessage(result_code);
-                %TODO: Create a clean id - move to a function
                 
+                
+                %TODO: Create a clean id - move to a function
+                %The ID is not allowed to have periods in it
+                %Also, the calling function info isn't a clean name
+                %(I think it includes SDK, but what if I only wanted the
+                %name, not the full path ...???)
+                %
                 errorID = regexprep(errorID,'\.',':');
                 
                 error(errorID,[errorID '  ' error_msg]);
             end
+            
+            %Copied from ADIDatCAPI_mex.h 5/6/2014
+% % %                typedef enum ADIResultCode
+% % %       {
+% % %       //Win32 error codes (HRESULTs)
+% % %       kResultSuccess = 0,                             // operation succeeded
+% % %       kResultErrorFlagBit        = 0x80000000L,       // high bit set if operation failed
+% % %       kResultInvalidArg          = 0x80070057L,       // invalid argument. One (or more) of the arguments is invalid
+% % %       kResultFail                = 0x80004005L,       // Unspecified error
+% % %       kResultFileNotFound        = 0x80030002L,       // failure to find the specified file (check the path)
+% % % 
+% % % 
+% % %       //Start of error codes specific to this API      
+% % %       kResultADICAPIMsgBase        = 0xA0049000L,
+% % % 
+% % %       kResultFileIOError  = kResultADICAPIMsgBase,    // file IO error - could not read/write file
+% % %       kResultFileOpenFail,                            // file failed to open
+% % %       kResultInvalidFileHandle,                       // file handle is invalid
+% % %       kResultInvalidPosition,                         // pos specified is outside the bounds of the record or file
+% % %       kResultInvalidCommentNum,                       // invalid commentNum. Comment could not be found
+% % %       kResultNoData,                                  // the data requested was not present (e.g. no more comments in the record).
+% % %       kResultBufferTooSmall                          // the buffer passed to a function to receive data (e.g. comment text) was not big enough to receive all the data.
+% % %       
+% % %                                                       // new result codes must be added at the end
+% % %       } ADIResultCode;
+            
         end
         function error_msg = getErrorMessage(result_code)
             %
