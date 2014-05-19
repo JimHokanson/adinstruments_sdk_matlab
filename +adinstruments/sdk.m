@@ -3,8 +3,9 @@ classdef sdk
     %   Class:
     %   adinstruments.sdk
     %
-    %   This
-    %
+    %   This class is meant to be the singular access point for getting
+    %   data from a LabChart file. Methods in this class call a mex
+    %   interface which makes calls to the C API provided by ADInstruments
     %
     %   Some definitions:
     %   =================================================
@@ -16,12 +17,10 @@ classdef sdk
     %       warrant creation of a new record (such as a change in the
     %       sampling rate)
     %
-    %
     %   NOTE:
     %   Since Matlab's importing is subpar, but since it allows calling
     %   static methods from an instance of a class, one can instiate this
     %   class to allow shorter calling of the static methods of the class.
-    %
     
     properties
     end
@@ -31,15 +30,13 @@ classdef sdk
             %
             %   adinstruments.sdk.makeMex
             
-            %TODO: allow unlocking
+            %TODO: allow unlocking - this would require reference counting.
             
-            %TODO: Move code locally
             base_path = sl.dir.getMyBasePath;
-            
-            
+            mex_path  = fullfile(base_path,private);
             
             wd = cd; %wd - working directory
-            cd(base_path)
+            cd(mex_path)
             try
                 
                 mex('sdk_mex.cpp','ADIDatIOWin.lib')
@@ -94,7 +91,7 @@ classdef sdk
             %NOTE: I had trouble with the unicode string conversion so per
             %some Mathworks forum post I am just using a null terminated
             %array of int16s
-            [result_code,pointer_value] = adinstruments.sdk_mex(0,[int16(file_path) 0]);
+            [result_code,pointer_value] = sdk_mex(0,[int16(file_path) 0]);
             
             file_h = adinstruments.file_handle(pointer_value);
             
@@ -112,7 +109,7 @@ classdef sdk
             %   it seemed weird to pass in that object ot this method, so
             %   instead the pointer value is passed in directly.
             
-            result_code = adinstruments.sdk_mex(13,pointer_value);
+            result_code = sdk_mex(13,pointer_value);
             adinstruments.sdk.handleErrorCode(result_code)
         end
         function n_records  = getNumberOfRecords(file_h)
@@ -122,7 +119,7 @@ classdef sdk
             %
             %   See definition of the "records" in the definition section.
             
-            [result_code,n_records] = adinstruments.sdk_mex(1,file_h.pointer_value);
+            [result_code,n_records] = sdk_mex(1,file_h.pointer_value);
             adinstruments.sdk.handleErrorCode(result_code)
             n_records = double(n_records);
         end
@@ -140,7 +137,7 @@ classdef sdk
             %
             %   Status: DONE
             
-            [result_code,n_channels] = adinstruments.sdk_mex(2,file_h.pointer_value);
+            [result_code,n_channels] = sdk_mex(2,file_h.pointer_value);
             adinstruments.sdk.handleErrorCode(result_code)
             n_channels = double(n_channels);
         end
@@ -167,7 +164,7 @@ classdef sdk
             %
             %   Status: DONE
 
-            [result_code,n_ticks_in_record] = adinstruments.sdk_mex(3,file_h.pointer_value,c0(record));
+            [result_code,n_ticks_in_record] = sdk_mex(3,file_h.pointer_value,c0(record));
             adinstruments.sdk.handleErrorCode(result_code)
             n_ticks_in_record = double(n_ticks_in_record);
             
@@ -183,24 +180,24 @@ classdef sdk
             %
             %   STATUS: DONE
             
-            [result_code,dt_tick] = adinstruments.sdk_mex(4,file_h.pointer_value,c0(record),c0(channel));
+            [result_code,dt_tick] = sdk_mex(4,file_h.pointer_value,c0(record),c0(channel));
             adinstruments.sdk.handleErrorCode(result_code)
         end
         %Comment specific functions
         %------------------------------------------------------------------
-        function comments_h = getCommentAccessor(file_h,record)
+        function comments_h = getCommentAccessor(file_h,record,tick_dt)
             %
             %
             %   comments_h = adinstruments.sdk.getCommentAccessor(file_handle,record_idx_0b)
             %
             %   comments_h :adinstruments.comment_handle
             
-            [result_code,comment_pointer] = adinstruments.sdk_mex(6,file_h.pointer_value,c0(record));
+            [result_code,comment_pointer] = sdk_mex(6,file_h.pointer_value,c0(record));
             if adinstruments.sdk.isMissingCommentError(result_code)
-                comments_h  = adinstruments.comment_handle(0,false,record);
+                comments_h  = adinstruments.comment_handle(0,false,record,tick_dt);
             else
                 adinstruments.sdk.handleErrorCode(result_code)
-                comments_h  = adinstruments.comment_handle(comment_pointer,true,record);
+                comments_h  = adinstruments.comment_handle(comment_pointer,true,record,tick_dt);
             end
         end
         function closeCommentAccessor(pointer_value)
@@ -211,7 +208,7 @@ classdef sdk
             %   This should only be called by:
             %   adinstruments.comment_handle
             
-            result_code = adinstruments.sdk_mex(7,pointer_value);
+            result_code = sdk_mex(7,pointer_value);
             adinstruments.sdk.handleErrorCode(result_code);
         end
         function has_another_comment  = advanceComments(comments_h)
@@ -219,7 +216,7 @@ classdef sdk
             %
             %   has_another_comment = adinstruments.sdk.advanceComments(comments_h);
             
-            result_code = adinstruments.sdk_mex(9,comments_h.pointer_value);
+            result_code = sdk_mex(9,comments_h.pointer_value);
             
             if adinstruments.sdk.isMissingCommentError(result_code)
                 has_another_comment = false;
@@ -234,11 +231,13 @@ classdef sdk
             %
             %   comment_info = adinstruments.sdk.getCommentInfo(comments_h)
             
-            [result_code,comment_string_data,comment_length,tick_pos,channel,comment_num] = adinstruments.sdk_mex(8,comments_h.pointer_value);
+            [result_code,comment_string_data,comment_length,tick_pos,channel,comment_num] = sdk_mex(8,comments_h.pointer_value);
+            
+            d = @double;
             
             if result_code == 0
                 comment_string = adinstruments.sdk.getStringFromOutput(comment_string_data,comment_length);
-                comment_info   = adinstruments.comment(comment_string,tick_pos,channel,comment_num,comments_h.record);
+                comment_info   = adinstruments.comment(comment_string,d(tick_pos),d(channel),d(comment_num),comments_h.record,comments_h.tick_dt);
             else
                 adinstruments.sdk.handleErrorCode(result_code);
                 comment_info = [];
@@ -258,7 +257,7 @@ classdef sdk
             %
             %   Status: DONE
 
-            [result_code,n_samples] = adinstruments.sdk_mex(5,file_h.pointer_value,c0(record),c0(channel));
+            [result_code,n_samples] = sdk_mex(5,file_h.pointer_value,c0(record),c0(channel));
             adinstruments.sdk.handleErrorCode(result_code)
             n_samples = double(n_samples);
         end
@@ -286,7 +285,7 @@ classdef sdk
                 data_type = bitset(data_type,32);
             end
             
-            [result_code,data,n_returned] = adinstruments.sdk_mex(10,...
+            [result_code,data,n_returned] = sdk_mex(10,...
                 file_h.pointer_value,c0(channel),...
                 c0(record),c0(start_sample),...
                 c(n_samples_get),data_type);
@@ -307,7 +306,7 @@ classdef sdk
             %   units = adinstruments.sdk.getUnits(file_h,record,channel)
 
             
-            [result_code,str_data,str_length] = adinstruments.sdk_mex(11,file_h.pointer_value,c0(record),c0(channel));
+            [result_code,str_data,str_length] = sdk_mex(11,file_h.pointer_value,c0(record),c0(channel));
             
             %TODO: Replace with function call to isGoodResultCode
             if result_code == 0 || result_code == 1
@@ -325,7 +324,7 @@ classdef sdk
             %
             %   Status: DONE
             
-            [result_code,str_data,str_length] = adinstruments.sdk_mex(12,file_h.pointer_value,c0(channel));
+            [result_code,str_data,str_length] = sdk_mex(12,file_h.pointer_value,c0(channel));
             
             if result_code == 0
                 channel_name = adinstruments.sdk.getStringFromOutput(str_data,str_length);
@@ -362,7 +361,7 @@ classdef sdk
 %             tick_dt             = adinstruments.sdk.getTickPeriod(file_h,record,channel);
 %             dt_channel_temp = tick_dt * n_ticks_in_record/n_samples_in_record;
             
-            [result_code,dt_channel] = adinstruments.sdk_mex(15,file_h.pointer_value,c0(record),c0(channel));
+            [result_code,dt_channel] = sdk_mex(15,file_h.pointer_value,c0(record),c0(channel));
 
             adinstruments.sdk.handleErrorCode(result_code)
         end
@@ -470,7 +469,7 @@ classdef sdk
             %
             %   error_msg = adinstruments.sdk.getErrorMessage(result_code)
             
-            [~,err_msg_data,err_msg_len] = adinstruments.sdk_mex(14,int32(result_code));
+            [~,err_msg_data,err_msg_len] = sdk_mex(14,int32(result_code));
             error_msg = adinstruments.sdk.getStringFromOutput(err_msg_data,err_msg_len);
         end
         function str = getStringFromOutput(int16_data,str_length)

@@ -7,9 +7,8 @@ classdef channel < sl.obj.display_class
         id
         name
         
-        scale = 1 %NYI, on data retrieval use this to scale
-        
         %These properties are on a per record basis ...
+        %-----------------------------------------------
         units
         n_samples
         dt
@@ -21,30 +20,42 @@ classdef channel < sl.obj.display_class
         n_records
         file_h
         tick_dt
+        record_handles
+    end
+    
+    properties (Dependent)
+       downsample_amount 
     end
     
     methods
-        function obj = channel(file_h,id,n_records,tick_dt)
+        function value = get.downsample_amount(obj) 
+           value = obj.dt./obj.tick_dt; 
+        end
+    end
+    
+    methods
+        function obj = channel(file_h,id,record_handles)
             %x adinstruments.channel constructor
             %
             %   obj = adinstruments.channel(file_h,id,n_records,tick_dt)
             %
             %
             
-            obj.id        = id;
-            obj.n_records = n_records;
-            obj.file_h    = file_h;
-            obj.tick_dt   = tick_dt;
+            obj.id             = id;
+            obj.n_records      = length(record_handles);
+            obj.file_h         = file_h;
+            obj.tick_dt        = [record_handles.tick_dt];
+            obj.record_handles = record_handles;
             
             sdk = adinstruments.sdk;
             
-            temp_sample_period = zeros(1,n_records);
-            temp_n_samples     = zeros(1,n_records);
-            temp_units         = cell(1,n_records);
+            temp_sample_period = zeros(1,obj.n_records);
+            temp_n_samples     = zeros(1,obj.n_records);
+            temp_units         = cell(1,obj.n_records);
             
             obj.name = sdk.getChannelName(file_h,id);
             
-            for iRecord = 1:n_records
+            for iRecord = 1:obj.n_records
                 temp_sample_period(iRecord) = sdk.getSamplePeriod(file_h,iRecord,id);
                 temp_n_samples(iRecord)     = sdk.getNSamplesInRecord(file_h,iRecord,id);
                 temp_units{iRecord}         = sdk.getUnits(file_h,iRecord,id);
@@ -54,6 +65,9 @@ classdef channel < sl.obj.display_class
             obj.n_samples = temp_n_samples;
             obj.dt        = temp_sample_period;
             obj.fs        = 1./(obj.dt);
+        end
+        function comment_objs = getRecordComments(obj,record_id)
+           comment_objs = obj.record_handles(record_id).comments; 
         end
         function printChannelNames(objs)
             %printChannelNames  Prints all channel names to the command window
@@ -80,7 +94,7 @@ classdef channel < sl.obj.display_class
             %
             %    See Also:
             %    ad_sdk.adinstruments.getChannelByName
-
+            
             in.case_sensitive = false;
             in.partial_match  = true;
             in = sl.in.processVarargin(in,varargin);
@@ -103,16 +117,39 @@ classdef channel < sl.obj.display_class
             elseif length(I) > 1
                 error('Multiple matches for channel name found')
             end
+            
             chan = objs(I);
         end
-        function getRecordPlotter(objs)
-           %
-           %
-           %    I think for this method I wanted to be able to plot a
-           %    single channel with some nice markup
+        function objs_with_data = removeEmptyObjects(objs)
+            %x Removes channels with no data in them
+            
+            n_objs    = length(objs);
+            keep_mask = false(1,n_objs);
+            for iObj = 1:n_objs
+                keep_mask(iObj) = sum(objs(iObj).n_samples) ~= 0;
+            end
+            objs_with_data = objs(keep_mask);
         end
-        function [data,time] = getAllData(obj,record,get_as_samples)
-            %x Returns all data of the 
+        function pobjs = getChannelPlotter(objs)
+            %x Returns a channel plotter object for plotting data nicely
+            %
+            %    I think for this method I wanted to be able to plot a
+            %    single channel with some nice markup:
+            %        - units
+            %        - plot large data quickly
+            %        - change gain
+            %        - overlay comments
+            %        -
+            n_objs = length(objs);
+            temp = cell(1,n_objs);
+            for iObj = 1:n_objs
+                temp{iObj} = adinstruments.channel_plotter(objs(iObj));
+            end
+            
+            pobjs = [temp{:}];
+        end
+        function [data,time] = getAllData(obj,record_id,get_as_samples)
+            %x Returns all data of the
             %
             %    [data,time] = getAllData(obj,record,*get_as_samples)
             %
@@ -125,7 +162,7 @@ classdef channel < sl.obj.display_class
                 get_as_samples = true;
             end
             
-            index = record;
+            index = record_id;
             
             n_samples_get = obj.n_samples(index);
             if n_samples_get == 0;
@@ -133,7 +170,7 @@ classdef channel < sl.obj.display_class
                 time = [];
             else
                 data = adinstruments.sdk.getChannelData(...
-                    obj.file_h,record,obj.id,1,n_samples_get,get_as_samples);
+                    obj.file_h,record_id,obj.id,1,n_samples_get,get_as_samples);
             end
             
             if nargout == 2
@@ -142,6 +179,7 @@ classdef channel < sl.obj.display_class
             
         end
         function data = getDataSubset(obj,record,start_sample,n_samples,get_as_samples)
+            %x Returns a subset of the collected data
             %
             %    data = getDataSubset(obj,record,start_sample,n_samples,*get_as_samples)
             %

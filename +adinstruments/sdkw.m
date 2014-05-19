@@ -13,23 +13,30 @@ classdef sdkw
     end
     
     methods (Static)
-        function comments = getAllCommentsForRecord(file_h,record_0b)
+        function comments = getAllCommentsForRecord(file_h,record_id,tick_dt)
             %
             %
-            %   comments = adinstruments.sdkw.getAllCommentsForRecord(file_handle,record_0b)
+            %   comments = adinstruments.sdkw.getAllCommentsForRecord(file_handle,record_obj)
             %
-            
-            %TODO: Add sort by time or id
+            %   Inputs
+            %   -----------
+            %   file_handle : adinstruments.file_handle
+            %   record_id   : 
+            %   tick_dt     : 
             %
-            %NOTE: I'm not sure in what order the comments are returned ...
+            %   See Also:
+            %   adinstruments.record
+                        
+            %NOTE: These comments seem to be returned ordered by time, not
+            %by ID.
             
             MAX_NUMBER_COMMENTS = 1000; %NOTE: Overflow of this value
-            %just causes things to slow down, it is not a critical error
+            %just causes things to slow down, it is not a critical error.
             
             sdk = adinstruments.sdk;
             
             temp_comments_ca = cell(1,MAX_NUMBER_COMMENTS);
-            comments_h = sdk.getCommentAccessor(file_h,record_0b);
+            comments_h = sdk.getCommentAccessor(file_h,record_id,tick_dt);
 
             if ~comments_h.is_valid
                comments = [];

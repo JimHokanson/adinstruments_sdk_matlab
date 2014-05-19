@@ -30,12 +30,12 @@ classdef (Hidden) file < sl.obj.display_class
     end
     
     methods
-        function obj = file(file_path,file_h)
+        function obj = file(file_path,file_h,in)
             %
-            %    Created by the sdk
+            %    This should be created by adinstruments.readFile.
             %
             %    See Also:
-            %
+            %    adinstruments.readFile
             
             obj.file_path   = file_path;
             
@@ -56,14 +56,15 @@ classdef (Hidden) file < sl.obj.display_class
             %-------------------------------------------
             temp = cell(1,obj.n_channels);
             
-            all_dt_tick = [obj.records.dt_tick];
-            
             for iChan = 1:obj.n_channels
-                %NOTE: pass in id as 0 based
-                temp{iChan} = adinstruments.channel(file_h,iChan,obj.n_records,all_dt_tick);
+                temp{iChan} = adinstruments.channel(file_h,iChan,obj.records);
             end
             
             obj.channel_specs = [temp{:}];
+            
+            if in.remove_empty_channels
+               obj.channel_specs = obj.channel_specs.removeEmptyObjects(); 
+            end
         end
         function summarizeRecords(obj)
             %For each record:
@@ -75,6 +76,9 @@ classdef (Hidden) file < sl.obj.display_class
             %
             %
             %   chan = ad_sdk.adinstruments.getChannelByName(obj,name,varargin)
+            %
+            %   See Also:
+            %   adinstruments.channel.getChannelByName()
             
             in.case_sensitive = false;
             in.partial_match  = true;
@@ -86,8 +90,10 @@ classdef (Hidden) file < sl.obj.display_class
             end
             
             chan = temp.getChannelByName(name,in);
-            
-            
+
+        end
+        function exportToMatFile(obj,save_path)
+           %NYI 
         end
     end
     
