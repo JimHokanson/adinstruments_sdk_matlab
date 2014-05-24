@@ -9,6 +9,10 @@ function file_obj = readFile(file_path,varargin)
 %
 %   This is THE gateway function for working with these files.
 
+
+in = adinstruments.file_read_options;
+in.processVarargin(varargin);
+
 in.remove_empty_channels = true;
 in = sl.in.processVarargin(in,varargin);
 

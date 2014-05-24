@@ -163,7 +163,7 @@ classdef sdk
             %       sampling rate
             %
             %   Status: DONE
-
+            
             [result_code,n_ticks_in_record] = sdk_mex(3,file_h.pointer_value,c0(record));
             adinstruments.sdk.handleErrorCode(result_code)
             n_ticks_in_record = double(n_ticks_in_record);
@@ -256,7 +256,7 @@ classdef sdk
             %   channel : (0 based)
             %
             %   Status: DONE
-
+            
             [result_code,n_samples] = sdk_mex(5,file_h.pointer_value,c0(record),c0(channel));
             adinstruments.sdk.handleErrorCode(result_code)
             n_samples = double(n_samples);
@@ -304,7 +304,7 @@ classdef sdk
             %getUnits
             %
             %   units = adinstruments.sdk.getUnits(file_h,record,channel)
-
+            
             
             [result_code,str_data,str_length] = sdk_mex(11,file_h.pointer_value,c0(record),c0(channel));
             
@@ -349,7 +349,7 @@ classdef sdk
             %   B) tick period
             %   C) # of samples in record
             %
-            %   sample period = 
+            %   sample period =
             
             n_samples_in_record = adinstruments.sdk.getNSamplesInRecord(file_h,record,channel);
             if n_samples_in_record == 0
@@ -357,12 +357,12 @@ classdef sdk
                 return
             end
             
-%             n_ticks_in_record   = adinstruments.sdk.getNTicksInRecord(file_h,record);
-%             tick_dt             = adinstruments.sdk.getTickPeriod(file_h,record,channel);
-%             dt_channel_temp = tick_dt * n_ticks_in_record/n_samples_in_record;
+            %             n_ticks_in_record   = adinstruments.sdk.getNTicksInRecord(file_h,record);
+            %             tick_dt             = adinstruments.sdk.getTickPeriod(file_h,record,channel);
+            %             dt_channel_temp = tick_dt * n_ticks_in_record/n_samples_in_record;
             
             [result_code,dt_channel] = sdk_mex(15,file_h.pointer_value,c0(record),c0(channel));
-
+            
             adinstruments.sdk.handleErrorCode(result_code)
         end
         %Helper functions
@@ -421,7 +421,7 @@ classdef sdk
             %http://forum.adinstruments.com/viewtopic.php?f=7&t=551
             
             if ~adinstruments.sdk.checkNullChannelErrorCodes(result_code)
-            %if result_code ~= 0
+                %if result_code ~= 0
                 temp      = sl.stack.calling_function_info;
                 errorID   = sprintf('ADINSTRUMENTS:SDK:%s',temp.name);
                 error_msg = adinstruments.sdk.getErrorMessage(result_code);
@@ -439,29 +439,29 @@ classdef sdk
             end
             
             %Copied from ADIDatCAPI_mex.h 5/6/2014
-% % %                typedef enum ADIResultCode
-% % %       {
-% % %       //Win32 error codes (HRESULTs)
-% % %       kResultSuccess = 0,                             // operation succeeded
-% % %       kResultErrorFlagBit        = 0x80000000L,       // high bit set if operation failed
-% % %       kResultInvalidArg          = 0x80070057L,       // invalid argument. One (or more) of the arguments is invalid
-% % %       kResultFail                = 0x80004005L,       // Unspecified error
-% % %       kResultFileNotFound        = 0x80030002L,       // failure to find the specified file (check the path)
-% % % 
-% % % 
-% % %       //Start of error codes specific to this API      
-% % %       kResultADICAPIMsgBase        = 0xA0049000L,
-% % % 
-% % %       kResultFileIOError  = kResultADICAPIMsgBase,    // file IO error - could not read/write file
-% % %       kResultFileOpenFail,                            // file failed to open
-% % %       kResultInvalidFileHandle,                       // file handle is invalid
-% % %       kResultInvalidPosition,                         // pos specified is outside the bounds of the record or file
-% % %       kResultInvalidCommentNum,                       // invalid commentNum. Comment could not be found
-% % %       kResultNoData,                                  // the data requested was not present (e.g. no more comments in the record).
-% % %       kResultBufferTooSmall                          // the buffer passed to a function to receive data (e.g. comment text) was not big enough to receive all the data.
-% % %       
-% % %                                                       // new result codes must be added at the end
-% % %       } ADIResultCode;
+            % % %                typedef enum ADIResultCode
+            % % %       {
+            % % %       //Win32 error codes (HRESULTs)
+            % % %       kResultSuccess = 0,                             // operation succeeded
+            % % %       kResultErrorFlagBit        = 0x80000000L,       // high bit set if operation failed
+            % % %       kResultInvalidArg          = 0x80070057L,       // invalid argument. One (or more) of the arguments is invalid
+            % % %       kResultFail                = 0x80004005L,       // Unspecified error
+            % % %       kResultFileNotFound        = 0x80030002L,       // failure to find the specified file (check the path)
+            % % %
+            % % %
+            % % %       //Start of error codes specific to this API
+            % % %       kResultADICAPIMsgBase        = 0xA0049000L,
+            % % %
+            % % %       kResultFileIOError  = kResultADICAPIMsgBase,    // file IO error - could not read/write file
+            % % %       kResultFileOpenFail,                            // file failed to open
+            % % %       kResultInvalidFileHandle,                       // file handle is invalid
+            % % %       kResultInvalidPosition,                         // pos specified is outside the bounds of the record or file
+            % % %       kResultInvalidCommentNum,                       // invalid commentNum. Comment could not be found
+            % % %       kResultNoData,                                  // the data requested was not present (e.g. no more comments in the record).
+            % % %       kResultBufferTooSmall                          // the buffer passed to a function to receive data (e.g. comment text) was not big enough to receive all the data.
+            % % %
+            % % %                                                       // new result codes must be added at the end
+            % % %       } ADIResultCode;
             
         end
         function error_msg = getErrorMessage(result_code)
@@ -486,6 +486,56 @@ classdef sdk
             str = char(int16_data(1:str_length-1));
         end
     end
+    
+    %Wrapper methods
+    methods (Static)
+        function comments = getAllCommentsForRecord(file_h,record_id,tick_dt)
+            %
+            %
+            %   comments = adinstruments.sdk.getAllCommentsForRecord(file_handle,record_obj)
+            %
+            %   Parameters
+            %   ----------
+            %   file_handle : adinstruments.file_handle
+            %       
+            %   record_id   : double
+            %
+            %   tick_dt     : double
+            %
+            %   See Also:
+            %   adinstruments.record
+            
+            %NOTE: These comments seem to be returned ordered by time, not
+            %by ID.
+            
+            MAX_NUMBER_COMMENTS = 1000; %NOTE: Overflow of this value
+            %just causes things to slow down, it is not a critical error.
+            
+            sdk = adinstruments.sdk;
+            
+            temp_comments_ca = cell(1,MAX_NUMBER_COMMENTS);
+            comments_h = sdk.getCommentAccessor(file_h,record_id,tick_dt);
+            
+            if ~comments_h.is_valid
+                comments = [];
+                return
+            end
+            
+            %Once the accessor is retrieved, the first comment can be accessed.
+            temp_comments_ca{1} = comments_h.getCurrentComment();
+            
+            cur_comment_index = 1;
+            while comments_h.advanceCommentPointer()
+                cur_comment_index = cur_comment_index + 1;
+                temp_comments_ca{cur_comment_index} = comments_h.getCurrentComment();
+            end
+            
+            comments = [temp_comments_ca{1:cur_comment_index}];
+            
+            comments_h.close();
+        end
+    end
+    
     
 end
 

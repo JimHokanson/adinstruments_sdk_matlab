@@ -35,9 +35,6 @@ classdef channel_plotter < sl.obj.display_class
             %sampling evenly ...
             [data,time] = obj.chan_obj.getAllData(record_id);
             
-            %TODO: Fix this:
-            %time = 1:length(time)
-            
             if obj.gain ~= 1
                 data = data/obj.gain;
             end
@@ -58,6 +55,10 @@ classdef channel_plotter < sl.obj.display_class
             ylabel(cur_units)
             
             plot_handle = lpr.h_plot(1);
+            
+            %This let's us get index information out from the data tip
+            %It turned out not to be so important to get index information,
+            %so I might get rid of this ...
             s = struct;
             s.record_id  = record_id;
             s.start_time = 0;

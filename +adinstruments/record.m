@@ -11,7 +11,7 @@ classdef (Hidden) record < sl.obj.display_class
         n_ticks   %# of samples of highest sampling rate channel
         comments  %adinstruments.comment
         tick_dt   %The highest sampling rate of any channel in this record.
-        tick_fs
+        tick_fs   %Sampling frequency, computed for convenience from tick_dt
     end
     
     properties (Hidden)
@@ -19,19 +19,23 @@ classdef (Hidden) record < sl.obj.display_class
     end
     
     methods
-        function obj = record(record_id,file_h)
+        function obj = record(sdk,record_id,file_h)
+           %
+           %
+           %
+           
            obj.file_h = file_h;
            obj.id     = record_id;
                       
-           obj.n_ticks  = adinstruments.sdk.getNTicksInRecord(file_h,record_id);
+           obj.n_ticks  = sdk.getNTicksInRecord(file_h,record_id);
            
            %This is not channel specific, the channel input is not actually
            %used:
            %http://forum.adinstruments.com/viewtopic.php?f=7&t=563
-           obj.tick_dt  = adinstruments.sdk.getTickPeriod(file_h,record_id,1);
+           obj.tick_dt  = sdk.getTickPeriod(file_h,record_id,1);
            obj.tick_fs  = 1./obj.tick_dt;
            
-           obj.comments = adinstruments.sdkw.getAllCommentsForRecord(file_h,obj.id,obj.tick_dt);
+           obj.comments = sdk.getAllCommentsForRecord(file_h,obj.id,obj.tick_dt);
         end
     end
     

@@ -1,17 +1,28 @@
-classdef (Hidden) file < sl.obj.display_class
+classdef file < sl.obj.display_class
     %
     %   Class:
     %   adinstruments.file
+    %
+    %   This is the root class for a Labchart file. It holds meta
+    %   data and classes with more meta data. The channel classes can
+    %   be used to actually get data.
+    %
+    %   JAH NOTE: This class was hidden to indicate that it should be
+    %   constructed from readFile, but this screws up the class display :/
+    %
+    %   See Also:
+    %   adinstruments.readFile
     
     properties
-        file_path
+        file_path  %Full path to the file from which this class was populated.
     end
     
     properties
-        n_records
+        n_records     
         n_channels
         records       %adinstruments.record
-        channel_specs %adinstruments.channel
+        channel_specs %adinstruments.channel These classes hold information
+        %about each of the channels used.
     end
     
     properties (Dependent)
@@ -29,18 +40,20 @@ classdef (Hidden) file < sl.obj.display_class
         end
     end
     
+    %Constructor
+    %--------------------------------
     methods
-        function obj = file(file_path,file_h,in)
+        function obj = file(file_path,file_h,sdk,in)
             %
-            %    This should be created by adinstruments.readFile.
+            %    This should be created by adinstruments.readFile
             %
             %    See Also:
             %    adinstruments.readFile
             
             obj.file_path   = file_path;
             
-            obj.n_records  = adinstruments.sdk.getNumberOfRecords(file_h);
-            obj.n_channels = adinstruments.sdk.getNumberOfChannels(file_h);
+            obj.n_records  = sdk.getNumberOfRecords(file_h);
+            obj.n_channels = sdk.getNumberOfChannels(file_h);
             
             %Get record objects
             %-------------------------------------------
@@ -66,6 +79,8 @@ classdef (Hidden) file < sl.obj.display_class
                obj.channel_specs = obj.channel_specs.removeEmptyObjects(); 
             end
         end
+    end
+    methods
         function summarizeRecords(obj)
             %For each record:
             %# of comments

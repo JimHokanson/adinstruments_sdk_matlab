@@ -67,7 +67,17 @@ classdef channel < sl.obj.display_class
             obj.fs        = 1./(obj.dt);
         end
         function comment_objs = getRecordComments(obj,record_id)
+           %x Small helper to get the comments for a given record
            comment_objs = obj.record_handles(record_id).comments; 
+        end
+        function idx_bounds = getIndexBoundsGivenTimeBounds(obj,time_bounds,record_id)
+           %
+           %    
+           %    This may or may not be used ...
+           
+           idx_bounds = [floor(time_bounds(1)/obj.dt(record_id)) ceil(time_bounds(2)/obj.dt(record_id))];
+           
+           %  data = getDataSubset(obj,record_id,idx_bounds(1),idx_bounds(2)-idx_bounds(1)+1,true);
         end
         function printChannelNames(objs)
             %printChannelNames  Prints all channel names to the command window
