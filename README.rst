@@ -24,11 +24,13 @@ Although the SDK supports reading and writing, I have currently only exposed, an
 
 The methods are nearly all exposed, but I am still working on the interface for calling these methods.
 
-=====
-Usage
-=====
+====================
+Installation & Usage
+====================
 
-Currently the SDK requires 32 bit Matlab (sorry :/)
+Labchart needs to be installed on the computer. The SDK may need to be installed. More info will be coming on this soon as I start installing on other people's computers. Alternatively I may at some point choose to upload the required dll.
+
+Currently the SDK requires 32 bit Matlab (sorry :/) I have asked ADInstruments about providing 64 bit support although they did not seemed thrilled with this idea. Requests on their `forum <http://forum.adinstruments.com/>`_ might make this more likely.
 
 .. code-block:: matlab
 

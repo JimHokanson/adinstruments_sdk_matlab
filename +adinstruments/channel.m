@@ -4,7 +4,7 @@ classdef channel < sl.obj.display_class
     %   adinstruments.channel
     
     properties
-        id
+        id    %Internal number (1 based)
         name
         
         %These properties are on a per record basis ...
@@ -34,31 +34,29 @@ classdef channel < sl.obj.display_class
     end
     
     methods
-        function obj = channel(file_h,id,record_handles)
+        function obj = channel(file_h,sdk,channel_id,record_handles)
             %x adinstruments.channel constructor
             %
             %   obj = adinstruments.channel(file_h,id,n_records,tick_dt)
             %
             %
             
-            obj.id             = id;
+            obj.id             = channel_id;
             obj.n_records      = length(record_handles);
             obj.file_h         = file_h;
             obj.tick_dt        = [record_handles.tick_dt];
             obj.record_handles = record_handles;
             
-            sdk = adinstruments.sdk;
-            
             temp_sample_period = zeros(1,obj.n_records);
             temp_n_samples     = zeros(1,obj.n_records);
             temp_units         = cell(1,obj.n_records);
             
-            obj.name = sdk.getChannelName(file_h,id);
+            obj.name = sdk.getChannelName(file_h,channel_id);
             
             for iRecord = 1:obj.n_records
-                temp_sample_period(iRecord) = sdk.getSamplePeriod(file_h,iRecord,id);
-                temp_n_samples(iRecord)     = sdk.getNSamplesInRecord(file_h,iRecord,id);
-                temp_units{iRecord}         = sdk.getUnits(file_h,iRecord,id);
+                temp_sample_period(iRecord) = sdk.getSamplePeriod(file_h,iRecord,channel_id);
+                temp_n_samples(iRecord)     = sdk.getNSamplesInRecord(file_h,iRecord,channel_id);
+                temp_units{iRecord}         = sdk.getUnits(file_h,iRecord,channel_id);
             end
             
             obj.units     = temp_units;

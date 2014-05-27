@@ -5,10 +5,20 @@ classdef sdk
     %
     %   This class is meant to be the singular access point for getting
     %   data from a LabChart file. Methods in this class call a mex
-    %   interface which makes calls to the C API provided by ADInstruments
+    %   interface which makes calls to the C API provided by ADInstruments.
+    %
+    %   Function Definitions:
+    %   =====================
+    %   Function definitions for the SDK can be found in the header file.
+    
+    %   See:
+    %   /private/ADIDatCAPI_mex.h
+    %
+    %   They are also defined in the calling function.
+    %
     %
     %   Some definitions:
-    %   =================================================
+    %   =================
     %   tick   : sampling rate of fastest channel
     %   record : Records can be somewhat equivalent to trials or blocks
     %       in other experimental setups. Each file can consist of 1 or
@@ -17,10 +27,24 @@ classdef sdk
     %       warrant creation of a new record (such as a change in the
     %       sampling rate)
     %
+    %   Usage Notes:
+    %   ============
+    %   NOTE: For the typical user, this SDK doesn't need to be called 
+    %   directly. You can access most of the needed functionality by using
+    %   adinstruments.readFile
+    %
+    %
     %   NOTE:
     %   Since Matlab's importing is subpar, but since it allows calling
     %   static methods from an instance of a class, one can instiate this
     %   class to allow shorter calling of the static methods of the class.
+    %
+    %   e.g.
+    %   sdk = adinstruments.sdk
+    %   sdk.getNumberOfChannels(file_h)
+    %
+    %   See Also:
+    %   adinstruments.readFile
     
     properties
     end
@@ -29,8 +53,17 @@ classdef sdk
         function makeMex()
             %
             %   adinstruments.sdk.makeMex
-            
+            %
+            %   This function compiles the necessary mex code.
+
             %TODO: allow unlocking - this would require reference counting.
+            %
+            %Currently we lock the mex file when it is run. If we didn't
+            %and we were to clear the mex file and then try to delete a 
+            %file handle Matlab would crash. Reference counting would
+            %involve incrementing for every opened handle, then
+            %decrementing every time handles are destroyed. If this count
+            %is zero, then we could safely clear the mex dll from memory.
             
             base_path = sl.dir.getMyBasePath;
             mex_path  = fullfile(base_path,private);
@@ -182,6 +215,8 @@ classdef sdk
             
             [result_code,dt_tick] = sdk_mex(4,file_h.pointer_value,c0(record),c0(channel));
             adinstruments.sdk.handleErrorCode(result_code)
+        end
+        function [record_time,trigger_time] = getRecordStartTime(file_h,record)
         end
         %Comment specific functions
         %------------------------------------------------------------------

@@ -19,7 +19,7 @@ classdef (Hidden) record < sl.obj.display_class
     end
     
     methods
-        function obj = record(sdk,record_id,file_h)
+        function obj = record(file_h,sdk,record_id)
            %
            %
            %

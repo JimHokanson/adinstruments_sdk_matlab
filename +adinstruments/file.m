@@ -18,8 +18,10 @@ classdef file < sl.obj.display_class
     end
     
     properties
-        n_records     
-        n_channels
+        n_records
+        n_channels %# of channels in the file (across all records). This may
+        %be reduced if some channels have no data and the input options to 
+        %the constructor specify to remove empty channels.
         records       %adinstruments.record
         channel_specs %adinstruments.channel These classes hold information
         %about each of the channels used.
@@ -47,45 +49,58 @@ classdef file < sl.obj.display_class
             %
             %    This should be created by adinstruments.readFile
             %
+            %   Inputs:
+            %   -------
+            %   file_path : str
+            %       The path of the file (for reference).
+            %   file_h : 
+            %       
+            %   in : adinstruments.file_read_options
+            %       Options for reading the file
+            %
             %    See Also:
             %    adinstruments.readFile
             
             obj.file_path   = file_path;
             
             obj.n_records  = sdk.getNumberOfRecords(file_h);
-            obj.n_channels = sdk.getNumberOfChannels(file_h);
+            temp_n_channels = sdk.getNumberOfChannels(file_h);
             
             %Get record objects
             %-------------------------------------------
             temp = cell(1,obj.n_records);
             
             for iRec = 1:obj.n_records
-                temp{iRec} = adinstruments.record(iRec,file_h);
+                temp{iRec} = adinstruments.record(file_h,sdk,iRec);
             end
             
             obj.records = [temp{:}];
             
             %Get channel objects
             %-------------------------------------------
-            temp = cell(1,obj.n_channels);
+            temp = cell(1,temp_n_channels);
             
-            for iChan = 1:obj.n_channels
-                temp{iChan} = adinstruments.channel(file_h,iChan,obj.records);
+            for iChan = 1:temp_n_channels
+                temp{iChan} = adinstruments.channel(file_h,sdk,iChan,obj.records);
             end
             
             obj.channel_specs = [temp{:}];
             
             if in.remove_empty_channels
-               obj.channel_specs = obj.channel_specs.removeEmptyObjects(); 
+                obj.channel_specs = obj.channel_specs.removeEmptyObjects();
             end
+            
+            obj.n_channels = length(obj.channel_specs);
         end
     end
     methods
         function summarizeRecords(obj)
+            %NYI
             %For each record:
             %# of comments
             %which channels contain data
             %duration of the record
+            keyboard
         end
         function chan = getChannelByName(obj,name,varargin)
             %
@@ -101,14 +116,14 @@ classdef file < sl.obj.display_class
             
             temp = obj.channel_specs;
             if isempty(temp)
-            	error('Requested channel: %s, not found',name) 
+                error('Requested channel: %s, not found',name)
             end
             
             chan = temp.getChannelByName(name,in);
-
+            
         end
         function exportToMatFile(obj,save_path)
-           %NYI 
+            %NYI
         end
     end
     
