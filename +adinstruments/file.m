@@ -123,7 +123,28 @@ classdef file < sl.obj.display_class
             
         end
         function exportToMatFile(obj,save_path)
+            
+            if ~exist('save_path','var')
+               save_path = sl.dir.changeFileExtension(obj.file_path,'mat');
+            end
+            
+            if exist(save_path,'file')
+               delete(save_path); 
+            end
             %NYI
+            %http://www.mathworks.com/help/matlab/ref/matfile.html
+            m = matfile(save_path);
+            
+            %TODO: Things to save here:
+            %n_records
+            %n_channels
+            
+            m.file_version = 1;
+            m.file_meta    = struct('n_records',obj.n_records,'n_channels',obj.n_channels);
+            
+            obj.records.exportToMatFile(m);
+            obj.channel_specs.exportToMatFile(m)
+            
         end
     end
     

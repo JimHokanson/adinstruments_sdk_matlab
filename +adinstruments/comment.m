@@ -82,7 +82,19 @@ classdef comment < sl.obj.display_class
         function [objs_out,times] = getCommentsForChannel(objs,channel_obj,record_id,x_limits)
             %
             %
-            %    adinstruments.comment.getCommentsForChannel
+            %   adinstruments.comment.getCommentsForChannel
+            %
+            %   Returns comments that:
+            %   1) Have the same record as that being requested
+            %   2) Pertain to the given channel
+            %
+            %   Inputs:
+            %   -------
+            %   channel_obj :
+            %
+            %   record_id   :
+            %
+            %   x_limits    :
             
             keep_mask = [objs.record] == record_id;
             kept_objs = objs(keep_mask);
@@ -112,6 +124,19 @@ classdef comment < sl.obj.display_class
             keep_mask = obj_times_scaled >= x_limits(1) & obj_times_scaled <= x_limits(2);
             objs_out  = kept_objs(keep_mask);
             times     = obj_times_scaled(keep_mask);
+        end
+        function exportToMatFile(objs,m)
+            
+           m.comment_version = 1;
+           
+           m.comments = struct(...
+                'str',              {objs.str},... 
+                'id',               {objs.id},...
+                'tick_position',    {objs.tick_position},...
+                'channel',          {objs.channel},...
+                'record',           {objs.record},...
+                'tick_dt',          {objs.tick_dt});
+
         end
     end
     

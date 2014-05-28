@@ -46,10 +46,8 @@ classdef sdk
     %   See Also:
     %   adinstruments.readFile
     
-    properties
-    end
-    
     methods (Static,Hidden)
+        %adinstruments.sdk.makeMex
         function makeMex()
             %
             %   adinstruments.sdk.makeMex
@@ -66,7 +64,7 @@ classdef sdk
             %is zero, then we could safely clear the mex dll from memory.
             
             base_path = sl.dir.getMyBasePath;
-            mex_path  = fullfile(base_path,private);
+            mex_path  = fullfile(base_path,'private');
             
             wd = cd; %wd - working directory
             cd(mex_path)
@@ -216,7 +214,37 @@ classdef sdk
             [result_code,dt_tick] = sdk_mex(4,file_h.pointer_value,c0(record),c0(channel));
             adinstruments.sdk.handleErrorCode(result_code)
         end
-        function [record_time,trigger_time] = getRecordStartTime(file_h,record)
+        function [record_start,data_start] = getRecordStartTime(file_h,record)
+            %
+            %   
+            %   Outputs:
+            %   ------------
+            %   record_start : Matlab datenum
+            %       Time of record start. If triggered, this is the time of
+            %       the trigger.
+            %   data_start   : Matlab datenum
+            %       Time at which the first data point was collected. If a 
+            %       trigger was used this may be before of after the trigger.
+            %
+            %   For easier viewing you can use datestr(record_start) or
+            %   datestr(data_start).
+
+            [result_code,trigger_time,fractional_seconds,trigger_minus_rec_start] = sdk_mex(16,file_h.pointer_value,c0(record));
+            
+            adinstruments.sdk.handleErrorCode(result_code);
+            
+            record_start_unix = trigger_time + fractional_seconds;
+            
+            %+ trigger_minus_rec_start => data starts before trigger
+            %- trigger_minus_rec_start => data starts after trigger
+            %
+            %  ??? NOTE: I'm assuming this is in seconds. I've only seen 0!
+            data_start_unix = record_start_unix - double(trigger_minus_rec_start);
+            
+            %NOTE: Times are local, not in GMT
+            record_start = sl.datetime.unixToMatlab(record_start_unix,0);
+            data_start   = sl.datetime.unixToMatlab(data_start_unix,0);
+            
         end
         %Comment specific functions
         %------------------------------------------------------------------
@@ -524,7 +552,7 @@ classdef sdk
     
     %Wrapper methods
     methods (Static)
-        function comments = getAllCommentsForRecord(file_h,record_id,tick_dt)
+        function comments = getAllCommentsForRecord(file_h,record_id,tick_dt,sdk)
             %
             %
             %   comments = adinstruments.sdk.getAllCommentsForRecord(file_handle,record_obj)
@@ -546,7 +574,9 @@ classdef sdk
             MAX_NUMBER_COMMENTS = 1000; %NOTE: Overflow of this value
             %just causes things to slow down, it is not a critical error.
             
-            sdk = adinstruments.sdk;
+            if ~exist('sdk','var')
+                sdk = adinstruments.sdk;
+            end
             
             temp_comments_ca = cell(1,MAX_NUMBER_COMMENTS);
             comments_h = sdk.getCommentAccessor(file_h,record_id,tick_dt);

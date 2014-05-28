@@ -180,7 +180,6 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         if (result == 0)
         {
             fh_pointer[0] = (int)fileH;
-            fh_pointer[1] = start_time;
         }
         else
         {
@@ -466,23 +465,42 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
        //   ADI_GetRecordTime   <>   getRecordStartTime
        //   ==============================================================
-       //   [result_code,XX,XX] = sdk_mex(16,file_h,record)      
+       //   [result_code,trigger_time,frac_secs,trigger_minus_rec_start] = sdk_mex(16,file_h,record)      
         
         fileH        = getFileHandle(prhs);
         long record  = getLongInput(prhs,2);
         
         time_t triggerTime = 0;
-        double fracSecs = 0;
-        long triggerMinusStartTicks = 0;
+        double fracSecs    = 0;
+        long   triggerMinusStartTicks = 0;
+
+   //Retrieves time information about the specified record.
+   //The trigger time is the time origin of the record and may differ from the start time if
+   //there is a pre or post trigger delay, as specified by the trigMinusRecStart parameter.
+   // Params: fileH             - ADI_FileHandle for the open file
+   //         record            - the record index (starting from 0)
+   //         triggerTime       - time_t receives the date and time of the trigger 
+   //                             position for the new record. Measured as number of 
+   //                             seconds from 1 Jan 1970
+   //         fracSecs          - receives the fractional seconds part of 
+   //                             the record trigger time ('triggerTime' parameter)
+   //         trigMinusRecStart - trigger-time-minus-record-start-ticks. Receives the 
+   //                             difference between the time of trigger tick and the first 
+   //                             tick in the record. This +ve for pre-trigger delay and 
+   //                             -ve for post-trigger delay.
+   // Return: a ADIResultCode for result of the operation
         
-        long channel = getLongInput(prhs,3);
-        double secsPerSample = 0;
+      //DLLEXPORT ADIResultCode ADI_GetRecordTime(ADI_FileHandle fileH, long record, time_t *triggerTime, 
+      //double *fracSecs, long *triggerMinusStartTicks);
         
-        out_result[0] = ADI_GetRecordTime(fileH, record, &triggerTime, &JIM_HERE); 
+        out_result[0] = ADI_GetRecordTime(fileH, record, &triggerTime, &fracSecs, &triggerMinusStartTicks); 
+        
+        setDoubleOutput(plhs,1,(double)triggerTime);
+        setDoubleOutput(plhs,2,fracSecs);
+        setLongOutput(plhs,3,triggerMinusStartTicks);
         
         
         
-        setDoubleOutput(plhs,1,secsPerSample);
     }
     else
     {

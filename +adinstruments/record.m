@@ -12,6 +12,9 @@ classdef (Hidden) record < sl.obj.display_class
         comments  %adinstruments.comment
         tick_dt   %The highest sampling rate of any channel in this record.
         tick_fs   %Sampling frequency, computed for convenience from tick_dt
+        record_start
+        data_start
+        data_start_str
     end
     
     properties (Hidden)
@@ -29,6 +32,10 @@ classdef (Hidden) record < sl.obj.display_class
                       
            obj.n_ticks  = sdk.getNTicksInRecord(file_h,record_id);
            
+           [obj.record_start,obj.data_start] = sdk.getRecordStartTime(file_h,record_id);
+
+           obj.data_start_str = datestr(obj.data_start );
+           
            %This is not channel specific, the channel input is not actually
            %used:
            %http://forum.adinstruments.com/viewtopic.php?f=7&t=563
@@ -36,6 +43,17 @@ classdef (Hidden) record < sl.obj.display_class
            obj.tick_fs  = 1./obj.tick_dt;
            
            obj.comments = sdk.getAllCommentsForRecord(file_h,obj.id,obj.tick_dt);
+        end
+        function exportToMatFile(objs,m)
+            
+           m.record_version = 1; 
+           m.record_meta = struct(...
+               'n_ticks',       {objs.n_ticks}, ...
+               'tick_dt',       {objs.tick_dt},...
+               'record_start',  {objs.record_start},...
+               'data_start',    {objs.data_start});
+               
+           exportToMatFile([objs.comments],m)
         end
     end
     

@@ -20,10 +20,15 @@ function file_obj = readFile(file_path,varargin)
 in = adinstruments.file_read_options;
 in = sl.in.processVarargin(in,varargin);
 
+[~,~,file_extension] = fileparts(file_path);
 
-file_h   = adinstruments.sdk.openFile(file_path);
+if strcmp(file_extension,'.mat')
+    sdk = adinstruments.mat_file_sdk;
+else
+    sdk = adinstruments.sdk;
+end
 
-sdk = adinstruments.sdk;
+file_h = sdk.openFile(file_path);
 
 file_obj = adinstruments.file(file_path,file_h,sdk,in);
 end
