@@ -1,4 +1,4 @@
-classdef (Hidden) file_handle < handle
+classdef (Hidden) file_handle < sl.obj.display_class
     %
     %   Class:
     %   adinstruments.file_handle
@@ -19,7 +19,7 @@ classdef (Hidden) file_handle < handle
             %
             %
             
-            adinstruments.sdk.closeFile(obj.pointer_value);
+            %adinstruments.sdk.closeFile(obj.pointer_value);
         end
     end
     
