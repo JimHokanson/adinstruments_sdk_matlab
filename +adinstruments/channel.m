@@ -21,6 +21,7 @@ classdef channel < sl.obj.display_class
         file_h
         tick_dt
         record_handles
+        sdk
     end
     
     properties (Dependent)
@@ -41,6 +42,7 @@ classdef channel < sl.obj.display_class
             %
             %
             
+            obj.sdk            = sdk;
             obj.id             = channel_id;
             obj.n_records      = length(record_handles);
             obj.file_h         = file_h;
@@ -66,17 +68,19 @@ classdef channel < sl.obj.display_class
         end
         function comment_objs = getRecordComments(obj,record_id)
            %x Small helper to get the comments for a given record
+           
+           %I'm not thrilled that this is here ...
            comment_objs = obj.record_handles(record_id).comments; 
         end
-        function idx_bounds = getIndexBoundsGivenTimeBounds(obj,time_bounds,record_id)
-           %
-           %    
-           %    This may or may not be used ...
-           
-           idx_bounds = [floor(time_bounds(1)/obj.dt(record_id)) ceil(time_bounds(2)/obj.dt(record_id))];
-           
-           %  data = getDataSubset(obj,record_id,idx_bounds(1),idx_bounds(2)-idx_bounds(1)+1,true);
-        end
+% % %         function idx_bounds = getIndexBoundsGivenTimeBounds(obj,time_bounds,record_id)
+% % %            %
+% % %            %    
+% % %            %    This may or may not be used ...
+% % %            
+% % %            idx_bounds = [floor(time_bounds(1)/obj.dt(record_id)) ceil(time_bounds(2)/obj.dt(record_id))];
+% % %            
+% % %            %  data = getDataSubset(obj,record_id,idx_bounds(1),idx_bounds(2)-idx_bounds(1)+1,true);
+% % %         end
         function printChannelNames(objs)
             %printChannelNames  Prints all channel names to the command window
             %
@@ -138,6 +142,9 @@ classdef channel < sl.obj.display_class
             end
             objs_with_data = objs(keep_mask);
         end
+        
+        %I'm working on getting rid of this ...
+        %--------------------------------------------
         function pobjs = getChannelPlotter(objs)
             %x Returns a channel plotter object for plotting data nicely
             %
@@ -155,6 +162,12 @@ classdef channel < sl.obj.display_class
             end
             
             pobjs = [temp{:}];
+        end
+        function data_object = getDataObject(obj,record_id,varargin)
+           %    Returns a nice class that helps in working with the data
+           %
+           
+           data_object = adinstruments.channel_data(obj,record_id,varargin{:});
         end
         function [data,time] = getAllData(obj,record_id,get_as_samples)
             %x Returns all data of the
@@ -177,8 +190,12 @@ classdef channel < sl.obj.display_class
                 data = [];
                 time = [];
             else
-                data = adinstruments.sdk.getChannelData(...
+                data = obj.sdk.getChannelData(...
                     obj.file_h,record_id,obj.id,1,n_samples_get,get_as_samples);
+                
+                if isrow(data)
+                    data = data';
+                end
             end
             
             if nargout == 2
@@ -209,8 +226,62 @@ classdef channel < sl.obj.display_class
             %record
             %n_samples
             
-            data = adinstruments.sdk.getChannelData(...
+            data = obj.sdk.getChannelData(...
                 obj.file_h,record,obj.id,start_sample,n_samples,get_as_samples);
+            
+                if isrow(data)
+                    data = data';
+                end
+            
+        end
+        function exportToMatFile(objs,m)
+            
+           MAX_SAMPLES_AT_ONCE = 1e7;
+           
+           m.channel_version = 1;
+           
+           m.channel_meta = struct(...
+               'id',        {objs.id},...
+               'name',      {objs.name},...
+               'units',     {objs.units},...
+               'n_samples', {objs.n_samples},...
+               'dt',        {objs.dt});
+           
+           %NOTE: It would be nice to be able to save the raw data ...
+           %-----------------------------------
+           m.data_version = 1;
+           
+           %NOTE: We can't go deeper than a single element :/
+           
+           n_objs    = length(objs);
+           n_records = objs(1).n_records; %#ok<PROP>
+           for iChan = 1:n_objs
+               cur_chan = objs(iChan);
+               for iRecord = 1:n_records %#ok<PROP>
+                  cur_n_samples = cur_chan.n_samples(iRecord);
+                  chan_name = sprintf('data__chan_%d_rec_%d',iChan,iRecord);
+                  if cur_n_samples < MAX_SAMPLES_AT_ONCE
+                     %(obj,record_id,get_as_samples) 
+                     m.(chan_name) = cur_chan.getAllData(iRecord,true);
+                  else
+                      
+                     start_I = 1:MAX_SAMPLES_AT_ONCE:cur_n_samples;
+                     end_I   = MAX_SAMPLES_AT_ONCE:MAX_SAMPLES_AT_ONCE:cur_n_samples;
+                     
+                     if length(end_I) < length(start_I)
+                         end_I(end+1) = cur_n_samples; %#ok<AGROW>
+                     end
+                     
+                     m.(chan_name)(cur_n_samples,1) = 0; %Initialize output
+                     for iChunk = 1:length(start_I)
+                        cur_start = start_I(iChunk);
+                        cur_end   = end_I(iChunk);
+                        n_samples_get = cur_end-cur_start + 1;
+                        m.(chan_name)(cur_start:cur_end,1) = cur_chan.getDataSubset(iRecord,cur_start,n_samples_get,true);
+                     end
+                  end
+               end 
+           end
         end
     end
     
