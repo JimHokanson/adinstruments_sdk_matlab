@@ -13,7 +13,7 @@ classdef channel_data < handle
         channel_specs_obj
         record_id
         current_units
-        time_obj
+        time_obj %sci.time_series.time
     end
     
     properties
@@ -57,6 +57,12 @@ classdef channel_data < handle
                 obj.data = temp_data;
             end
             
+        end
+        function data = getDataAtTimeScale(obj,new_time)
+           %For interpolation 
+
+           %This should be redone
+           data = interp1(obj.time_obj.getTimeArray,obj.data,new_time);
         end
         function plot(obj)
            lpr_fh = @sl.plot.big_data.LinePlotReducer;

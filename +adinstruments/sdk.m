@@ -124,6 +124,9 @@ classdef sdk
             %array of int16s
             [result_code,pointer_value] = sdk_mex(0,[int16(file_path) 0]);
             
+            %TODO: When the above fails it is usually because I am not
+            %running 32 bit Matlab for Windows
+            
             file_h = adinstruments.file_handle(pointer_value);
             
             adinstruments.sdk.handleErrorCode(result_code)

@@ -2,6 +2,7 @@ function convertToMat(file_path)
 %
 %   adinstruments.convertToMat(*file_path)
 %
+%   This function will save a .adicht file's contents into a .mat file
 
 if nargin == 0
    [file_name,file_root] = uigetfile({'*.adicht'},'Pick a file to convert'); 
