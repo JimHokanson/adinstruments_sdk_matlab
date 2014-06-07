@@ -1,6 +1,7 @@
 *.asv
 *.bin
 *.m~
+interfaceConverterCode
 
 #Copied from:
 #https://help.github.com/articles/ignoring-files
@@ -43,3 +44,5 @@
 Icon?
 ehthumbs.db
 Thumbs.db
+
+

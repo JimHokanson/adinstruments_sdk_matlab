@@ -13,7 +13,10 @@ if nargin == 0
     file_path = fullfile(file_root,file_name);
 end
 
+profile on
 file_obj = adinstruments.readFile(file_path);
 file_obj.exportToMatFile();
+profile off
+profile viewer
 
 end
