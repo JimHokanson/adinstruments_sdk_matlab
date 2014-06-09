@@ -2,6 +2,12 @@ classdef channel_plotter < sl.obj.display_class
     %
     %   Class:
     %   adinstruments.channel_plotter
+    %
+    %   **************************************************
+    %   THIS FILE IS OUT OF DATE AND WILL BE DELETED SOON
+    %   **************************************************
+    %
+
     
     properties
         time_format  = 'seconds' %

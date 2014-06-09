@@ -122,16 +122,68 @@ classdef file < sl.obj.display_class
             chan = temp.getChannelByName(name,in);
             
         end
-        function exportToMatFile(obj,save_path)
+    end
+    
+    %TODO: These should be in their own class
+    %adinstruments.io.mat.file &
+    %adinstruments.io.h5.file
+    %
+    %Currently the SDK takes care of the loading, which bridges the gap
+    %of knowledge of the file contents ... i.e. this file knows write
+    %contents but the SDK needs to know how to read
+    %File Methods
+    methods
+        function exportToHDF5File(obj,save_path)
+            %
+            %   Exports contents to a HDF5 file.
+            %
             
             if ~exist('save_path','var')
-               save_path = sl.dir.changeFileExtension(obj.file_path,'mat');
+               save_path = sl.dir.changeFileExtension(obj.file_path,'h5');
+            end
+            
+            if strcmp(save_path,obj.file_path)
+               error('Conversion path and file path are the same') 
             end
             
             if exist(save_path,'file')
                delete(save_path); 
             end
-            %NYI
+            
+            %TODO: I'd eventually like to use the h5m library I'm writing.
+            
+            fobj = h5m.file.create(save_path);
+            h5m.group.create(fobj,'file');
+            
+            %TODO: Replace with h5m library when ready
+            h5writeatt(save_path,'/','version',1);
+            h5writeatt(save_path,'/file','n_records',obj.n_records)
+            h5writeatt(save_path,'/file','n_channels',obj.n_channels)
+            
+            obj.records.exportToHDF5File(fobj,save_path);
+            %obj.channel_specs.exportToMatFile(fobj,save_path);
+            
+            keyboard
+        end
+        function exportToMatFile(obj,save_path)
+            %
+            %   Converts the file to a mat file.
+            %
+            %   This is SLOW
+            
+            
+            if ~exist('save_path','var')
+               save_path = sl.dir.changeFileExtension(obj.file_path,'mat');
+            end
+            
+            if strcmp(save_path,obj.file_path)
+               error('Conversion path and file path are the same') 
+            end
+            
+            if exist(save_path,'file')
+               delete(save_path); 
+            end
+            
             %http://www.mathworks.com/help/matlab/ref/matfile.html
             m = matfile(save_path);
             

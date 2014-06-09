@@ -125,6 +125,9 @@ classdef comment < sl.obj.display_class
             objs_out  = kept_objs(keep_mask);
             times     = obj_times_scaled(keep_mask);
         end
+        function exportToHDF5File(objs,fobj,save_path)
+            
+        end
         function exportToMatFile(objs,m)
             
            m.comment_version = 1;

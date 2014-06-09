@@ -33,7 +33,6 @@ classdef sdk
     %   directly. You can access most of the needed functionality by using
     %   adinstruments.readFile
     %
-    %
     %   NOTE:
     %   Since Matlab's importing is subpar, but since it allows calling
     %   static methods from an instance of a class, one can instiate this
@@ -119,10 +118,21 @@ classdef sdk
             %   ===============================================
             %   file : adinstruments.file_handle
             
+            %
+            
+            
             %NOTE: I had trouble with the unicode string conversion so per
             %some Mathworks forum post I am just using a null terminated
             %array of int16s
-            [result_code,pointer_value] = sdk_mex(0,[int16(file_path) 0]);
+            try
+                [result_code,pointer_value] = sdk_mex(0,[int16(file_path) 0]);
+            catch ME
+                if strcmp(ME.identifier,'MATLAB:UndefinedFunction')
+                   error('This code only works on 32 bit Matlab :/, run adinstruments.convert on files which will convert them to formats you can read in 64 bit Matlab')
+                else
+                   rethrow(ME)
+                end
+            end
             
             %TODO: When the above fails it is usually because I am not
             %running 32 bit Matlab for Windows
@@ -327,23 +337,26 @@ classdef sdk
             adinstruments.sdk.handleErrorCode(result_code)
             n_samples = double(n_samples);
         end
-        function output_data  = getChannelData(file_h,record,channel,start_sample,n_samples_get,get_samples)
+        function output_data  = getChannelData(file_h,record,channel,start_sample,n_samples_get,get_samples,varargin)
             %
             %
             %   output_data  = adinstruments.sdk.getChannelData(...
             %                       file_h,record,channel,start_sample,n_samples_get,get_samples)
             %
-            %   INPUTS
-            %   ========================================
-            %   channel_0b : channel to get the data from, 0 based, i.e.
-            %                first channel is channel 0
-            %   record_0b  : record to get the data from
-            %   start_sample_0b : first sample to get
+            %   Inputs:
+            %   -------
+            %   channel : 
+            %       Channel to get the data from, 1 based.
+            %   record  : 
+            %       Record to get the data from, 1 based.
+            %   start_sample : first sample to get
             %   n_samples :
             %   get_samples : If true data is returned as samples, if
             %   false, the data are upsampled (sample & hold) to the
             %   highest rate ...
-            %
+            
+            in.leave_raw = false;
+            in = sl.in.processVarargin(in,varargin);
             
             data_type = c(0);
             if ~get_samples
@@ -359,12 +372,14 @@ classdef sdk
             adinstruments.sdk.handleErrorCode(result_code)
             
             if n_returned ~= n_samples_get
-                %TODO: truncate data
                 error('Why was this truncated???')
             end
             
-            output_data = double(data); %Matlab can get finicky working with singles
-            
+            if in.leave_raw
+                output_data = data;
+            else
+                output_data = double(data); %Matlab can get finicky working with singles
+            end
         end
         function units        = getUnits(file_h,record,channel)
             %getUnits
