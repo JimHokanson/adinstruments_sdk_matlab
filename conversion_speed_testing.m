@@ -1,8 +1,10 @@
 function conversion_speed_testing
 
+root_path = 'C:\Data\GSK\ChrisRaw';
 file_path = 'C:\D\GSK_Data\140204 control cmg.adicht';
-file_path = 'C:\D\GSK_Data\140207 control cmg.adicht';
-mat_fpath = 'C:\D\GSK_Data\140204 control cmg.mat';
+file_path = fullfile(root_path,'140207 control cmg.adicht');
+mat_fpath = fullfile(root_path,'140204 control cmg.mat');
+h5_fpath  = fullfile(root_path,'140207 control cmg.h5');
 
 if false
 tic;
@@ -25,6 +27,10 @@ end
 %# Values: 91,434,500 - 730 MB in memory - on disk maybe 50 MB
 %Channel read time: 2.637 seconds
 
+if true
 tic;
 adinstruments.convert(file_path,'format','h5');
 toc;
+end
+
+wtf = adinstruments.readFile(h5_fpath);

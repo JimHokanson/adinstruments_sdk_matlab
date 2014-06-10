@@ -169,7 +169,7 @@ classdef channel < sl.obj.display_class
            
            data_object = adinstruments.channel_data(obj,record_id,varargin{:});
         end
-        function [data,time] = getAllData(obj,record_id,get_as_samples)
+        function [data,time] = getAllData(obj,record_id,varargin)
             %x Returns all data of the
             %
             %    [data,time] = getAllData(obj,record,*get_as_samples)
@@ -179,9 +179,9 @@ classdef channel < sl.obj.display_class
             %    get_as_samples: (default true), see description in:
             %        getDataSubset()
             
-            if ~exist('get_as_samples','var') || isempty(get_as_samples)
-                get_as_samples = true;
-            end
+            in.get_as_samples = true;
+            in.leave_raw      = false;
+            in = sl.in.processVarargin(in,varargin);
             
             index = record_id;
             
@@ -191,7 +191,8 @@ classdef channel < sl.obj.display_class
                 time = [];
             else
                 data = obj.sdk.getChannelData(...
-                    obj.file_h,record_id,obj.id,1,n_samples_get,get_as_samples);
+                    obj.file_h,record_id,obj.id,1,n_samples_get,...
+                        in.get_as_samples,'leave_raw',in.leave_raw);
                 
                 if isrow(data)
                     data = data';
@@ -203,10 +204,10 @@ classdef channel < sl.obj.display_class
             end
             
         end
-        function data = getDataSubset(obj,record,start_sample,n_samples,get_as_samples)
+        function data = getDataSubset(obj,record,start_sample,n_samples,varargin)
             %x Returns a subset of the collected data
             %
-            %    data = getDataSubset(obj,record,start_sample,n_samples,*get_as_samples)
+            %    data = getDataSubset(obj,record,start_sample,n_samples,varargin)
             %
             %    Inputs:
             %    =======================================================
@@ -218,22 +219,24 @@ classdef channel < sl.obj.display_class
             %    returned data is upsampled using (linear interp or sample &
             %    hold????)
             
-            if ~exist('get_as_samples','var') || isempty(get_as_samples)
-                get_as_samples = true;
-            end
+            in.get_as_samples = true;
+            in.leave_raw      = false;
+            in = sl.in.processVarargin(in,varargin);
+            
             
             %TODO: Check inputs ...
             %record
             %n_samples
             
             data = obj.sdk.getChannelData(...
-                obj.file_h,record,obj.id,start_sample,n_samples,get_as_samples);
+                obj.file_h,record,obj.id,start_sample,n_samples,in.get_as_samples,'leave_raw',in.leave_raw);
             
                 if isrow(data)
                     data = data';
                 end
             
         end
+
         function exportToMatFile(objs,m)
             
            MAX_SAMPLES_AT_ONCE = 1e7;

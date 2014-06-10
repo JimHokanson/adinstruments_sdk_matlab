@@ -60,7 +60,7 @@ classdef (Hidden) record < sl.obj.display_class
            h5writeatt(save_path,group_name,'record_start',[objs.record_start]);
            h5writeatt(save_path,group_name,'data_start',[objs.data_start]);
            
-           %exportToHDF5File([objs.comments],fobj,save_path)
+           exportToHDF5File([objs.comments],fobj,save_path)
         end
         function exportToMatFile(objs,m)
             

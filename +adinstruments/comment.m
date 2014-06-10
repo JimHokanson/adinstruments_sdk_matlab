@@ -126,7 +126,23 @@ classdef comment < sl.obj.display_class
             times     = obj_times_scaled(keep_mask);
         end
         function exportToHDF5File(objs,fobj,save_path)
-            
+           group_name = '/comments';
+           h5m.group.create(fobj,'comment_version');
+           h5writeatt(save_path,'/comment_version','version',1);
+           
+           h5m.group.create(fobj,group_name);
+           %TODO: Rewrite with h5m library
+           %h5writeatt(save_path,group_name,'n_ticks',[objs.n_ticks]);
+           
+           %TODO: This needs to be fixed
+           h5writeatt(save_path,group_name,'str',int16(char({objs.str})));
+           
+           
+           h5writeatt(save_path,group_name,'id',[objs.id]);
+           h5writeatt(save_path,group_name,'tick_position',[objs.tick_position]);
+           h5writeatt(save_path,group_name,'channel',[objs.channel]);
+           h5writeatt(save_path,group_name,'record',[objs.record]); 
+           h5writeatt(save_path,group_name,'tick_dt',[objs.tick_dt]); 
         end
         function exportToMatFile(objs,m)
             

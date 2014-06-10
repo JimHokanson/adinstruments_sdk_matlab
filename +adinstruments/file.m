@@ -161,9 +161,8 @@ classdef file < sl.obj.display_class
             h5writeatt(save_path,'/file','n_channels',obj.n_channels)
             
             obj.records.exportToHDF5File(fobj,save_path);
-            %obj.channel_specs.exportToMatFile(fobj,save_path);
+            obj.channel_specs.exportToHDF5File(fobj,save_path);
             
-            keyboard
         end
         function exportToMatFile(obj,save_path)
             %
