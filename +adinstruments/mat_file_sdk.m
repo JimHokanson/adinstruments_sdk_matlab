@@ -5,6 +5,14 @@ classdef mat_file_sdk < handle
     %
     %   This should expose the SDK in a similar manner as the regular SDK
     %   but it should do it from a mat file.
+    %
+    %   The h5_file_sdk borrows implementations from this class and then
+    %   changes some of the methods. I think I would rather they both 
+    %   inherit from a file sdk.
+    %
+    %   JAH 2014-6-15: This code layout will likely change although the 
+    %   interface will most likely not. I just don't like the non-obvious
+    %   code layout.
 
     %NOTE: In Matlab the functions can be easily visualized by folding all
     %the code and then expanding this methods block
@@ -131,6 +139,7 @@ classdef mat_file_sdk < handle
     methods (Static)
         function comments = getAllCommentsForRecord(file_h,record_id,tick_dt)
             %
+            %TODO: This isn't right
             
             comments = adinstruments.sdk.getAllCommentsForRecord(file_h,record_id,tick_dt,adinstruments.mat_file_sdk);
         end

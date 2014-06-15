@@ -46,7 +46,7 @@ classdef comment < sl.obj.display_class
         function pretty_print(objs)
             %
             %
-            %   Example:
+            %   Example Output:
             %
             % Format
             % ID : time : str
@@ -136,8 +136,7 @@ classdef comment < sl.obj.display_class
            
            %TODO: This needs to be fixed
            h5writeatt(save_path,group_name,'str',int16(char({objs.str})));
-           
-           
+
            h5writeatt(save_path,group_name,'id',[objs.id]);
            h5writeatt(save_path,group_name,'tick_position',[objs.tick_position]);
            h5writeatt(save_path,group_name,'channel',[objs.channel]);

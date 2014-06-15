@@ -265,7 +265,7 @@ classdef channel < sl.obj.display_class
                   chan_name = sprintf('data__chan_%d_rec_%d',iChan,iRecord);
                   if cur_n_samples < MAX_SAMPLES_AT_ONCE
                      %(obj,record_id,get_as_samples) 
-                     m.(chan_name) = cur_chan.getAllData(iRecord,true);
+                     m.(chan_name) = cur_chan.getAllData(iRecord,'leave_raw',true);
                   else
                       
                      start_I = 1:MAX_SAMPLES_AT_ONCE:cur_n_samples;
@@ -280,7 +280,7 @@ classdef channel < sl.obj.display_class
                         cur_start = start_I(iChunk);
                         cur_end   = end_I(iChunk);
                         n_samples_get = cur_end-cur_start + 1;
-                        m.(chan_name)(cur_start:cur_end,1) = cur_chan.getDataSubset(iRecord,cur_start,n_samples_get,true);
+                        m.(chan_name)(cur_start:cur_end,1) = cur_chan.getDataSubset(iRecord,cur_start,n_samples_get,'leave_raw',true);
                      end
                   end
                end 
