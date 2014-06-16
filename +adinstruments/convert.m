@@ -1,6 +1,6 @@
 function convert(file_path,varargin)
 %
-%   adinstruments.convert(*file_path,varargin)
+%   c
 %
 %   This function will save a .adicht file's contents into a .mat file
 %
@@ -12,6 +12,7 @@ function convert(file_path,varargin)
 %   format : {'h5','mat'} (default 'h5')
 %       The format to convert the file to.
 
+in.conversion_options = [];
 in.format = 'h5'; %or 'mat'
 in = sl.in.processVarargin(in,varargin);
 
