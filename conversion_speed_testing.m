@@ -43,6 +43,7 @@ end
 
 
 
+if false
 tic
 wtf = adinstruments.readFile(h5_fpath);
 toc
@@ -56,4 +57,14 @@ toc
 tic
 h = load(mat_fpath,'data__chan_3_rec_2');
 toc
+end
+
+file_obj  = h5m.file.open(h5_fpath);
+
 keyboard
+
+group_obj = h5m.group.open(file_obj,'/data__chan_3_rec_2');
+
+
+
+
