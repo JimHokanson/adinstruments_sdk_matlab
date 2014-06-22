@@ -1,7 +1,19 @@
-function exportToHDF5File(objs,fobj,save_path)
+function exportToHDF5File(objs,fobj,save_path,conversion_options)
+%
+%
+%
+%
 
-DEFLATE_VALUE = 3;
-MAX_SAMPLES_AT_ONCE = 1e8; %TODO: Get from options
+%TODO: Support shuffle
+
+
+
+DEFLATE_VALUE        = conversion_options.deflate_value;
+MAX_SAMPLES_PER_READ = conversion_options.max_samples_per_read;
+CHUNK_LENGTH         = conversion_options.chunk_length;
+SHUFFLE_FLAG         = conversion_options.use_shuffle;
+
+DATA_TYPE = 'single';
 
 group_name = '/channel_meta';
 h5m.group.create(fobj,'channel_version');
@@ -32,20 +44,22 @@ for iChan = 1:n_objs
         cur_n_samples = cur_chan.n_samples(iRecord);
         chan_name     = sprintf('/data__chan_%d_rec_%d',iChan,iRecord);
         
-        h5create(save_path,chan_name,[cur_n_samples 1],'ChunkSize',...
-            [min(MAX_SAMPLES_AT_ONCE,cur_n_samples) 1],'Datatype','single',...
-            'Deflate',DEFLATE_VALUE);
+        h5create(save_path,chan_name,[cur_n_samples 1],...
+            'ChunkSize',[min(CHUNK_LENGTH,cur_n_samples) 1],...
+            'Datatype',DATA_TYPE,...
+            'Deflate',DEFLATE_VALUE,...
+            'Shuffle',SHUFFLE_FLAG);
         
         
-        if cur_n_samples < MAX_SAMPLES_AT_ONCE
+        if cur_n_samples < MAX_SAMPLES_PER_READ
             %This is a write sequence
             
             h5write(save_path, chan_name, ...
                 cur_chan.getAllData(iRecord,'leave_raw',true));
         else
             
-            start_I = 1:MAX_SAMPLES_AT_ONCE:cur_n_samples;
-            end_I   = MAX_SAMPLES_AT_ONCE:MAX_SAMPLES_AT_ONCE:cur_n_samples;
+            start_I = 1:MAX_SAMPLES_PER_READ:cur_n_samples;
+            end_I   = MAX_SAMPLES_PER_READ:MAX_SAMPLES_PER_READ:cur_n_samples;
             
             if length(end_I) < length(start_I)
                 end_I(end+1) = cur_n_samples; %#ok<AGROW>

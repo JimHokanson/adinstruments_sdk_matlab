@@ -1,3 +1,14 @@
+%This file was me messing around with the COM interface via .NET
+%
+%Due to the interface code I would need to write most of what I need in C#
+%and then call my code.
+%
+%The COM interface exposes the raw data where as the C SDK only exposes
+%data as floating point data (single).
+%
+%For now I'm going to hold off on doing anything with this approach.
+
+
 %wtf   = NET.addAssembly('C:\Users\Jim\Documents\ADInstruments\SimpleDataFileSDKCOM\DotNETInterop\bin\Debug\ADIDatIOWInLib.dll');
 
 

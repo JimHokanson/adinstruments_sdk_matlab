@@ -2,6 +2,9 @@ function conversion_speed_testing
 %
 %
 %   conversion_speed_testing
+%
+%
+%   TODO: This should be moved to the testing package.
 
 root_path = 'C:\Data\GSK\ChrisRaw';
 root_path = 'C:\D\GSK_Data';

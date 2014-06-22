@@ -29,7 +29,10 @@ classdef (Hidden) record < sl.obj.display_class
         function obj = record(file_h,sdk,record_id)
            %
            %
-           %
+           %    Inputs:
+           %    -------
+           %    file_h : .file_handle, .h5_file_h, .mat_file_h
+           
            
            obj.file_h = file_h;
            obj.id     = record_id;
@@ -41,14 +44,21 @@ classdef (Hidden) record < sl.obj.display_class
            obj.data_start_str = datestr(obj.data_start);
            
            %This is not channel specific, the channel input is not actually
-           %used:
-           %http://forum.adinstruments.com/viewtopic.php?f=7&t=563
+           %used according to:
+           %    http://forum.adinstruments.com/viewtopic.php?f=7&t=563
            obj.tick_dt  = sdk.getTickPeriod(file_h,record_id,1);
            obj.tick_fs  = 1./obj.tick_dt;
            
            obj.comments = sdk.getAllCommentsForRecord(file_h,obj.id,obj.tick_dt);
         end
-        function exportToHDF5File(objs,fobj,save_path)
+    end
+    
+    %These conversion calls should be initiated by the file object
+    methods (Hidden)
+        function exportToHDF5File(objs,fobj,save_path,conversion_options)
+            %
+            %
+            %   
            group_name = '/record_meta';
            h5m.group.create(fobj,'record_version');
            h5writeatt(save_path,'/record_version','version',1);
@@ -60,9 +70,9 @@ classdef (Hidden) record < sl.obj.display_class
            h5writeatt(save_path,group_name,'record_start',[objs.record_start]);
            h5writeatt(save_path,group_name,'data_start',[objs.data_start]);
            
-           exportToHDF5File([objs.comments],fobj,save_path)
+           exportToHDF5File([objs.comments],fobj,save_path,conversion_options)
         end
-        function exportToMatFile(objs,m)
+        function exportToMatFile(objs,m,conversion_options)
             
            m.record_version = 1; 
            m.record_meta = struct(...
@@ -71,7 +81,7 @@ classdef (Hidden) record < sl.obj.display_class
                'record_start',  {objs.record_start},...
                'data_start',    {objs.data_start});
                
-           exportToMatFile([objs.comments],m)
+           exportToMatFile([objs.comments],m,conversion_options)
         end
     end
     
