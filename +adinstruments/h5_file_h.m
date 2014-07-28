@@ -5,7 +5,7 @@ classdef h5_file_h < handle
     
     properties
         file_path
-        m %Handle to the file.
+        m %Structure containing the meta data
     end
     
     methods
@@ -22,6 +22,17 @@ classdef h5_file_h < handle
             obj.file_path = file_path;
             %obj.m = h5m.file.open(file_path);
             
+            
+            %The general approach used below is to read all meta
+            %information into memory now. We attempt to mimic the format
+            %used when saving to a 'mat' format so that we can use the same
+            %SDK interface.
+            %
+            %In general I really dislike this approach and will eventually
+            %revert to functions that read and write structs. Also, the
+            %encapsulation is currently shot and needs to be fixed (writing
+            %and reading are separated)
+            %==============================================================
             
             %File
             %-------------------------------------
@@ -61,8 +72,6 @@ classdef h5_file_h < handle
             rch1 = @(attr)h5readatt(file_path,'/channel_meta',attr);
             rch2 = @(attr)num2cell(rch1(attr));
             
-            
-            
             id        = rch2('id');
             n_rows    = length(id);
             
@@ -70,9 +79,7 @@ classdef h5_file_h < handle
             n_samples = num2cell(rch1('n_samples'),2);
             
             units_temp = cellstr(char(rch1('units')));
-            
-            
-            
+
             n_records   = length(record_struct);
             units_temp2 = reshape(units_temp,[n_rows n_records]);
             units = num2cell(units_temp2,2);
@@ -93,14 +100,6 @@ classdef h5_file_h < handle
                 'channel_meta',     channel_struct,...
                 'comments',         comment_struct);
             
-            % temp = vertcat(objs.units);
-            % temp = int16(char(temp(:)));
-            % h5writeatt(save_path,group_name,'units',temp);
-            % h5writeatt(save_path,group_name,'dt',vertcat(objs.dt));
-            % h5writeatt(save_path,group_name,'n_samples',vertcat(objs.n_samples));
-        end
-        function delete(obj)
-            %TODO: Delete
         end
     end
     

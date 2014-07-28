@@ -133,12 +133,15 @@ classdef file < sl.obj.display_class
     %contents but the SDK needs to know how to read
     %File Methods
     methods
-        function exportToHDF5File(obj,save_path)
+        function save_path = exportToHDF5File(obj,save_path,conversion_options)
             %
             %   Exports contents to a HDF5 file.
-            %
             
-            if ~exist('save_path','var')
+            if nargin < 3 || isempty(conversion_options)
+                conversion_options = adinstruments.h5_conversion_options;
+            end
+            
+            if ~exist('save_path','var') || isempty(save_path)
                save_path = sl.dir.changeFileExtension(obj.file_path,'h5');
             end
             
@@ -151,6 +154,7 @@ classdef file < sl.obj.display_class
             end
             
             %TODO: I'd eventually like to use the h5m library I'm writing.
+            %This would change the calls to h5writteatt
             
             fobj = h5m.file.create(save_path);
             h5m.group.create(fobj,'file');
@@ -160,18 +164,24 @@ classdef file < sl.obj.display_class
             h5writeatt(save_path,'/file','n_records',obj.n_records)
             h5writeatt(save_path,'/file','n_channels',obj.n_channels)
             
-            obj.records.exportToHDF5File(fobj,save_path);
-            obj.channel_specs.exportToHDF5File(fobj,save_path);
+            obj.records.exportToHDF5File(fobj,save_path,conversion_options);
+            obj.channel_specs.exportToHDF5File(fobj,save_path,conversion_options);
             
         end
-        function exportToMatFile(obj,save_path)
+        function save_path = exportToMatFile(obj,save_path,conversion_options)
             %
             %   Converts the file to a mat file.
             %
-            %   This is SLOW
+            %   This is rediculously SLOW. Unfortunately we don't have much
+            %   control over how mat files are saved, even though the
+            %   underlying HDF5 format provides tons of flexibility. To
+            %   remedy this problem the HDF5 conversion code was created.
             
+            if nargin < 3 || isempty(conversion_options)
+                conversion_options = adinstruments.h5_conversion_options;
+            end
             
-            if ~exist('save_path','var')
+            if ~exist('save_path','var') || isempty(save_path)
                save_path = sl.dir.changeFileExtension(obj.file_path,'mat');
             end
             
@@ -186,15 +196,11 @@ classdef file < sl.obj.display_class
             %http://www.mathworks.com/help/matlab/ref/matfile.html
             m = matfile(save_path);
             
-            %TODO: Things to save here:
-            %n_records
-            %n_channels
-            
             m.file_version = 1;
             m.file_meta    = struct('n_records',obj.n_records,'n_channels',obj.n_channels);
             
-            obj.records.exportToMatFile(m);
-            obj.channel_specs.exportToMatFile(m)
+            obj.records.exportToMatFile(m,conversion_options);
+            obj.channel_specs.exportToMatFile(m,conversion_options)
             
         end
     end

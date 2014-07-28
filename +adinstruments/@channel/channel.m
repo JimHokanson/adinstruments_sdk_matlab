@@ -236,8 +236,10 @@ classdef channel < sl.obj.display_class
                 end
             
         end
-
-        function exportToMatFile(objs,m)
+    end
+    methods (Hidden)
+        exportToHDF5File(objs,fobj,save_path,conversion_options)
+        function exportToMatFile(objs,m,conversion_options)
             
            MAX_SAMPLES_AT_ONCE = 1e7;
            
