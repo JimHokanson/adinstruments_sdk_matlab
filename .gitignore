@@ -46,3 +46,6 @@ ehthumbs.db
 Thumbs.db
 
 
+/+adinstruments/private/ADIDatCAPI_mex64.h
+/+adinstruments/private/ADIDatIOWin64.dll
+/+adinstruments/private/ADIDatIOWin64.lib

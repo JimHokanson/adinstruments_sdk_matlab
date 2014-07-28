@@ -47,8 +47,10 @@ else
 end
 
 if nargin == 0 || isempty(file_path)
-    [file_name,file_root] = uigetfile({'*.adicht','*.h5','*.mat'},'Pick a file to read'); 
-
+    [file_name,file_root] = uigetfile(...
+        {'*.adicht','Labchart Files (*.adicht)'; ...
+        '*.h5','HDF5 Files (*.h5)';...
+        '*.mat','Matlab Files (*.mat)'},'Pick a file to read'); 
     if isnumeric(file_name)
         return
     end

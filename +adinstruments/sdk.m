@@ -106,11 +106,12 @@ classdef sdk
         function file_h = openFile(file_path)
             %
             %   file = adinstruments.sdk.openFile(file_path)
+            %   
+            %   NOTE: This function allows for reading or writing but 
+            %   I've only implemented reading.
             %
-            %   NOTE: Only reading is supported.
-            %
-            %   Inputs
-            %   ===============================================
+            %   Inputs:
+            %   -------
             %   file_path : char
             %       Full path to the file.
             %
@@ -118,29 +119,23 @@ classdef sdk
             %   ===============================================
             %   file : adinstruments.file_handle
             
-            %
-            
             
             %NOTE: I had trouble with the unicode string conversion so per
             %some Mathworks forum post I am just using a null terminated
             %array of int16s
-            try
-                [result_code,pointer_value] = sdk_mex(0,[int16(file_path) 0]);
-            catch ME
-                if strcmp(ME.identifier,'MATLAB:UndefinedFunction')
-                   error('This code only works on 32 bit Matlab :/, run adinstruments.convert on files which will convert them to formats you can read in 64 bit Matlab')
-                else
-                   rethrow(ME)
-                end
-            end
-            
-            %TODO: When the above fails it is usually because I am not
-            %running 32 bit Matlab for Windows
+            [result_code,pointer_value] = sdk_mex(0,[int16(file_path) 0]);
             
             file_h = adinstruments.file_handle(pointer_value);
             
             adinstruments.sdk.handleErrorCode(result_code)
             
+        end
+        function file_h = createFile(file_path)
+            [result_code,pointer_value] = sdk_mex(0,[int16(file_path) 0]);
+            
+            file_h = adinstruments.file_handle(pointer_value);
+            
+            adinstruments.sdk.handleErrorCode(result_code)
         end
         function closeFile(pointer_value)
             %
