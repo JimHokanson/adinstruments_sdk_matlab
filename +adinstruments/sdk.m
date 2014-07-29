@@ -10,7 +10,7 @@ classdef sdk
     %   Function Definitions:
     %   =====================
     %   Function definitions for the SDK can be found in the header file.
-    
+    %
     %   See:
     %   /private/ADIDatCAPI_mex.h
     %
@@ -29,7 +29,7 @@ classdef sdk
     %
     %   Usage Notes:
     %   ============
-    %   NOTE: For the typical user, this SDK doesn't need to be called 
+    %   NOTE: For the typical user, this SDK doesn't need to be called
     %   directly. You can access most of the needed functionality by using
     %   adinstruments.readFile
     %
@@ -52,11 +52,11 @@ classdef sdk
             %   adinstruments.sdk.makeMex
             %
             %   This function compiles the necessary mex code.
-
+            
             %TODO: allow unlocking - this would require reference counting.
             %
             %Currently we lock the mex file when it is run. If we didn't
-            %and we were to clear the mex file and then try to delete a 
+            %and we were to clear the mex file and then try to delete a
             %file handle Matlab would crash. Reference counting would
             %involve incrementing for every opened handle, then
             %decrementing every time handles are destroyed. If this count
@@ -106,8 +106,8 @@ classdef sdk
         function file_h = openFile(file_path)
             %
             %   file = adinstruments.sdk.openFile(file_path)
-            %   
-            %   NOTE: This function allows for reading or writing but 
+            %
+            %   NOTE: This function allows for reading or writing but
             %   I've only implemented reading.
             %
             %   Inputs:
@@ -120,10 +120,8 @@ classdef sdk
             %   file : adinstruments.file_handle
             
             
-            %NOTE: I had trouble with the unicode string conversion so per
-            %some Mathworks forum post I am just using a null terminated
-            %array of int16s
-            [result_code,pointer_value] = sdk_mex(0,[int16(file_path) 0]);
+            
+            [result_code,pointer_value] = sdk_mex(0,h__toWChar(file_path));
             
             file_h = adinstruments.file_handle(pointer_value);
             
@@ -180,6 +178,24 @@ classdef sdk
             adinstruments.sdk.handleErrorCode(result_code)
             n_channels = double(n_channels);
         end
+        function writer_h = createDataWriter(file_h)
+           %
+           %Creates a new writer session for writing new data and
+           %returns a handle to that open writer for use in other
+           %related functions.
+            
+            [result_code,writer_pointer] = sdk_mex(19,file_h.pointer_value);
+            writer_h = adinstruments.data_writer_handle(writer_pointer);
+            adinstruments.sdk.handleErrorCode(result_code) 
+        end
+        function commitFile(writer_h)
+           result_code = sdk_mex(24,writer_h.pointer_value);
+           adinstruments.sdk.handleErrorCode(result_code)
+        end
+        function closeWriter(pointer_value)
+            result_code = sdk_mex(25,pointer_value);
+            adinstruments.sdk.handleErrorCode(result_code) 
+        end
         %Record specific functions
         %------------------------------------------------------------------
         function n_ticks_in_record = getNTicksInRecord(file_h,record)
@@ -224,19 +240,19 @@ classdef sdk
         end
         function [record_start,data_start] = getRecordStartTime(file_h,record)
             %
-            %   
+            %
             %   Outputs:
             %   ------------
             %   record_start : Matlab datenum
             %       Time of record start. If triggered, this is the time of
             %       the trigger.
             %   data_start   : Matlab datenum
-            %       Time at which the first data point was collected. If a 
+            %       Time at which the first data point was collected. If a
             %       trigger was used this may be before of after the trigger.
             %
             %   For easier viewing you can use datestr(record_start) or
             %   datestr(data_start).
-
+            
             [result_code,trigger_time,fractional_seconds,trigger_minus_rec_start] = sdk_mex(16,file_h.pointer_value,c0(record));
             
             adinstruments.sdk.handleErrorCode(result_code);
@@ -253,6 +269,27 @@ classdef sdk
             record_start = sl.datetime.unixToMatlab(record_start_unix,0);
             data_start   = sl.datetime.unixToMatlab(data_start_unix,0);
             
+        end
+        function startRecord(writer_h,varargin)
+           %
+           %
+           %    Optional Inputs:
+           %    ----------------
+           %    
+            
+           %JAH TODO: At this point 
+           in.trigger_time = now;
+           in.fractional_seconds = 0;
+           in.trigger_minus_rec_start = 0;
+           in = adinstruments.sl.in.processVarargin(in,varargin);    
+           
+           result_code = sdk_mex(21, writer_h.pointer_value, ...
+               in.trigger_time, in.fractional_seconds, in.trigger_minus_rec_start);
+           adinstruments.sdk.handleErrorCode(result_code)
+        end
+        function finishRecord(writer_h)
+           result_code = sdk_mex(23, writer_h.pointer_value); 
+           adinstruments.sdk.handleErrorCode(result_code) 
         end
         %Comment specific functions
         %------------------------------------------------------------------
@@ -314,6 +351,15 @@ classdef sdk
                 comment_info = [];
             end
         end
+        function addComment(channel,record,tick_position,comment_string)
+            result_code = sdk_mex(27,file_h.pointer_value,...
+                c0(channel), c0(record), tick_position, comment_string);
+            adinstruments.sdk.handleErrorCode(result_code);
+        end
+        function deleteComment(file_h,comment_number)
+            result_code = sdk_mex(27,file_h.pointer_value,comment_number);
+            adinstruments.sdk.handleErrorCode(result_code);
+        end
         %Channel specific functions
         %------------------------------------------------------------------
         function n_samples    = getNSamplesInRecord(file_h,record,channel)
@@ -340,9 +386,9 @@ classdef sdk
             %
             %   Inputs:
             %   -------
-            %   channel : 
+            %   channel :
             %       Channel to get the data from, 1 based.
-            %   record  : 
+            %   record  :
             %       Record to get the data from, 1 based.
             %   start_sample : first sample to get
             %   n_samples :
@@ -439,6 +485,55 @@ classdef sdk
             
             [result_code,dt_channel] = sdk_mex(15,file_h.pointer_value,c0(record),c0(channel));
             
+            adinstruments.sdk.handleErrorCode(result_code)
+        end
+        function setChannelName(file_h,channel,channel_name)
+            %
+            %??? - Does this create a new channel if it doesn't exist yet?
+            
+            result_code = sdk_mex(18,file_h.pointer_value,c0(channel),h__toWChar(channel_name));
+            
+            adinstruments.sdk.handleErrorCode(result_code)
+            
+        end
+        function setChannelInfo(writer_h,channel,seconds_per_sample,units,varargin)
+           %
+           %    Sets channel information for the specific record.
+           %
+           %    TODO: Make it so that we can have everything be optional
+           %    ...
+           %
+           %    Inputs:
+           %    -------
+           %    channel :
+           %    seconds_per_sample : 
+           %
+           %    Optional Inputs:
+           %    ----------------
+           %    enabled_for_record : (default true)
+           %    limits :
+           %
+           %    ??? - when is this done relative to a new record? Does
+           %    this need to be done every time or does a default carry
+           %    over? Does setting this create a new record or only get
+           %    updated when a new record is started?
+           
+           in.enabled_for_record = true;
+           in.limits = [-Inf Inf];
+           in = adinstruments.sl.in.processVarargin(in,varargin);
+           
+           result_code = sdk_mex(20,...
+               writer_h.pointer_value,...
+               c0(channel),...
+               int(in.enabled_for_record),...
+               seconds_per_sample,...
+               h__toWChar(units),...
+               single(in.limits));
+           adinstruments.sdk.handleErrorCode(result_code)
+        end
+        function addChannelSamples(writer_h,channel,data)
+            
+            result_code = sdk_mex(22,writer_h.pointer_value,channel,data);
             adinstruments.sdk.handleErrorCode(result_code)
         end
         %Helper functions
@@ -563,7 +658,7 @@ classdef sdk
         end
     end
     
-    %Wrapper methods
+    %Wrapper methods ------------------------------------------------------
     methods (Static)
         function comments = getAllCommentsForRecord(file_h,record_id,tick_dt,sdk)
             %
@@ -573,7 +668,7 @@ classdef sdk
             %   Parameters
             %   ----------
             %   file_handle : adinstruments.file_handle
-            %       
+            %
             %   record_id   : double
             %
             %   tick_dt     : double
@@ -615,5 +710,12 @@ classdef sdk
     end
     
     
+end
+
+function str_out = h__toWChar(str_in)
+%NOTE: I had trouble with the unicode string conversion so per
+%some Mathworks forum post I am just using a null terminated
+%array of int16s
+str_out = [int16(str_in) 0];
 end
 
