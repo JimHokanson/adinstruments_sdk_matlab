@@ -1,7 +1,7 @@
 classdef (Hidden) file_handle < sl.obj.display_class
     %
     %   Class:
-    %   adinstruments.file_handle
+    %   adi.file_handle
     %
     %   This class is simply meant to hold the reference to an open file.
     %   When no one holds it the file will be closed.
@@ -19,7 +19,7 @@ classdef (Hidden) file_handle < sl.obj.display_class
             %
             %
             
-            %adinstruments.sdk.closeFile(obj.pointer_value);
+            %adi.sdk.closeFile(obj.pointer_value);
         end
     end
     

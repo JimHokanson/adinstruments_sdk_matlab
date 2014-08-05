@@ -1,7 +1,7 @@
-classdef h5_file_sdk < adinstruments.mat_file_sdk
+classdef h5_file_sdk < adi.mat_file_sdk
     %
     %   Class:
-    %   adinstruments.h5_file_sdk
+    %   adi.h5_file_sdk
     %
     %   This should expose the SDK in a similar manner as the regular SDK
     %   but it should do it from a h5 file.
@@ -11,8 +11,8 @@ classdef h5_file_sdk < adinstruments.mat_file_sdk
     %   code layout.
     %
     %   See Also:
-    %   adinstruments.mat_file_sdk
-    %   adinstruments.sdk
+    %   adi.mat_file_sdk
+    %   adi.sdk
     
     %NOTE: In Matlab the functions can be easily visualized by folding all
     %the code and then expanding this methods block
@@ -21,7 +21,7 @@ classdef h5_file_sdk < adinstruments.mat_file_sdk
         %------------------------------------------------------------------
         function file_h = openFile(file_path)
             %
-            %   file = adinstruments.h5_file_sdk.openFile(file_path)
+            %   file = adi.h5_file_sdk.openFile(file_path)
             %
             %   NOTE: Only reading is supported.
             %
@@ -32,9 +32,9 @@ classdef h5_file_sdk < adinstruments.mat_file_sdk
             %
             %   Outputs:
             %   --------
-            %   file : adinstruments.h5_file_h
+            %   file : adi.h5_file_h
             
-            file_h = adinstruments.h5_file_h(file_path);
+            file_h = adi.h5_file_h(file_path);
             
         end
         function output_data  = getChannelData(file_h,record,channel,start_sample,n_samples_get,get_samples,varargin)
@@ -44,7 +44,7 @@ classdef h5_file_sdk < adinstruments.mat_file_sdk
             %
             %   Inputs:
             %   --------
-            %   file_h  : adinstruments.h5_file_h
+            %   file_h  : adi.h5_file_h
 
             in.leave_raw = false;
             in = sl.in.processVarargin(in,varargin);
@@ -69,7 +69,7 @@ classdef h5_file_sdk < adinstruments.mat_file_sdk
         function comments = getAllCommentsForRecord(file_h,record_id,tick_dt)
             %
             
-            comments = adinstruments.sdk.getAllCommentsForRecord(file_h,record_id,tick_dt,adinstruments.mat_file_sdk);
+            comments = adi.sdk.getAllCommentsForRecord(file_h,record_id,tick_dt,adi.mat_file_sdk);
         end
     end
     

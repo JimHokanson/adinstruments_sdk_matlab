@@ -1,7 +1,7 @@
 classdef data_viewer < handle
     %
     %   Class:
-    %   adinstruments.data_viewer
+    %   adi.data_viewer
     %
     %   NYI
     

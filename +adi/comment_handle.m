@@ -1,14 +1,14 @@
 classdef (Hidden) comment_handle < handle
     %
     %   Class:
-    %   adinstruments.comment_handle
+    %   adi.comment_handle
     %
     %   This contains a handle that is needed by the SDK to get comments
     %   for a particular record. Methods in this class can be used to
     %   extract actual comments from a record.
     %
     %   See Also:
-    %   adinstruments.comment
+    %   adi.comment
     
     
     properties
@@ -25,7 +25,7 @@ classdef (Hidden) comment_handle < handle
     methods
         function obj = comment_handle(pointer_value,is_valid,record_id,tick_dt)
             %
-            %   obj = adinstruments.comment_handle(pointer_value,is_valid)
+            %   obj = adi.comment_handle(pointer_value,is_valid)
             
            obj.pointer_value = pointer_value;
            obj.is_valid      = is_valid;
@@ -37,16 +37,16 @@ classdef (Hidden) comment_handle < handle
                 return
             end 
             
-           adinstruments.sdk.closeCommentAccessor(obj.pointer_value);
+           adi.sdk.closeCommentAccessor(obj.pointer_value);
         end
         function has_another_comment = advanceCommentPointer(obj)
-           has_another_comment = adinstruments.sdk.advanceComments(obj); 
+           has_another_comment = adi.sdk.advanceComments(obj); 
         end
         function cur_comment = getCurrentComment(obj)
-           cur_comment = adinstruments.sdk.getCommentInfo(obj);
+           cur_comment = adi.sdk.getCommentInfo(obj);
         end
         function close(obj)
-           adinstruments.sdk.closeCommentAccessor(obj.pointer_value);
+           adi.sdk.closeCommentAccessor(obj.pointer_value);
            obj.is_valid = false;
         end
     end

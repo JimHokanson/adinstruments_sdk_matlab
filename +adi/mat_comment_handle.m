@@ -1,7 +1,7 @@
 classdef (Hidden) mat_comment_handle < handle
     %
     %   Class:
-    %   adinstruments.mat_comment_handle
+    %   adi.mat_comment_handle
     %
     %   NOTE: This class is a quick hack to get the mat file sdk working
     %
@@ -10,7 +10,7 @@ classdef (Hidden) mat_comment_handle < handle
     %   extract actual comments from a record.
     %
     %   See Also:
-    %   adinstruments.comment
+    %   adi.comment
     
     
     properties
@@ -30,7 +30,7 @@ classdef (Hidden) mat_comment_handle < handle
     methods
         function obj = mat_comment_handle(comment_data,is_valid,record_id,tick_dt)
             %
-            %   adinstruments.mat_comment_handle(comment_data,is_valid,record_id,tick_dt)
+            %   adi.mat_comment_handle(comment_data,is_valid,record_id,tick_dt)
             
             %NOTE: Only comments for the record are passed in ...
             
@@ -50,7 +50,7 @@ classdef (Hidden) mat_comment_handle < handle
             if obj.n_comments == 0
                 cur_comment = [];
             else
-                cur_comment = adinstruments.mat_file_sdk.getCommentInfo(obj,obj.comment_data(obj.current_index));
+                cur_comment = adi.mat_file_sdk.getCommentInfo(obj,obj.comment_data(obj.current_index));
             end
         end
         function close(~)

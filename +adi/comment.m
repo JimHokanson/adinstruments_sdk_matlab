@@ -1,7 +1,7 @@
 classdef comment < sl.obj.display_class
     %
     %   Class:
-    %   adinstruments.comment
+    %   adi.comment
     %
     %   Holds a comment.
     %
@@ -82,7 +82,7 @@ classdef comment < sl.obj.display_class
         function [objs_out,times] = getCommentsForChannel(objs,channel_obj,record_id,x_limits)
             %
             %
-            %   adinstruments.comment.getCommentsForChannel
+            %   adi.comment.getCommentsForChannel
             %
             %   Returns comments that:
             %   1) Have the same record as that being requested

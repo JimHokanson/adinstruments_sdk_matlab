@@ -1,9 +1,9 @@
 function file_obj = readFile(file_path,varargin)
 %x Opens up a LabChart file and extracts meta data.
 %
-%   file_obj = adinstruments.readFile(*file_path,varargin)
+%   file_obj = adi.readFile(*file_path,varargin)
 %
-%   file_obj = adinstruments.readFile(*file_path,options)
+%   file_obj = adi.readFile(*file_path,options)
 %
 %   This function reads some preliminary data from the specified LabChart
 %   or simple data file and exposes access to further commands for reading
@@ -19,30 +19,30 @@ function file_obj = readFile(file_path,varargin)
 %       Path of the file to read. An empty or missing input prompts the
 %       user.
 %
-%   See   adinstruments.file_read_options   for additional option details. 
+%   See   adi.file_read_options   for additional option details. 
 %   You can pass in specific properties to this function to change:
 %
-%       e.g. adinstruments.readFile(file_path,'remove_empty_channels',false) 
+%       e.g. adi.readFile(file_path,'remove_empty_channels',false) 
 %
 %       OR you can pass in the options object:
 %
-%       options = adinstruments.file_read_options;
+%       options = adi.file_read_options;
 %       %Change some options ...
 %
-%       adinstruments.readFile(file_path,options)
+%       adi.readFile(file_path,options)
 %
 %   Outputs:
 %   --------
-%   file_obj : adinstruments.file
+%   file_obj : adi.file
 %
 %   See Also:
-%   adinstruments.file
-%   adinstruments.convert
+%   adi.file
+%   adi.convert
 
-if length(varargin) == 1 && strcmp(class(varargin{1}),adinstruments.file_read_options)
+if length(varargin) == 1 && strcmp(class(varargin{1}),adi.file_read_options)
     in = varargin{1};
 else
-    in = adinstruments.file_read_options;
+    in = adi.file_read_options;
     in = sl.in.processVarargin(in,varargin);
 end
 
@@ -62,13 +62,13 @@ end
 %Choose SDK based on file extension
 %----------------------------------
 if strcmp(file_extension,'.mat')
-    sdk = adinstruments.mat_file_sdk;
+    sdk = adi.mat_file_sdk;
 elseif strcmp(file_extension,'.h5')
-    sdk = adinstruments.h5_file_sdk;
+    sdk = adi.h5_file_sdk;
 else
-    sdk = adinstruments.sdk;
+    sdk = adi.sdk;
 end
 
 file_h   = sdk.openFile(file_path);
-file_obj = adinstruments.file(file_path,file_h,sdk,in);
+file_obj = adi.file(file_path,file_h,sdk,in);
 end

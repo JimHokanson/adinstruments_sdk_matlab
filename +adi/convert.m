@@ -1,6 +1,6 @@
 function save_path = convert(file_path,varargin)
 %
-%   adinstruments.convert(*file_path,varargin)
+%   adi.convert(*file_path,varargin)
 %
 %   This function will save a .adicht file's contents into a .mat file 
 %   (v7.3) or a hdf5 file
@@ -43,14 +43,14 @@ if nargin == 0 || isempty(file_path)
 end
 
 
-file_obj = adinstruments.readFile(file_path);
+file_obj = adi.readFile(file_path);
 
 switch in.format
     case 'h5'
-        %adinstruments.file.exportToMatFile
+        %adi.file.exportToMatFile
         save_path = file_obj.exportToHDF5File(in.save_path,in.conversion_options);
     case 'mat'
-        %adinstruments.file.exportToMatFile
+        %adi.file.exportToMatFile
         save_path = file_obj.exportToMatFile(in.save_path,in.conversion_options);
     otherwise
         error('Unrecognized format option: %s',in.format);

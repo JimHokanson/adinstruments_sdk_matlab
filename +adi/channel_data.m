@@ -1,7 +1,7 @@
 classdef channel_data < handle
     %
     %   Class:
-    %   adinstruments.channel_data
+    %   adi.channel_data
     %
     %
     %   TODO: Change channel_ploter out for this function ...
@@ -23,7 +23,7 @@ classdef channel_data < handle
     methods
         function obj = channel_data(channel_specs_obj,record_id,varargin)
             %
-            %   obj = adinstruments.channel_data(channel_specs,record_id)
+            %   obj = adi.channel_data(channel_specs,record_id)
             
             in.gain         = 1;  %Gain that needs to be removed ...
             in.input_units  = 'V';

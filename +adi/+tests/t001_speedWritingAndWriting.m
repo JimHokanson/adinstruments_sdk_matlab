@@ -1,6 +1,6 @@
 function t001_speedWritingAndWriting
 %
-%   adinstruments.tests.t001_speedWritingAndWriting
+%   adi.tests.t001_speedWritingAndWriting
 %
 %   STATUS:
 
@@ -42,7 +42,7 @@ for iRepeat = 1:n_repeats
         for iCompression = 1:n_compression
             for iShuffle = 1:n_shuffle
                 fprintf('Converting %s, %d, %d, %d, %d\n',datestr(now), iRepeat,iCompression,iChunkPct,iShuffle)
-                options = adinstruments.h5_conversion_options;
+                options = adi.h5_conversion_options;
                 options.chunk_length_pct = pct_chunk_sizes(iChunkPct);
                 options.use_shuffle      = shuffle_options(iShuffle);
                 options.deflate_value    = compression_levels(iCompression);
@@ -58,7 +58,7 @@ for iRepeat = 1:n_repeats
                 
                 save_path = fullfile(SAVE_DIR,[file_name suffix '.h5']);
                 
-                adinstruments.convert(FILE_PATH,...
+                adi.convert(FILE_PATH,...
                     'save_path',save_path,...
                     'conversion_options',options);
                 toc(t) %For display

@@ -1,7 +1,7 @@
 classdef mat_file_h < handle
     %
     %   Class:
-    %   adinstruments.mat_file_h
+    %   adi.mat_file_h
     
     properties
        m %Handle to the file.
@@ -10,7 +10,7 @@ classdef mat_file_h < handle
     methods
         function obj = mat_file_h(file_path,varargin)
            %
-           %    obj = adinstruments.mat_file_h(file_path,varargin)
+           %    obj = adi.mat_file_h(file_path,varargin)
            %
            %    Optional Inputs:
            %    ----------------
@@ -23,7 +23,7 @@ classdef mat_file_h < handle
            %        It might also cause an "out of memory" error.
            %
            %    See Also:
-           %    adinstruments.readFile
+           %    adi.readFile
            
            %TODO: Link this to input options in read file
            

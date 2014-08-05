@@ -1,7 +1,7 @@
 classdef (Hidden) record < sl.obj.display_class
     %
     %   Class:
-    %   adinstruments.record
+    %   adi.record
     %
     %   A new record is created in a file whenever settings are changed, or
     %   whenever the users stops (then starts) a recording.
@@ -9,7 +9,7 @@ classdef (Hidden) record < sl.obj.display_class
     properties
         id        %record number (1 based)
         n_ticks   %# of samples of highest sampling rate channel
-        comments  %adinstruments.comment
+        comments  %adi.comment
         tick_dt   %The highest sampling rate of any channel in this record.
         tick_fs   %Sampling frequency, computed for convenience from tick_dt
         record_start %(Matlab time)
@@ -22,7 +22,7 @@ classdef (Hidden) record < sl.obj.display_class
     end
     
     properties (Hidden)
-       file_h %adinstruments.file_handle
+       file_h %adi.file_handle
     end
     
     methods
@@ -45,7 +45,7 @@ classdef (Hidden) record < sl.obj.display_class
            
            %This is not channel specific, the channel input is not actually
            %used according to:
-           %    http://forum.adinstruments.com/viewtopic.php?f=7&t=563
+           %    http://forum.adi.com/viewtopic.php?f=7&t=563
            obj.tick_dt  = sdk.getTickPeriod(file_h,record_id,1);
            obj.tick_fs  = 1./obj.tick_dt;
            

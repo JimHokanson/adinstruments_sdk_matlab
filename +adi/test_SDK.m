@@ -1,10 +1,10 @@
 classdef (Hidden) test_SDK
     %
     %   Class:
-    %   adinstruments.test_SDK
+    %   adi.test_SDK
     %
     %   Run as:
-    %   adinstruments.test_SDK.run_tests
+    %   adi.test_SDK.run_tests
     
     properties
     end

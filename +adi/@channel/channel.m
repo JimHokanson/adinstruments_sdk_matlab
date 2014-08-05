@@ -1,7 +1,7 @@
 classdef channel < sl.obj.display_class
     %
     %   Class:
-    %   adinstruments.channel
+    %   adi.channel
     
     properties
         id    %Internal number (1 based)
@@ -38,9 +38,9 @@ classdef channel < sl.obj.display_class
     
     methods
         function obj = channel(file_h,sdk,channel_id,record_handles)
-            %x adinstruments.channel constructor
+            %x adi.channel constructor
             %
-            %   obj = adinstruments.channel(file_h,id,n_records,tick_dt)
+            %   obj = adi.channel(file_h,id,n_records,tick_dt)
             %
             %
             
@@ -114,11 +114,11 @@ classdef channel < sl.obj.display_class
             %       string 'Bladder Pressure'
             %
             %    See Also:
-            %    ad_sdk.adinstruments.getChannelByName
+            %    ad_sdk.adi.getChannelByName
             
             in.case_sensitive = false;
             in.partial_match  = true;
-            in = adinstruments.sl.in.processVarargin(in,varargin);
+            in = adi.sl.in.processVarargin(in,varargin);
             
             all_names = {objs.name};
             if ~in.case_sensitive
@@ -150,7 +150,7 @@ classdef channel < sl.obj.display_class
             %   This can be disabled by changing the read options.
             %
             %   See also:
-            %   adinstruments.readFile
+            %   adi.readFile
             
             n_objs    = length(objs);
             keep_mask = false(1,n_objs);
@@ -175,7 +175,7 @@ classdef channel < sl.obj.display_class
             n_objs = length(objs);
             temp = cell(1,n_objs);
             for iObj = 1:n_objs
-                temp{iObj} = adinstruments.channel_plotter(objs(iObj));
+                temp{iObj} = adi.channel_plotter(objs(iObj));
             end
             
             pobjs = [temp{:}];
@@ -184,7 +184,7 @@ classdef channel < sl.obj.display_class
            %    Returns a nice class that helps in working with the data
            %
            
-           data_object = adinstruments.channel_data(obj,record_id,varargin{:});
+           data_object = adi.channel_data(obj,record_id,varargin{:});
         end
         function [data,time] = getAllData(obj,record_id,varargin)
             %x Returns all data of the

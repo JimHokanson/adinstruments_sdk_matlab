@@ -1,11 +1,11 @@
 classdef sdk
     %
     %   Class:
-    %   adinstruments.sdk
+    %   adi.sdk
     %
     %   This class is meant to be the singular access point for getting
     %   data from a LabChart file. Methods in this class call a mex
-    %   interface which makes calls to the C API provided by ADInstruments.
+    %   interface which makes calls to the C API provided by adi.
     %
     %   Function Definitions:
     %   =====================
@@ -31,7 +31,7 @@ classdef sdk
     %   ============
     %   NOTE: For the typical user, this SDK doesn't need to be called
     %   directly. You can access most of the needed functionality by using
-    %   adinstruments.readFile
+    %   adi.readFile
     %
     %   NOTE:
     %   Since Matlab's importing is subpar, but since it allows calling
@@ -39,17 +39,17 @@ classdef sdk
     %   class to allow shorter calling of the static methods of the class.
     %
     %   e.g.
-    %   sdk = adinstruments.sdk
+    %   sdk = adi.sdk
     %   sdk.getNumberOfChannels(file_h)
     %
     %   See Also:
-    %   adinstruments.readFile
+    %   adi.readFile
     
     methods (Static,Hidden)
-        %adinstruments.sdk.makeMex
+        %adi.sdk.makeMex
         function makeMex()
             %
-            %   adinstruments.sdk.makeMex
+            %   adi.sdk.makeMex
             %
             %   This function compiles the necessary mex code.
             
@@ -105,7 +105,7 @@ classdef sdk
         %------------------------------------------------------------------
         function file_h = openFile(file_path)
             %
-            %   file = adinstruments.sdk.openFile(file_path)
+            %   file = adi.sdk.openFile(file_path)
             %
             %   NOTE: This function allows for reading or writing but
             %   I've only implemented reading.
@@ -117,53 +117,53 @@ classdef sdk
             %
             %   Outputs
             %   ===============================================
-            %   file : adinstruments.file_handle
+            %   file : adi.file_handle
             
             
             
             [result_code,pointer_value] = sdk_mex(0,h__toWChar(file_path));
             
-            file_h = adinstruments.file_handle(pointer_value);
+            file_h = adi.file_handle(pointer_value);
             
-            adinstruments.sdk.handleErrorCode(result_code)
+            adi.sdk.handleErrorCode(result_code)
             
         end
         function file_h = createFile(file_path)
             [result_code,pointer_value] = sdk_mex(0,[int16(file_path) 0]);
             
-            file_h = adinstruments.file_handle(pointer_value);
+            file_h = adi.file_handle(pointer_value);
             
-            adinstruments.sdk.handleErrorCode(result_code)
+            adi.sdk.handleErrorCode(result_code)
         end
         function closeFile(pointer_value)
             %
-            %   adinstruments.sdk.closeFile(pointer_value)
+            %   adi.sdk.closeFile(pointer_value)
             %
             %   Since this method should only be called by:
-            %    adinstruments.file_handle.delete()
+            %    adi.file_handle.delete()
             %
             %   and since that is the deconstructor method of that object
             %   it seemed weird to pass in that object ot this method, so
             %   instead the pointer value is passed in directly.
             
             result_code = sdk_mex(13,pointer_value);
-            adinstruments.sdk.handleErrorCode(result_code)
+            adi.sdk.handleErrorCode(result_code)
         end
         function n_records  = getNumberOfRecords(file_h)
             %getNumberOfRecords  Get the number of records for a file.
             %
-            %   n_records = adinstruments.sdk.getNumberOfRecords(file_h)
+            %   n_records = adi.sdk.getNumberOfRecords(file_h)
             %
             %   See definition of the "records" in the definition section.
             
             [result_code,n_records] = sdk_mex(1,file_h.pointer_value);
-            adinstruments.sdk.handleErrorCode(result_code)
+            adi.sdk.handleErrorCode(result_code)
             n_records = double(n_records);
         end
         function n_channels = getNumberOfChannels(file_h)
             %getNumberOfChannels  Get # of channels for a file.
             %
-            %   n_channels = adinstruments.sdk.getNumberOfChannels(file_h)
+            %   n_channels = adi.sdk.getNumberOfChannels(file_h)
             %
             %   Outputs:
             %   ===========================================================
@@ -175,7 +175,7 @@ classdef sdk
             %   Status: DONE
             
             [result_code,n_channels] = sdk_mex(2,file_h.pointer_value);
-            adinstruments.sdk.handleErrorCode(result_code)
+            adi.sdk.handleErrorCode(result_code)
             n_channels = double(n_channels);
         end
         function writer_h = createDataWriter(file_h)
@@ -185,23 +185,23 @@ classdef sdk
            %related functions.
             
             [result_code,writer_pointer] = sdk_mex(19,file_h.pointer_value);
-            writer_h = adinstruments.data_writer_handle(writer_pointer);
-            adinstruments.sdk.handleErrorCode(result_code) 
+            writer_h = adi.data_writer_handle(writer_pointer);
+            adi.sdk.handleErrorCode(result_code) 
         end
         function commitFile(writer_h)
            result_code = sdk_mex(24,writer_h.pointer_value);
-           adinstruments.sdk.handleErrorCode(result_code)
+           adi.sdk.handleErrorCode(result_code)
         end
         function closeWriter(pointer_value)
             result_code = sdk_mex(25,pointer_value);
-            adinstruments.sdk.handleErrorCode(result_code) 
+            adi.sdk.handleErrorCode(result_code) 
         end
         %Record specific functions
         %------------------------------------------------------------------
         function n_ticks_in_record = getNTicksInRecord(file_h,record)
             %
             %
-            %   n_ticks_in_record = adinstruments.sdk.getNTicksInRecord(file_h,record)
+            %   n_ticks_in_record = adi.sdk.getNTicksInRecord(file_h,record)
             %
             %   Returns the # of samples of channels with the highest data
             %   rate.
@@ -220,14 +220,14 @@ classdef sdk
             %   Status: DONE
             
             [result_code,n_ticks_in_record] = sdk_mex(3,file_h.pointer_value,c0(record));
-            adinstruments.sdk.handleErrorCode(result_code)
+            adi.sdk.handleErrorCode(result_code)
             n_ticks_in_record = double(n_ticks_in_record);
             
         end
         function dt_tick = getTickPeriod(file_h,record,channel)
             %
             %
-            %   dt_tick = adinstruments.sdk.getTickPeriod(file_handle,record,channel)
+            %   dt_tick = adi.sdk.getTickPeriod(file_handle,record,channel)
             %
             %   Outputs:
             %   ===========================================================
@@ -236,7 +236,7 @@ classdef sdk
             %   STATUS: DONE
             
             [result_code,dt_tick] = sdk_mex(4,file_h.pointer_value,c0(record),c0(channel));
-            adinstruments.sdk.handleErrorCode(result_code)
+            adi.sdk.handleErrorCode(result_code)
         end
         function [record_start,data_start] = getRecordStartTime(file_h,record)
             %
@@ -255,7 +255,7 @@ classdef sdk
             
             [result_code,trigger_time,fractional_seconds,trigger_minus_rec_start] = sdk_mex(16,file_h.pointer_value,c0(record));
             
-            adinstruments.sdk.handleErrorCode(result_code);
+            adi.sdk.handleErrorCode(result_code);
             
             record_start_unix = trigger_time + fractional_seconds;
             
@@ -281,55 +281,55 @@ classdef sdk
            in.trigger_time = now;
            in.fractional_seconds = 0;
            in.trigger_minus_rec_start = 0;
-           in = adinstruments.sl.in.processVarargin(in,varargin);    
+           in = adi.sl.in.processVarargin(in,varargin);    
            
            result_code = sdk_mex(21, writer_h.pointer_value, ...
                in.trigger_time, in.fractional_seconds, in.trigger_minus_rec_start);
-           adinstruments.sdk.handleErrorCode(result_code)
+           adi.sdk.handleErrorCode(result_code)
         end
         function finishRecord(writer_h)
            result_code = sdk_mex(23, writer_h.pointer_value); 
-           adinstruments.sdk.handleErrorCode(result_code) 
+           adi.sdk.handleErrorCode(result_code) 
         end
         %Comment specific functions
         %------------------------------------------------------------------
         function comments_h = getCommentAccessor(file_h,record,tick_dt)
             %
             %
-            %   comments_h = adinstruments.sdk.getCommentAccessor(file_handle,record_idx_0b)
+            %   comments_h = adi.sdk.getCommentAccessor(file_handle,record_idx_0b)
             %
-            %   comments_h :adinstruments.comment_handle
+            %   comments_h :adi.comment_handle
             
             [result_code,comment_pointer] = sdk_mex(6,file_h.pointer_value,c0(record));
-            if adinstruments.sdk.isMissingCommentError(result_code)
-                comments_h  = adinstruments.comment_handle(0,false,record,tick_dt);
+            if adi.sdk.isMissingCommentError(result_code)
+                comments_h  = adi.comment_handle(0,false,record,tick_dt);
             else
-                adinstruments.sdk.handleErrorCode(result_code)
-                comments_h  = adinstruments.comment_handle(comment_pointer,true,record,tick_dt);
+                adi.sdk.handleErrorCode(result_code)
+                comments_h  = adi.comment_handle(comment_pointer,true,record,tick_dt);
             end
         end
         function closeCommentAccessor(pointer_value)
             %
             %
-            %   adinstruments.sdk.closeCommentAccessor(pointer_value);
+            %   adi.sdk.closeCommentAccessor(pointer_value);
             %
             %   This should only be called by:
-            %   adinstruments.comment_handle
+            %   adi.comment_handle
             
             result_code = sdk_mex(7,pointer_value);
-            adinstruments.sdk.handleErrorCode(result_code);
+            adi.sdk.handleErrorCode(result_code);
         end
         function has_another_comment  = advanceComments(comments_h)
             %
             %
-            %   has_another_comment = adinstruments.sdk.advanceComments(comments_h);
+            %   has_another_comment = adi.sdk.advanceComments(comments_h);
             
             result_code = sdk_mex(9,comments_h.pointer_value);
             
-            if adinstruments.sdk.isMissingCommentError(result_code)
+            if adi.sdk.isMissingCommentError(result_code)
                 has_another_comment = false;
             else
-                adinstruments.sdk.handleErrorCode(result_code);
+                adi.sdk.handleErrorCode(result_code);
                 has_another_comment = true;
             end
             
@@ -337,35 +337,35 @@ classdef sdk
         function comment_info = getCommentInfo(comments_h)
             %
             %
-            %   comment_info = adinstruments.sdk.getCommentInfo(comments_h)
+            %   comment_info = adi.sdk.getCommentInfo(comments_h)
             
             [result_code,comment_string_data,comment_length,tick_pos,channel,comment_num] = sdk_mex(8,comments_h.pointer_value);
             
             d = @double;
             
             if result_code == 0
-                comment_string = adinstruments.sdk.getStringFromOutput(comment_string_data,comment_length);
-                comment_info   = adinstruments.comment(comment_string,d(tick_pos),d(channel),d(comment_num),comments_h.record,comments_h.tick_dt);
+                comment_string = adi.sdk.getStringFromOutput(comment_string_data,comment_length);
+                comment_info   = adi.comment(comment_string,d(tick_pos),d(channel),d(comment_num),comments_h.record,comments_h.tick_dt);
             else
-                adinstruments.sdk.handleErrorCode(result_code);
+                adi.sdk.handleErrorCode(result_code);
                 comment_info = [];
             end
         end
         function addComment(channel,record,tick_position,comment_string)
             result_code = sdk_mex(27,file_h.pointer_value,...
                 c0(channel), c0(record), tick_position, comment_string);
-            adinstruments.sdk.handleErrorCode(result_code);
+            adi.sdk.handleErrorCode(result_code);
         end
         function deleteComment(file_h,comment_number)
             result_code = sdk_mex(27,file_h.pointer_value,comment_number);
-            adinstruments.sdk.handleErrorCode(result_code);
+            adi.sdk.handleErrorCode(result_code);
         end
         %Channel specific functions
         %------------------------------------------------------------------
         function n_samples    = getNSamplesInRecord(file_h,record,channel)
             %
             %
-            %   n_samples  = adinstruments.sdk.getNSamplesInRecord(file_h,record,channel)
+            %   n_samples  = adi.sdk.getNSamplesInRecord(file_h,record,channel)
             %
             %   INPUTS
             %   ===========================================
@@ -375,13 +375,13 @@ classdef sdk
             %   Status: DONE
             
             [result_code,n_samples] = sdk_mex(5,file_h.pointer_value,c0(record),c0(channel));
-            adinstruments.sdk.handleErrorCode(result_code)
+            adi.sdk.handleErrorCode(result_code)
             n_samples = double(n_samples);
         end
         function output_data  = getChannelData(file_h,record,channel,start_sample,n_samples_get,get_samples,varargin)
             %
             %
-            %   output_data  = adinstruments.sdk.getChannelData(...
+            %   output_data  = adi.sdk.getChannelData(...
             %                       file_h,record,channel,start_sample,n_samples_get,get_samples)
             %
             %   Inputs:
@@ -410,7 +410,7 @@ classdef sdk
                 c0(record),c0(start_sample),...
                 c(n_samples_get),data_type);
             
-            adinstruments.sdk.handleErrorCode(result_code)
+            adi.sdk.handleErrorCode(result_code)
             
             if n_returned ~= n_samples_get
                 error('Why was this truncated???')
@@ -425,16 +425,16 @@ classdef sdk
         function units        = getUnits(file_h,record,channel)
             %getUnits
             %
-            %   units = adinstruments.sdk.getUnits(file_h,record,channel)
+            %   units = adi.sdk.getUnits(file_h,record,channel)
             
             
             [result_code,str_data,str_length] = sdk_mex(11,file_h.pointer_value,c0(record),c0(channel));
             
             %TODO: Replace with function call to isGoodResultCode
             if result_code == 0 || result_code == 1
-                units = adinstruments.sdk.getStringFromOutput(str_data,str_length);
+                units = adi.sdk.getStringFromOutput(str_data,str_length);
             else
-                adinstruments.sdk.handleErrorCode(result_code);
+                adi.sdk.handleErrorCode(result_code);
                 units = '';
             end
             
@@ -442,16 +442,16 @@ classdef sdk
         function channel_name = getChannelName(file_h,channel)
             %
             %
-            %   channel_name = adinstruments.sdk.getChannelName(file_h,channel)
+            %   channel_name = adi.sdk.getChannelName(file_h,channel)
             %
             %   Status: DONE
             
             [result_code,str_data,str_length] = sdk_mex(12,file_h.pointer_value,c0(channel));
             
             if result_code == 0
-                channel_name = adinstruments.sdk.getStringFromOutput(str_data,str_length);
+                channel_name = adi.sdk.getStringFromOutput(str_data,str_length);
             else
-                adinstruments.sdk.handleErrorCode(result_code);
+                adi.sdk.handleErrorCode(result_code);
                 channel_name = '';
             end
             
@@ -473,19 +473,19 @@ classdef sdk
             %
             %   sample period =
             
-            n_samples_in_record = adinstruments.sdk.getNSamplesInRecord(file_h,record,channel);
+            n_samples_in_record = adi.sdk.getNSamplesInRecord(file_h,record,channel);
             if n_samples_in_record == 0
                 dt_channel = NaN;
                 return
             end
             
-            %             n_ticks_in_record   = adinstruments.sdk.getNTicksInRecord(file_h,record);
-            %             tick_dt             = adinstruments.sdk.getTickPeriod(file_h,record,channel);
+            %             n_ticks_in_record   = adi.sdk.getNTicksInRecord(file_h,record);
+            %             tick_dt             = adi.sdk.getTickPeriod(file_h,record,channel);
             %             dt_channel_temp = tick_dt * n_ticks_in_record/n_samples_in_record;
             
             [result_code,dt_channel] = sdk_mex(15,file_h.pointer_value,c0(record),c0(channel));
             
-            adinstruments.sdk.handleErrorCode(result_code)
+            adi.sdk.handleErrorCode(result_code)
         end
         function setChannelName(file_h,channel,channel_name)
             %
@@ -493,7 +493,7 @@ classdef sdk
             
             result_code = sdk_mex(18,file_h.pointer_value,c0(channel),h__toWChar(channel_name));
             
-            adinstruments.sdk.handleErrorCode(result_code)
+            adi.sdk.handleErrorCode(result_code)
             
         end
         function setChannelInfo(writer_h,channel,seconds_per_sample,units,varargin)
@@ -520,7 +520,7 @@ classdef sdk
            
            in.enabled_for_record = true;
            in.limits = [-Inf Inf];
-           in = adinstruments.sl.in.processVarargin(in,varargin);
+           in = adi.sl.in.processVarargin(in,varargin);
            
            result_code = sdk_mex(20,...
                writer_h.pointer_value,...
@@ -529,19 +529,19 @@ classdef sdk
                seconds_per_sample,...
                h__toWChar(units),...
                single(in.limits));
-           adinstruments.sdk.handleErrorCode(result_code)
+           adi.sdk.handleErrorCode(result_code)
         end
         function addChannelSamples(writer_h,channel,data)
             
             result_code = sdk_mex(22,writer_h.pointer_value,channel,data);
-            adinstruments.sdk.handleErrorCode(result_code)
+            adi.sdk.handleErrorCode(result_code)
         end
         %Helper functions
         %------------------------------------------------------------------
         function is_ok = checkNullChannelErrorCodes(result_code)
             %
             %
-            %    is_ok = adinstruments.sdk.checkNullChannelErrorCodes(result_code)
+            %    is_ok = adi.sdk.checkNullChannelErrorCodes(result_code)
             %
             %    For some reason there is a non-zero error code when
             %    retrieving information about a channel during a record in
@@ -554,7 +554,7 @@ classdef sdk
         end
         function hex_value = resultCodeToHex(result_code)
             %
-            %   hex_value = adinstruments.sdk.handleErrorCode(result_code)
+            %   hex_value = adi.sdk.handleErrorCode(result_code)
             %
             %   Returns the hex_value of the result code for comparision
             %   with the values in the C header.
@@ -565,14 +565,14 @@ classdef sdk
         function is_missing_comment_code = isMissingCommentError(result_code)
             %
             %
-            %   is_missing_comment_code = adinstruments.sdk.isMissingCommentError(result_code)
+            %   is_missing_comment_code = adi.sdk.isMissingCommentError(result_code)
             
             
             %TODO: Do I want to do the literal error check here instead
             %of the mod????
             
             %Relevant Link:
-            %http://forum.adinstruments.com/viewtopic.php?f=7&t=551
+            %http://forum.adi.com/viewtopic.php?f=7&t=551
             
             %If there are no comments, the result_code is:
             %-1610313723 - data requested not present => xA0049005
@@ -583,19 +583,19 @@ classdef sdk
         function handleErrorCode(result_code)
             %
             %
-            %   adinstruments.sdk.handleErrorCode(result_code)
+            %   adi.sdk.handleErrorCode(result_code)
             %
             %   If there is an error this function will throw an error
             %   and display the relevant error string given the error code
             
             %Relevant forum post:
-            %http://forum.adinstruments.com/viewtopic.php?f=7&t=551
+            %http://forum.adi.com/viewtopic.php?f=7&t=551
             
-            if ~adinstruments.sdk.checkNullChannelErrorCodes(result_code)
+            if ~adi.sdk.checkNullChannelErrorCodes(result_code)
                 %if result_code ~= 0
                 temp      = sl.stack.calling_function_info;
                 errorID   = sprintf('ADINSTRUMENTS:SDK:%s',temp.name);
-                error_msg = adinstruments.sdk.getErrorMessage(result_code);
+                error_msg = adi.sdk.getErrorMessage(result_code);
                 
                 
                 %TODO: Create a clean id - move to a function
@@ -638,16 +638,16 @@ classdef sdk
         function error_msg = getErrorMessage(result_code)
             %
             %
-            %   error_msg = adinstruments.sdk.getErrorMessage(result_code)
+            %   error_msg = adi.sdk.getErrorMessage(result_code)
             
             [~,err_msg_data,err_msg_len] = sdk_mex(14,int32(result_code));
-            error_msg = adinstruments.sdk.getStringFromOutput(err_msg_data,err_msg_len);
+            error_msg = adi.sdk.getStringFromOutput(err_msg_data,err_msg_len);
         end
         function str = getStringFromOutput(int16_data,str_length)
             %
             %   This is a helper function for whenever we get a string out.
             %
-            %   str = adinstruments.sdk.getStringFromOutput(int16_data,str_length)
+            %   str = adi.sdk.getStringFromOutput(int16_data,str_length)
             %
             %   TODO: Make hidden
             %
@@ -663,18 +663,18 @@ classdef sdk
         function comments = getAllCommentsForRecord(file_h,record_id,tick_dt,sdk)
             %
             %
-            %   comments = adinstruments.sdk.getAllCommentsForRecord(file_handle,record_obj)
+            %   comments = adi.sdk.getAllCommentsForRecord(file_handle,record_obj)
             %
             %   Parameters
             %   ----------
-            %   file_handle : adinstruments.file_handle
+            %   file_handle : adi.file_handle
             %
             %   record_id   : double
             %
             %   tick_dt     : double
             %
             %   See Also:
-            %   adinstruments.record
+            %   adi.record
             
             %NOTE: These comments seem to be returned ordered by time, not
             %by ID.
@@ -683,7 +683,7 @@ classdef sdk
             %just causes things to slow down, it is not a critical error.
             
             if ~exist('sdk','var')
-                sdk = adinstruments.sdk;
+                sdk = adi.sdk;
             end
             
             temp_comments_ca = cell(1,MAX_NUMBER_COMMENTS);

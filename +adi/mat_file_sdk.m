@@ -1,7 +1,7 @@
 classdef mat_file_sdk < handle
     %
     %   Class:
-    %   adinstruments.mat_file_sdk
+    %   adi.mat_file_sdk
     %
     %   This should expose the SDK in a similar manner as the regular SDK
     %   but it should do it from a mat file.
@@ -21,7 +21,7 @@ classdef mat_file_sdk < handle
         %------------------------------------------------------------------
         function file_h = openFile(file_path)
             %
-            %   file = adinstruments.mat_file_sdk.openFile(file_path)
+            %   file = adi.mat_file_sdk.openFile(file_path)
             %
             %   NOTE: Only reading is supported.
             %
@@ -32,15 +32,15 @@ classdef mat_file_sdk < handle
             %
             %   Outputs:
             %   --------
-            %   file : adinstruments.mat_file_h
+            %   file : adi.mat_file_h
             
-            file_h = adinstruments.mat_file_h(file_path);
+            file_h = adi.mat_file_h(file_path);
             
         end
         function n_records  = getNumberOfRecords(file_h)
             %getNumberOfRecords  Get the number of records for a file.
             %
-            %   n_records = adinstruments.mat_file_sdk.getNumberOfRecords(file_h)
+            %   n_records = adi.mat_file_sdk.getNumberOfRecords(file_h)
             %
             %   See definition of the "records" in the definition section.
             
@@ -50,7 +50,7 @@ classdef mat_file_sdk < handle
         function n_channels = getNumberOfChannels(file_h)
             %getNumberOfChannels  Get # of channels for a file.
             %
-            %   n_channels = adinstruments.mat_file_sdk.getNumberOfChannels(file_h)
+            %   n_channels = adi.mat_file_sdk.getNumberOfChannels(file_h)
 
             
             file_meta  = file_h.m.file_meta;    
@@ -84,7 +84,7 @@ classdef mat_file_sdk < handle
             
             comments = file_h.m.comments;
             comments_for_record = comments([comments.record] == record);
-            comments_h = adinstruments.mat_comment_handle(comments_for_record,...
+            comments_h = adi.mat_comment_handle(comments_for_record,...
                 ~isempty(comments_for_record),record,tick_dt);
         end
 %         function closeCommentAccessor(pointer_value)
@@ -94,9 +94,9 @@ classdef mat_file_sdk < handle
         function comment_info = getCommentInfo(comments_h,data)
             %
             %
-            %   comment_info = adinstruments.sdk.getCommentInfo(comments_h)
+            %   comment_info = adi.sdk.getCommentInfo(comments_h)
             
-            comment_info   = adinstruments.comment(data.str,data.tick_position,...
+            comment_info   = adi.comment(data.str,data.tick_position,...
                 data.channel,data.id,comments_h.record,comments_h.tick_dt);
         end
         %Channel specific functions
@@ -141,7 +141,7 @@ classdef mat_file_sdk < handle
             %
             %TODO: This isn't right
             
-            comments = adinstruments.sdk.getAllCommentsForRecord(file_h,record_id,tick_dt,adinstruments.mat_file_sdk);
+            comments = adi.sdk.getAllCommentsForRecord(file_h,record_id,tick_dt,adi.mat_file_sdk);
         end
     end
     

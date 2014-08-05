@@ -1,7 +1,7 @@
 classdef (Hidden) data_writer_handle < handle
     %
     %   Class:
-    %   adinstruments.data_writer_handle
+    %   adi.data_writer_handle
     
     properties
        pointer_value

@@ -1,7 +1,7 @@
 classdef h5_file_h < handle
     %
     %   Class:
-    %   adinstruments.h5_file_h
+    %   adi.h5_file_h
     
     properties
         file_path
@@ -11,10 +11,10 @@ classdef h5_file_h < handle
     methods
         function obj = h5_file_h(file_path)
             %
-            %    obj = adinstruments.h5_file_h(file_path)
+            %    obj = adi.h5_file_h(file_path)
             %
             %    See Also:
-            %    adinstruments.readFile
+            %    adi.readFile
             
             %TODO: Since we are not using this right away, we might
             %want to try and get the file path if it were evaluated

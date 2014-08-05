@@ -1,7 +1,7 @@
 classdef file < sl.obj.display_class
     %
     %   Class:
-    %   adinstruments.file
+    %   adi.file
     %
     %   This is the root class for a Labchart file. It holds meta
     %   data and classes with more meta data. The channel classes can
@@ -11,7 +11,7 @@ classdef file < sl.obj.display_class
     %   constructed from readFile, but this screws up the class display :/
     %
     %   See Also:
-    %   adinstruments.readFile
+    %   adi.readFile
     
     properties
         file_path  %Full path to the file from which this class was populated.
@@ -22,8 +22,8 @@ classdef file < sl.obj.display_class
         n_channels %# of channels in the file (across all records). This may
         %be reduced if some channels have no data and the input options to 
         %the constructor specify to remove empty channels.
-        records       %adinstruments.record
-        channel_specs %adinstruments.channel These classes hold information
+        records       %adi.record
+        channel_specs %adi.channel These classes hold information
         %about each of the channels used.
     end
     
@@ -47,7 +47,7 @@ classdef file < sl.obj.display_class
     methods
         function obj = file(file_path,file_h,sdk,in)
             %
-            %    This should be created by adinstruments.readFile
+            %    This should be created by adi.readFile
             %
             %   Inputs:
             %   -------
@@ -55,11 +55,11 @@ classdef file < sl.obj.display_class
             %       The path of the file (for reference).
             %   file_h : 
             %       
-            %   in : adinstruments.file_read_options
+            %   in : adi.file_read_options
             %       Options for reading the file
             %
             %    See Also:
-            %    adinstruments.readFile
+            %    adi.readFile
             
             obj.file_path   = file_path;
             
@@ -71,7 +71,7 @@ classdef file < sl.obj.display_class
             temp = cell(1,obj.n_records);
             
             for iRec = 1:obj.n_records
-                temp{iRec} = adinstruments.record(file_h,sdk,iRec);
+                temp{iRec} = adi.record(file_h,sdk,iRec);
             end
             
             obj.records = [temp{:}];
@@ -81,7 +81,7 @@ classdef file < sl.obj.display_class
             temp = cell(1,temp_n_channels);
             
             for iChan = 1:temp_n_channels
-                temp{iChan} = adinstruments.channel(file_h,sdk,iChan,obj.records);
+                temp{iChan} = adi.channel(file_h,sdk,iChan,obj.records);
             end
             
             obj.channel_specs = [temp{:}];
@@ -105,10 +105,10 @@ classdef file < sl.obj.display_class
         function chan = getChannelByName(obj,name,varargin)
             %
             %
-            %   chan = ad_sdk.adinstruments.getChannelByName(obj,name,varargin)
+            %   chan = ad_sdk.adi.getChannelByName(obj,name,varargin)
             %
             %   See Also:
-            %   adinstruments.channel.getChannelByName()
+            %   adi.channel.getChannelByName()
             
             in.case_sensitive = false;
             in.partial_match  = true;
@@ -125,8 +125,8 @@ classdef file < sl.obj.display_class
     end
     
     %TODO: These should be in their own class
-    %adinstruments.io.mat.file &
-    %adinstruments.io.h5.file
+    %adi.io.mat.file &
+    %adi.io.h5.file
     %
     %Currently the SDK takes care of the loading, which bridges the gap
     %of knowledge of the file contents ... i.e. this file knows write
@@ -138,7 +138,7 @@ classdef file < sl.obj.display_class
             %   Exports contents to a HDF5 file.
             
             if nargin < 3 || isempty(conversion_options)
-                conversion_options = adinstruments.h5_conversion_options;
+                conversion_options = adi.h5_conversion_options;
             end
             
             if ~exist('save_path','var') || isempty(save_path)
@@ -178,7 +178,7 @@ classdef file < sl.obj.display_class
             %   remedy this problem the HDF5 conversion code was created.
             
             if nargin < 3 || isempty(conversion_options)
-                conversion_options = adinstruments.h5_conversion_options;
+                conversion_options = adi.h5_conversion_options;
             end
             
             if ~exist('save_path','var') || isempty(save_path)

@@ -1,10 +1,10 @@
 classdef h5_conversion_options < handle
     %
     %   Class:
-    %   adinstruments.h5_conversion_options
+    %   adi.h5_conversion_options
     %
     %   See Also:
-    %   adinstruments.channel.exportToHDF5File
+    %   adi.channel.exportToHDF5File
     
     properties
         max_samples_per_read = 1e8

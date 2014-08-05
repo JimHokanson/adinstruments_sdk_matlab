@@ -4,7 +4,7 @@
  *
  *      mex sdk_mex.cpp ADIDatIOWin64.lib
  *
- *      adinstruments.sdk.makeMex()
+ *      adi.sdk.makeMex()
  *
  *      http://www.mathworks.com/help/matlab/matlab_external/passing-arguments-to-shared-library-functions.html
  *
@@ -391,7 +391,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         
         //  ADI_NextComment  <>  advanceComments
         //  ==================================================
-        //  result_code = adinstruments.sdk_mex(9,comments_h);
+        //  result_code = adi.sdk_mex(9,comments_h);
         //
         //  Returns kResultNoData if there are no more comments ...
         //

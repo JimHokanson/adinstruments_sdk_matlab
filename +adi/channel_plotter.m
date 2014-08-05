@@ -1,7 +1,7 @@
 classdef channel_plotter < sl.obj.display_class
     %
     %   Class:
-    %   adinstruments.channel_plotter
+    %   adi.channel_plotter
     %
     %   **************************************************
     %   THIS FILE IS OUT OF DATE AND WILL BE DELETED SOON
@@ -95,7 +95,7 @@ classdef channel_plotter < sl.obj.display_class
                 %------------------------------------
                 x_limits = lpr.x_limits;
                 
-                %adinstruments.comment.getCommentsForChannel
+                %adi.comment.getCommentsForChannel
                 [objs_out,times] = getCommentsForChannel(comment_objs,obj.chan_obj,record_id,x_limits);
                 if isempty(objs_out)
                    return 
