@@ -11,6 +11,9 @@ classdef h5_conversion_options < handle
         deflate_value = 3 %(0 - 9 for gzip
         %0 - no compression
         %9 - most compression
+        %
+        %   NOTE: At some point with gzip the data fail to compress any
+        %   more.
         use_shuffle   = false
         chunk_length  = 1e8 %Ideally this would be linked to 
         %'max_samples_per_read' but for now this is ok

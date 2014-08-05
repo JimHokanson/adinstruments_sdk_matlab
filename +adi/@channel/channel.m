@@ -2,6 +2,8 @@ classdef channel < sl.obj.display_class
     %
     %   Class:
     %   adi.channel
+    %
+    %   This class only holds information regarding the channel.
     
     properties
         id    %Internal number (1 based)
@@ -23,11 +25,14 @@ classdef channel < sl.obj.display_class
         tick_dt
         record_handles
         sdk
+        file_path
     end
     
     properties (Dependent)
        downsample_amount %How this channel relates to the fastest sampling
-       %rate 
+       %rate. If this is the fastest sampled channel, the value will be 1.
+       %If the sampling rate is a tenth of the fastest, the value will be
+       %10.
     end
     
     methods
@@ -37,7 +42,7 @@ classdef channel < sl.obj.display_class
     end
     
     methods
-        function obj = channel(file_h,sdk,channel_id,record_handles)
+        function obj = channel(file_h,sdk,channel_id,record_handles,file_path)
             %x adi.channel constructor
             %
             %   obj = adi.channel(file_h,id,n_records,tick_dt)
@@ -50,6 +55,7 @@ classdef channel < sl.obj.display_class
             obj.file_h         = file_h;
             obj.tick_dt        = [record_handles.tick_dt];
             obj.record_handles = record_handles;
+            obj.file_path      = file_path;
             
             temp_sample_period = zeros(1,obj.n_records);
             temp_n_samples     = zeros(1,obj.n_records);
@@ -68,13 +74,17 @@ classdef channel < sl.obj.display_class
             obj.dt        = temp_sample_period;
             obj.fs        = 1./(obj.dt);
         end
+        
+        %I'd like to remove this ...
+        %------------------------------------------------------
         function comment_objs = getRecordComments(obj,record_id)
            %x Small helper to get the comments for a given record
            
            %I'm not thrilled that this is here ...
            comment_objs = obj.record_handles(record_id).comments; 
         end
-% % %         function idx_bounds = getIndexBoundsGivenTimeBounds(obj,time_bounds,record_id)
+        
+        % % %         function idx_bounds = getIndexBoundsGivenTimeBounds(obj,time_bounds,record_id)
 % % %            %
 % % %            %    
 % % %            %    This may or may not be used ...
@@ -83,8 +93,12 @@ classdef channel < sl.obj.display_class
 % % %            
 % % %            %  data = getDataSubset(obj,record_id,idx_bounds(1),idx_bounds(2)-idx_bounds(1)+1,true);
 % % %         end
+
+        %------------------------------------------------------
+        
+
         function printChannelNames(objs)
-            %printChannelNames  Prints all channel names to the command window
+            %x  Prints all channel names to the command window
             %
             %   printChannelNames(objs)
             
@@ -93,7 +107,7 @@ classdef channel < sl.obj.display_class
             end
         end
         function chan = getChannelByName(objs,name,varargin)
-            %getChannelByName  Finds and returns a channel object by name
+            %x  Finds and returns a channel object by name
             %
             %    chan = getChannelByName(objs,name)
             %
@@ -114,7 +128,7 @@ classdef channel < sl.obj.display_class
             %       string 'Bladder Pressure'
             %
             %    See Also:
-            %    ad_sdk.adi.getChannelByName
+            %    adi.file.getChannelByName
             
             in.case_sensitive = false;
             in.partial_match  = true;
@@ -127,7 +141,7 @@ classdef channel < sl.obj.display_class
             end
             
             if in.partial_match
-                I = find(cellfun(@(x) sl.str.contains(x,name),all_names));
+                I = find(cellfun(@(x) adi.sl.str.contains(x,name),all_names));
             else
                 %Could also use: sl.str.findSingularMatch
                 I = find(strcmp(all_names,name));
@@ -159,102 +173,62 @@ classdef channel < sl.obj.display_class
             end
             objs_with_data = objs(keep_mask);
         end
-        
-        %I'm working on getting rid of this ...
-        %--------------------------------------------
-        function pobjs = getChannelPlotter(objs)
-            %x Returns a channel plotter object for plotting data nicely
+        function varargout = getData(obj,record_id,varargin)
             %
-            %    I think for this method I wanted to be able to plot a
-            %    single channel with some nice markup:
-            %        - units
-            %        - plot large data quickly
-            %        - change gain
-            %        - overlay comments
-            %        -
-            n_objs = length(objs);
-            temp = cell(1,n_objs);
-            for iObj = 1:n_objs
-                temp{iObj} = adi.channel_plotter(objs(iObj));
+            %   Inputs:
+            %   -------
+            %   record_id: 
+            %       Record # from which to retrieve data.
+            %   
+            %   Optional Inputs:
+            %   ----------------
+            %   return_object: (default true)
+            %   data_range: [min max] (default full range)
+            %   get_as_samples: (default true)
+            %       If false the channel is upsampled to the highest rate
+            %       using sample and hold.
+            %   
+            %   
+            
+            if record_id < 1 || record_id > obj.n_records
+               error('Record input: %d, out of range: [1 %d]',record_id,obj.n_records);
             end
             
-            pobjs = [temp{:}];
-        end
-        function data_object = getDataObject(obj,record_id,varargin)
-           %    Returns a nice class that helps in working with the data
-           %
-           
-           data_object = adi.channel_data(obj,record_id,varargin{:});
-        end
-        function [data,time] = getAllData(obj,record_id,varargin)
-            %x Returns all data of the
-            %
-            %    [data,time] = getAllData(obj,record,*get_as_samples)
-            %
-            %    Inputs
-            %    ==========================================================
-            %    get_as_samples: (default true), see description in:
-            %        getDataSubset()
-            %
-            %
-            %   TODO: 
-            
-            in.get_as_samples = true;
+            in.return_object  = true;
+            in.data_range   = [1 obj.n_samples(record_id)];
+            in.get_as_samples = true; %Alternatively ...
             in.leave_raw      = false;
             in = sl.in.processVarargin(in,varargin);
             
-            index = record_id;
-            
-            n_samples_get = obj.n_samples(index);
-            if n_samples_get == 0;
-                data = [];
-                time = [];
-            else
-                data = obj.sdk.getChannelData(...
-                    obj.file_h,record_id,obj.id,1,n_samples_get,...
-                        in.get_as_samples,'leave_raw',in.leave_raw);
-                
-                if isrow(data)
-                    data = data';
-                end
+            if any(in.data_range > obj.n_samples(record_id))
+               error('Data requested out of range') 
             end
-            
-            if nargout == 2
-                time = (0:(length(data)-1)).*obj.dt(index);
-            end
-            
-        end
-        function data = getDataSubset(obj,record,start_sample,n_samples,varargin)
-            %x Returns a subset of the collected data
-            %
-            %    data = getDataSubset(obj,record,start_sample,n_samples,varargin)
-            %
-            %    Inputs:
-            %    =======================================================
-            %    record       : record # from which to retrieve data
-            %    start_sample : (1 based),
-            %
-            %    get_as_samples : (default true), If false then the channel
-            %    is upsampled to the highest sampling rate used. The
-            %    returned data is upsampled using (linear interp or sample &
-            %    hold????)
-            
-            in.get_as_samples = true;
-            in.leave_raw      = false;
-            in = sl.in.processVarargin(in,varargin);
-            
-            
-            %TODO: Check inputs ...
-            %record
-            %n_samples
             
             data = obj.sdk.getChannelData(...
-                obj.file_h,record,obj.id,start_sample,n_samples,in.get_as_samples,'leave_raw',in.leave_raw);
+                        obj.file_h,...
+                        record_id,...
+                        obj.id,...
+                        in.data_range(1),...
+                        in.data_range(2)-in.data_range(1)+1,...
+                        in.get_as_samples,...
+                        'leave_raw',in.leave_raw);
             
-                if isrow(data)
-                    data = data';
+            if isrow(data)
+                data = data';
+            end    
+            
+            if in.return_object
+               varargout{1} = sci.time_series.data(data,...
+                   obj.dt(record_id),...
+                   'units',obj.units{record_id},...
+                   'channel_labels',obj.name,...
+                   'history',sprintf('File: %s\nRecord: %d',obj.file_path,record_id));
+            else
+                varargout{1} = data;
+                if nargout == 2
+                    varargout{2} = (0:(length(data)-1)).*obj.dt(record_id);
                 end
-            
+            end
         end
     end
     methods (Hidden)

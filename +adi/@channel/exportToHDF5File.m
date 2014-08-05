@@ -1,11 +1,10 @@
 function exportToHDF5File(objs,fobj,save_path,conversion_options)
 %
+%   adi.channel.exportToHDF5File
 %
-%
-%
-
-%TODO: Support shuffle
-
+%   See Also:
+%   ---------
+%   adi.file.exportToHDF5File
 
 
 DEFLATE_VALUE        = conversion_options.deflate_value;
@@ -50,12 +49,11 @@ for iChan = 1:n_objs
             'Deflate',DEFLATE_VALUE,...
             'Shuffle',SHUFFLE_FLAG);
         
-        
         if cur_n_samples < MAX_SAMPLES_PER_READ
             %This is a write sequence
             
             h5write(save_path, chan_name, ...
-                cur_chan.getAllData(iRecord,'leave_raw',true));
+                cur_chan.getData(iRecord,'leave_raw',true,'return_object',false));
         else
             
             start_I = 1:MAX_SAMPLES_PER_READ:cur_n_samples;
@@ -70,7 +68,12 @@ for iChan = 1:n_objs
                 cur_end   = end_I(iChunk);
                 n_samples_get = cur_end-cur_start + 1;
                 
-                data = cur_chan.getDataSubset(iRecord,cur_start,n_samples_get,'leave_raw',true);
+                data = cur_chan.getData(iRecord,'data_range',...
+                    [cur_start,cur_start+n_samples_get-1],'leave_raw',true,...
+                    'return_object',false);
+                
+                
+                
                 h5write(save_path,chan_name,data,[cur_start 1],[length(data) 1],[1 1])
             end
         end

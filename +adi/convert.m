@@ -23,6 +23,10 @@ function save_path = convert(file_path,varargin)
 %       point of these options (at least initially) was to have control
 %       over options that impact how fast the data is written (and then
 %       subsequently written)
+%
+%   See Also:
+%   adi.h5_conversion_options
+%   adi.h5_mat_conversion_options
 
 in.conversion_options = [];
 in.format = 'h5'; %or 'mat'

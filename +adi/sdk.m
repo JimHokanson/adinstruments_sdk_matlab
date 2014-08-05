@@ -386,15 +386,24 @@ classdef sdk
             %
             %   Inputs:
             %   -------
-            %   channel :
+            %   channel:
             %       Channel to get the data from, 1 based.
-            %   record  :
+            %   record:
             %       Record to get the data from, 1 based.
-            %   start_sample : first sample to get
-            %   n_samples :
-            %   get_samples : If true data is returned as samples, if
-            %   false, the data are upsampled (sample & hold) to the
-            %   highest rate ...
+            %   start_sample: first sample to get
+            %   n_samples:
+            %   get_samples: 
+            %       If true data is returned as samples, if false, the data 
+            %       are upsampled (sample & hold) to the highest rate ...
+            %
+            %   Optional Inputs:
+            %   ----------------
+            %   leave_raw: (default false)
+            %       If false, the output is cast to a double. If true, the
+            %       cast does not occur and the output is of type 'single'
+            %
+            %   See Also:
+            %   adi.channel.getAllData
             
             in.leave_raw = false;
             in = sl.in.processVarargin(in,varargin);

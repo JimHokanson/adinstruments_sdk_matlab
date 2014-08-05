@@ -81,7 +81,7 @@ classdef file < sl.obj.display_class
             temp = cell(1,temp_n_channels);
             
             for iChan = 1:temp_n_channels
-                temp{iChan} = adi.channel(file_h,sdk,iChan,obj.records);
+                temp{iChan} = adi.channel(file_h,sdk,iChan,obj.records,file_path);
             end
             
             obj.channel_specs = [temp{:}];
@@ -102,10 +102,10 @@ classdef file < sl.obj.display_class
             %duration of the record
             keyboard
         end
-        function chan = getChannelByName(obj,name,varargin)
+        function chan = getChannelByName(obj,channel_name,varargin)
+            %x Returns channel object for a given channel name 
             %
-            %
-            %   chan = ad_sdk.adi.getChannelByName(obj,name,varargin)
+            %   chan = ad_sdk.adi.getChannelByName(obj,channel_name,varargin)
             %
             %   See Also:
             %   adi.channel.getChannelByName()
@@ -116,11 +116,10 @@ classdef file < sl.obj.display_class
             
             temp = obj.channel_specs;
             if isempty(temp)
-                error('Requested channel: %s, not found',name)
+                error('Requested channel: %s, not found',channel_name)
             end
             
-            chan = temp.getChannelByName(name,in);
-            
+            chan = temp.getChannelByName(channel_name,in);
         end
     end
     
@@ -136,6 +135,14 @@ classdef file < sl.obj.display_class
         function save_path = exportToHDF5File(obj,save_path,conversion_options)
             %
             %   Exports contents to a HDF5 file.
+            %
+            %   This is similiar to the v7.3 mat files but by calling the
+            %   HDF5 library functions directly we can control how the data
+            %   are saved.
+            %
+            %   See Also:
+            %   adi.record.exportToHDF5File
+            %   adi.channel.exportToHDF5File
             
             if nargin < 3 || isempty(conversion_options)
                 conversion_options = adi.h5_conversion_options;
