@@ -9,10 +9,11 @@ classdef channel < sl.obj.display_class
         
         %These properties are on a per record basis ...
         %-----------------------------------------------
-        units
-        n_samples
-        dt
-        fs
+        units      %cellstr
+        n_samples  %array - # of samples collected on this channel during
+        %each record
+        dt         %array - time between samples
+        fs         %array - sampling rate (1/dt)
         
     end
     
@@ -25,7 +26,8 @@ classdef channel < sl.obj.display_class
     end
     
     properties (Dependent)
-       downsample_amount 
+       downsample_amount %How this channel relates to the fastest sampling
+       %rate 
     end
     
     methods
@@ -95,21 +97,28 @@ classdef channel < sl.obj.display_class
             %
             %    chan = getChannelByName(objs,name)
             %
-            %    Inputs
-            %    ===========================================================
-            %    name :
+            %    Inputs:
+            %    -------
+            %    name: str
+            %       Name of the channel to retrieve. Optional inputs
+            %       dictate how this input is compared to the actual names
+            %       of the channels.
             %
-            %    Optional Inputs
-            %    ===========================================================
-            %    case_sensitive : (default false)
-            %    partial_match  : (default true), if true the name
+            %    Optional Inputs:
+            %    ----------------
+            %    case_sensitive: (default false)
+            %    partial_match: (default true)
+            %       If true the input only needs to be a part of the name.
+            %       For example we could get the channel 'Bladder Pressure'
+            %       by using the <name> 'pres' since 'pres' is in the
+            %       string 'Bladder Pressure'
             %
             %    See Also:
             %    ad_sdk.adinstruments.getChannelByName
             
             in.case_sensitive = false;
             in.partial_match  = true;
-            in = sl.in.processVarargin(in,varargin);
+            in = adinstruments.sl.in.processVarargin(in,varargin);
             
             all_names = {objs.name};
             if ~in.case_sensitive
@@ -120,7 +129,7 @@ classdef channel < sl.obj.display_class
             if in.partial_match
                 I = find(cellfun(@(x) sl.str.contains(x,name),all_names));
             else
-                %sl.str.findSingularMatch
+                %Could also use: sl.str.findSingularMatch
                 I = find(strcmp(all_names,name));
             end
             
@@ -133,7 +142,15 @@ classdef channel < sl.obj.display_class
             chan = objs(I);
         end
         function objs_with_data = removeEmptyObjects(objs)
-            %x Removes channels with no data in them
+            %x Removes channels with no data in them. 
+            %
+            %   This is done by default on loading the channels so that
+            %   empty channels don't clutter things up.
+            %
+            %   This can be disabled by changing the read options.
+            %
+            %   See also:
+            %   adinstruments.readFile
             
             n_objs    = length(objs);
             keep_mask = false(1,n_objs);
@@ -178,6 +195,9 @@ classdef channel < sl.obj.display_class
             %    ==========================================================
             %    get_as_samples: (default true), see description in:
             %        getDataSubset()
+            %
+            %
+            %   TODO: 
             
             in.get_as_samples = true;
             in.leave_raw      = false;

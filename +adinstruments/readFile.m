@@ -19,7 +19,7 @@ function file_obj = readFile(file_path,varargin)
 %       Path of the file to read. An empty or missing input prompts the
 %       user.
 %
-%   See adinstruments.file_read_options for additional option details. 
+%   See   adinstruments.file_read_options   for additional option details. 
 %   You can pass in specific properties to this function to change:
 %
 %       e.g. adinstruments.readFile(file_path,'remove_empty_channels',false) 
@@ -37,7 +37,7 @@ function file_obj = readFile(file_path,varargin)
 %
 %   See Also:
 %   adinstruments.file
-%   adinstrumetns.convert
+%   adinstruments.convert
 
 if length(varargin) == 1 && strcmp(class(varargin{1}),adinstruments.file_read_options)
     in = varargin{1};

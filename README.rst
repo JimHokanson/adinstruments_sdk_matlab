@@ -20,17 +20,15 @@ LabChart provides functionality for exporting data to a '.mat' file, although I 
 Current Status
 ==============
 
-Although the SDK supports reading and writing, I have currently only exposed, and only plan on exposing, the reading portion.
+I've fully implemented the reading portion. I've started the writing portion but I haven't finished it yet. The code is not yet stable; I'm still refactoring and cleaning it up.
 
-The methods are nearly all exposed, but I am still working on the interface for calling these methods.
+=================================
+Requirments, Installation & Usage
+=================================
 
-====================
-Installation & Usage
-====================
+Currently the SDK requires 32 bit Matlab (sorry :/). I think ADInstruments may soon be releasing a 64 bit dll. Given the usage of a dll this code only works in Windows.
 
-Labchart needs to be installed on the computer. The SDK may need to be installed. More info will be coming on this soon as I start installing on other people's computers. Alternatively I may at some point choose to upload the required dll.
-
-Currently the SDK requires 32 bit Matlab (sorry :/) I have asked ADInstruments about providing 64 bit support although they did not seemed thrilled with this idea. Requests on their `forum <http://forum.adinstruments.com/>`_ might make this more likely.
+To install the package needs to be on the Matlab path. I also currently have several references to my `"Matlab Standard Library" <https://github.com/JimHokanson/matlab_standard_library>`_. I'm working on removing trivial dependencies in this library although some of the fancier functionality will probably continue to rely on that repo.
 
 .. code-block:: matlab
 
