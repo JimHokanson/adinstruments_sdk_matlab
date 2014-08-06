@@ -28,6 +28,8 @@ function save_path = convert(file_path,varargin)
 %   adi.h5_conversion_options
 %   adi.h5_mat_conversion_options
 
+persistent base_path
+
 in.conversion_options = [];
 in.format = 'h5'; %or 'mat'
 in.save_path = '';
@@ -38,12 +40,17 @@ if in.format(1) == '.'
 end
    
 if nargin == 0 || isempty(file_path)
-   [file_name,file_root] = uigetfile({'*.adicht'},'Pick a file to convert'); 
+   [file_name,file_root] = uigetfile({'*.adicht'},'Pick a file to convert',base_path); 
 
     if isnumeric(file_name)
         return
     end
+    
+    base_path = file_root;
+    
     file_path = fullfile(file_root,file_name);
+else
+    base_path = fileparts(file_path);
 end
 
 

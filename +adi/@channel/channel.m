@@ -194,14 +194,27 @@ classdef channel < sl.obj.display_class
                error('Record input: %d, out of range: [1 %d]',record_id,obj.n_records);
             end
             
+            
+            
             in.return_object  = true;
             in.data_range   = [1 obj.n_samples(record_id)];
+            in.time_range   = []; %Seconds, TODO: Document this ...
             in.get_as_samples = true; %Alternatively ...
             in.leave_raw      = false;
             in = sl.in.processVarargin(in,varargin);
             
+            %TODO: This is not right if get_as_samples is false
+            if ~isempty(in.time_range)
+               %Not sure if I want round or not ...
+               in.data_range = round(in.time_range*obj.fs(record_id));
+            end
+            
             if any(in.data_range > obj.n_samples(record_id))
                error('Data requested out of range') 
+            end
+            
+            if in.data_range(1) > in.data_range(2)
+                error('Specified data range must be increasing')
             end
             
             data = obj.sdk.getChannelData(...
@@ -218,8 +231,13 @@ classdef channel < sl.obj.display_class
             end    
             
             if in.return_object
-               varargout{1} = sci.time_series.data(data,...
+                %TODO: This is not right if get_as_samples is false
+               time_object = sci.time_series.time(...
                    obj.dt(record_id),...
+                   length(data),...
+                   'sample_offset',in.data_range(1));
+               varargout{1} = sci.time_series.data(data,...
+                   time_object,...
                    'units',obj.units{record_id},...
                    'channel_labels',obj.name,...
                    'history',sprintf('File: %s\nRecord: %d',obj.file_path,record_id));

@@ -14,6 +14,10 @@
 //sort of dynamic allocation. Since strings aren't that long, I'm fine
 //hardcoding this value for now, assuming that this value is plenty large
 
+#include <stdio.h>
+#include <malloc.h>
+#include <time.h>
+#include <float.h>
 #include "mex.h"
 #include "ADIDatCAPI_mex.h"
 #include <ctime>
@@ -417,6 +421,14 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         
         ADICDataFlags dataType = static_cast<ADICDataFlags>(getLongInput(prhs,6));
         
+        //Trying this as long and int are not the same ...
+        //const int kBuffSize = 1024;
+        
+        mexPrintf("channel: %d\n",channel);
+        mexPrintf("record: %d\n",record);
+        mexPrintf("startPos: %d\n",startPos);
+        mexPrintf("nLength: %d\n",nLength);
+        
         plhs[1]     = mxCreateNumericMatrix(1,(mwSize)nLength,mxSINGLE_CLASS,mxREAL);
         float *data = (float *)mxGetData(plhs[1]);
         
@@ -426,6 +438,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //DLLEXPORT ADIResultCode ADI_GetSamples(ADI_FileHandle fileH, long channel, long record, long startPos,
         //  ADICDataFlags dataType, long nLength, float* data, long* returned);
         out_result[0] = ADI_GetSamples(fileH,channel,record,startPos,dataType,nLength,data,&returned);
+        //out_result[0] = ADI_GetSamples(fileH,channel,record,startPos,kADICDataAtSampleRate,nLength,data,&returned);
         
         setLongOutput(plhs,2,returned);
         
@@ -724,6 +737,10 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         out_result[0] = ADI_DeleteComment(fileH,comment_number);
         
 //         DLLEXPORT ADIResultCode ADI_DeleteComment(ADI_FileHandle fileH, long commentNum);   
+    }
+    else if (function_option == 100){
+        mexUnlock();
+        locked = 0;
     }
     else
     {

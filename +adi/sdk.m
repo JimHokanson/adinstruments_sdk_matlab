@@ -47,6 +47,19 @@ classdef sdk
     
     methods (Static,Hidden)
         %adi.sdk.makeMex
+        %This should only be called with everything closed and cleared to
+        %avoid crashing Matlab
+        %{
+        clear all
+close all
+adi.sdk.unlockMex
+clear all
+        %}
+
+        function unlockMex()
+           sdk_mex(100); 
+        end
+        %adi.sdk.makeMex
         function makeMex()
             %
             %   adi.sdk.makeMex
@@ -69,7 +82,11 @@ classdef sdk
             cd(mex_path)
             try
                 
-                mex('sdk_mex.cpp','ADIDatIOWin.lib')
+                if strcmp(computer,'PCWIN64')
+                    mex('sdk_mex.cpp','-v','ADIDatIOWin64.lib')
+                else
+                    mex('sdk_mex.cpp','ADIDatIOWin.lib')
+                end
                 
                 %Extra files:
                 %------------------------
