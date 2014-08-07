@@ -146,6 +146,7 @@ clear all
             
         end
         function file_h = createFile(file_path)
+            [result_code,pointer_value,data] = sdk_mex(0,[int16(file_path) 0]);
             [result_code,pointer_value] = sdk_mex(0,[int16(file_path) 0]);
             
             file_h = adi.file_handle(pointer_value);
