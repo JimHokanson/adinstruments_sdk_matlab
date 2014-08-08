@@ -112,6 +112,7 @@ classdef file < sl.obj.display_class
             
             in.case_sensitive = false;
             in.partial_match  = true;
+            in.multiple_channel_rule = 'error';
             in = sl.in.processVarargin(in,varargin);
             
             temp = obj.channel_specs;

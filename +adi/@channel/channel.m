@@ -126,12 +126,18 @@ classdef channel < sl.obj.display_class
             %       For example we could get the channel 'Bladder Pressure'
             %       by using the <name> 'pres' since 'pres' is in the
             %       string 'Bladder Pressure'
+            %    multiple_channel_rule:
+            %       - 'error'
+            %       - 'first'
+            %       - 'last'
+            %       - # - use index
             %
             %    See Also:
             %    adi.file.getChannelByName
             
             in.case_sensitive = false;
             in.partial_match  = true;
+            in.multiple_channel_rule = 'error';
             in = adi.sl.in.processVarargin(in,varargin);
             
             all_names = {objs.name};
@@ -150,7 +156,20 @@ classdef channel < sl.obj.display_class
             if isempty(I)
                 error('Unable to find channel with name: %s',name)
             elseif length(I) > 1
-                error('Multiple matches for channel name found')
+                switch in.multiple_channel_rule
+                    case 'error'
+                        error('Multiple matches for channel name found')
+                    case 'first'
+                        I = I(1);
+                    case 'last'
+                        I = I(end);
+                    otherwise
+                        if isnumeric(in.multiple_channel_rule)
+                            I = I(in.multiple_channel_rule);
+                        else
+                            error('Unrecognized option: %s',in.multiple_channel_rule)
+                        end
+                end
             end
             
             chan = objs(I);
@@ -184,6 +203,10 @@ classdef channel < sl.obj.display_class
             %   ----------------
             %   return_object: (default true)
             %   data_range: [min max] (default full range)
+            %       Range of the data to retrieve, in samples.
+            %   time_range: [min max]
+            %       This can be specified instead of data_range to get a
+            %       range of data
             %   get_as_samples: (default true)
             %       If false the channel is upsampled to the highest rate
             %       using sample and hold.
@@ -195,10 +218,11 @@ classdef channel < sl.obj.display_class
             end
             
             
-            
+            in.gain_to_remove = 0;
+            in.units          = obj.units{record_id};
             in.return_object  = true;
-            in.data_range   = [1 obj.n_samples(record_id)];
-            in.time_range   = []; %Seconds, TODO: Document this ...
+            in.data_range     = [1 obj.n_samples(record_id)];
+            in.time_range     = []; %Seconds, TODO: Document this ...
             in.get_as_samples = true; %Alternatively ...
             in.leave_raw      = false;
             in = sl.in.processVarargin(in,varargin);
@@ -226,6 +250,10 @@ classdef channel < sl.obj.display_class
                         in.get_as_samples,...
                         'leave_raw',in.leave_raw);
             
+            if in.gain_to_remove ~= 0
+               data = data/in.gain_to_remove; 
+            end
+                    
             if isrow(data)
                 data = data';
             end    
@@ -238,7 +266,7 @@ classdef channel < sl.obj.display_class
                    'sample_offset',in.data_range(1));
                varargout{1} = sci.time_series.data(data,...
                    time_object,...
-                   'units',obj.units{record_id},...
+                   'units',in.units,...
                    'channel_labels',obj.name,...
                    'history',sprintf('File: %s\nRecord: %d',obj.file_path,record_id));
             else
