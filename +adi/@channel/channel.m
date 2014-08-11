@@ -194,6 +194,9 @@ classdef channel < sl.obj.display_class
         end
         function varargout = getData(obj,record_id,varargin)
             %
+            %   Full Path:
+            %   adi.channel.getData
+            %
             %   Inputs:
             %   -------
             %   record_id: 
@@ -218,7 +221,7 @@ classdef channel < sl.obj.display_class
             end
             
             
-            in.gain_to_remove = 0;
+            in.gain_to_remove = 1;
             in.units          = obj.units{record_id};
             in.return_object  = true;
             in.data_range     = [1 obj.n_samples(record_id)];
@@ -250,7 +253,7 @@ classdef channel < sl.obj.display_class
                         in.get_as_samples,...
                         'leave_raw',in.leave_raw);
             
-            if in.gain_to_remove ~= 0
+            if in.gain_to_remove ~= 1
                data = data/in.gain_to_remove; 
             end
                     

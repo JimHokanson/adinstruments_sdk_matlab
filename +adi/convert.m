@@ -33,7 +33,7 @@ persistent base_path
 in.conversion_options = [];
 in.format = 'h5'; %or 'mat'
 in.save_path = '';
-in = sl.in.processVarargin(in,varargin);
+in = adi.sl.in.processVarargin(in,varargin);
 
 if in.format(1) == '.'
     in.format(1) = [];
