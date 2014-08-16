@@ -2,7 +2,7 @@
  *
  *      mex sdk_mex.cpp ADIDatIOWin.lib
  *
- *      mex sdk_mex.cpp ADIDatIOWin64.lib
+ *      mex -v sdk_mex.cpp LoadADIDatDll.cpp ADIDatIOWin64.lib
  *
  *      adi.sdk.makeMex()
  *
@@ -14,14 +14,15 @@
 //sort of dynamic allocation. Since strings aren't that long, I'm fine
 //hardcoding this value for now, assuming that this value is plenty large
 
+
 #include <stdio.h>
 #include <malloc.h>
 #include <time.h>
 #include <float.h>
 #include "mex.h"
-#include "ADIDatCAPI_mex.h"
+//#include "ADIDatCAPI_mex.h"
 #include <ctime>
-
+#include "LoadADIDatDll.h"
 
 int ref_count = 0; //NYI
 int locked = 0;
@@ -82,7 +83,7 @@ void setLongOutput(mxArray *plhs[],int index, long value)
 }
 
 double getDoubleInput(const mxArray *prhs[], int index){
-
+    
     double *p_value;
     p_value = (double *)mxGetData(prhs[index]);
     
@@ -94,17 +95,17 @@ double getDoubleInput(const mxArray *prhs[], int index){
 }
 
 int getIntInput(const mxArray *prhs[], int index){
-
+    
     int *p_value;
-    p_value = (int *)mxGetData(prhs[index]);    
-    return p_value[0];    
+    p_value = (int *)mxGetData(prhs[index]);
+    return p_value[0];
     
 }
 
 long getLongInput(const mxArray *prhs[], int index){
     
     long *p_value;
-    p_value = (long *)mxGetData(prhs[index]);    
+    p_value = (long *)mxGetData(prhs[index]);
     return p_value[0];
 }
 //===================================================================
@@ -176,9 +177,22 @@ void setWriterHandle(mxArray *plhs[], ADIResultCode result, ADI_WriterHandle wri
 void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     //Documentation of the calling forms is given within each if clause
+
+    #ifdef ADI_USELOADIDATDLL
+        HMODULE dllInstance = LoadADIDatDll(); //Explicity link to the dll
+        
+        if(!dllInstance)
+        {
+            mexErrMsgIdAndTxt("wtf:aaaaah","asdfasdfasdf");
+        }
+        
+#endif
     
     if (!locked)
     {
+        
+
+        
         //NOTE: If we run clear all this will clear the definition of
         //this file and depending on whether or not we had open references
         //could cause Matlab to crash. By locking this file we prevent
@@ -239,10 +253,34 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         
         wchar_t *w_file_path = (wchar_t *)mxGetData(prhs[1]);
         
+        mexPrintf("asdfasdfsadfsdf\n");
+        
+        const int kBuffSize = 1024;
+        
         result        = ADI_OpenFile(w_file_path, &fileH, kOpenFileForReadOnly);
         out_result[0] = result;
         
+        plhs[2]     = mxCreateNumericMatrix(1,(mwSize)1024,mxSINGLE_CLASS,mxREAL);
+        float *data = (float *)mxGetData(plhs[2]);
+        
+        float* dataBuffer = (float*)malloc(sizeof(float) * kBuffSize);
+        
+        mexPrintf("Wtf Matlab\n");
+        long channel = 4;
+long record  = 3;
+long samplePos = 0;
+long retrieved = 0;
+        ADI_GetSamples(fileH, channel, record, samplePos, kADICDataAtSampleRate, kBuffSize, dataBuffer, &retrieved);
+        
+        mexPrintf("# Returned: %d\n",retrieved);
+        
+        free(dataBuffer);
+        
         setFileHandle(plhs,result,fileH);
+        
+        ADI_CloseFile(&fileH);
+
+    
     }
     else if (function_option == 1)
     {
@@ -504,6 +542,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  err_msg = sdk_mex(14,error_code)
         
         long textLen        = 0;
+        
         wchar_t *messageOut = getStringOutputPointer(plhs,1);
         
         ADIResultCode code  = (ADIResultCode)getLongInput(prhs,1);
@@ -564,7 +603,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         setDoubleOutput(plhs,1,(double)triggerTime);
         setDoubleOutput(plhs,2,fracSecs);
         setLongOutput(plhs,3,triggerMinusStartTicks);
-
+        
     }
     else if (function_option == 17){
         //
@@ -577,7 +616,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         result        = ADI_CreateFile(w_file_path, &fileH);
         out_result[0] = result;
         
-        setFileHandle(plhs,result,fileH); 
+        setFileHandle(plhs,result,fileH);
     }
     else if (function_option == 18){
         //
@@ -586,11 +625,11 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //   [result_code,file_h] = sdk_mex(18,file_h,channel,name)
         
         
-        fileH = getFileHandle(prhs); 
+        fileH = getFileHandle(prhs);
         long channel = getLongInput(prhs,2);
         wchar_t *channel_name = (wchar_t *)mxGetData(prhs[3]);
         
-        out_result[0] = ADI_SetChannelName(fileH, channel, channel_name); 
+        out_result[0] = ADI_SetChannelName(fileH, channel, channel_name);
         
     }
     else if (function_option == 19){
@@ -627,15 +666,15 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         
         out_result[0] = ADI_SetChannelInfo(writerH, channel, enabled, seconds_per_sample, units, &limits);
         
-//       DLLEXPORT ADIResultCode ADI_SetChannelInfo(ADI_WriterHandle writerH, long channel, int enabled, 
-//       double secondsPerSample, const wchar_t* units, const ADIDataLimits *limits);     
-
+//       DLLEXPORT ADIResultCode ADI_SetChannelInfo(ADI_WriterHandle writerH, long channel, int enabled,
+//       double secondsPerSample, const wchar_t* units, const ADIDataLimits *limits);
+        
     }
     else if (function_option == 21){
         //
         //   ADI_StartRecord  <>  startRecord
         //   ===========================================
-        //   result_code = sdk_mex(21, writerH, trigger_time, fractional_seconds, trigger_minus_rec_start)      
+        //   result_code = sdk_mex(21, writerH, trigger_time, fractional_seconds, trigger_minus_rec_start)
         
         ADI_WriterHandle writerH = getWriterHandle(prhs);
         time_t trigger_time = (time_t)getDoubleInput(prhs,2);
@@ -644,14 +683,14 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         
         out_result[0] = ADI_StartRecord(writerH, trigger_time, fractional_seconds, trigger_minus_rec_start);
         
-//            DLLEXPORT ADIResultCode ADI_StartRecord(ADI_WriterHandle writerH, time_t triggerTime, 
+//            DLLEXPORT ADIResultCode ADI_StartRecord(ADI_WriterHandle writerH, time_t triggerTime,
 //       double fracSecs, long triggerMinusStartTicks);
     }
     else if (function_option == 22){
         //
         //   ADI_AddChannelSamples  <>  addChannelSamples
         //   ===========================================
-        //   [result_code,new_ticks_added] = sdk_mex(22, writerH, channel, data, n_samples)        
+        //   [result_code,new_ticks_added] = sdk_mex(22, writerH, channel, data, n_samples)
         
         ADI_WriterHandle writerH = getWriterHandle(prhs);
         long channel = getLongInput(prhs,2);
@@ -663,14 +702,14 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         
         
         
-//       DLLEXPORT ADIResultCode ADI_AddChannelSamples(ADI_WriterHandle writerH, long channel, 
-//       float* data, long nSamples, long *newTicksAdded);     
+//       DLLEXPORT ADIResultCode ADI_AddChannelSamples(ADI_WriterHandle writerH, long channel,
+//       float* data, long nSamples, long *newTicksAdded);
     }
     else if (function_option == 23){
         //
         //   ADI_FinishRecord  <>  finishRecord
         //   ===========================================
-        //   [result_code] = sdk_mex(23, writerH)    
+        //   [result_code] = sdk_mex(23, writerH)
         
         ADI_WriterHandle writerH = getWriterHandle(prhs);
         
@@ -682,34 +721,34 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //
         //   ADI_CommitFile  <>  commitFile
         //   ===========================================
-        //   [result_code] = sdk_mex(24, writerH, flags)            
+        //   [result_code] = sdk_mex(24, writerH, flags)
         
         ADI_WriterHandle writerH = getWriterHandle(prhs);
         
         //TODO: What are the flags??????
         
         out_result[0] = ADI_CommitFile(writerH, 0);
-                
+        
 //         DLLEXPORT ADIResultCode ADI_CommitFile(ADI_WriterHandle writerH, long flags);
     }
     else if (function_option == 25){
         //
         //   ADI_CloseWriter  <>  closeWriter
         //   ===========================================
-        //   [result_code] = sdk_mex(25, writerH)           
+        //   [result_code] = sdk_mex(25, writerH)
         
         ADI_WriterHandle writerH = getWriterHandle(prhs);
         
         out_result[0] = ADI_CloseWriter(&writerH);
         
-//      DLLEXPORT ADIResultCode ADI_CloseWriter(ADI_WriterHandle *writerH);   
+//      DLLEXPORT ADIResultCode ADI_CloseWriter(ADI_WriterHandle *writerH);
     }
     else if (function_option == 26){
         //
         //   ADI_AddComment  <>  addComment
         //   ===========================================
-        //   [result_code, comment_number] = 
-        //      sdk_mex(26, file_h, channel, record, tick_position, text)    
+        //   [result_code, comment_number] =
+        //      sdk_mex(26, file_h, channel, record, tick_position, text)
         
         fileH = getFileHandle(prhs);
         long channel = getLongInput(prhs,2);
@@ -722,21 +761,21 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         
         setLongOutput(plhs,1,tick_position);
         
-//        DLLEXPORT ADIResultCode ADI_AddComment(ADI_FileHandle fileH, long channel, long record, long tickPos, 
+//        DLLEXPORT ADIResultCode ADI_AddComment(ADI_FileHandle fileH, long channel, long record, long tickPos,
 //       const wchar_t* text, long* commentNum);
     }
     else if (function_option == 27){
         //
         //   ADI_DeleteComment  <>  deleteComment
         //   ===========================================
-        //   result_code = sdk_mex(27,file_h,comment_number) 
+        //   result_code = sdk_mex(27,file_h,comment_number)
         
         fileH = getFileHandle(prhs);
         long comment_number = getLongInput(prhs,2);
         
         out_result[0] = ADI_DeleteComment(fileH,comment_number);
         
-//         DLLEXPORT ADIResultCode ADI_DeleteComment(ADI_FileHandle fileH, long commentNum);   
+//         DLLEXPORT ADIResultCode ADI_DeleteComment(ADI_FileHandle fileH, long commentNum);
     }
     else if (function_option == 100){
         mexUnlock();
@@ -747,6 +786,10 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         mexErrMsgIdAndTxt("adinstruments:sdk_mex",
                 "Invalid function option");
     }
+    
+    #ifdef ADI_USELOADIDATDLL
+UnloadADIDatDll(dllInstance);
+#endif
     
     //ADI_GetRecordSamplePeriod
     //ADI_GetRecordTime

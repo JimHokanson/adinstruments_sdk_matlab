@@ -29,15 +29,15 @@ classdef channel < sl.obj.display_class
     end
     
     properties (Dependent)
-       downsample_amount %How this channel relates to the fastest sampling
-       %rate. If this is the fastest sampled channel, the value will be 1.
-       %If the sampling rate is a tenth of the fastest, the value will be
-       %10.
+        downsample_amount %How this channel relates to the fastest sampling
+        %rate. If this is the fastest sampled channel, the value will be 1.
+        %If the sampling rate is a tenth of the fastest, the value will be
+        %10.
     end
     
     methods
-        function value = get.downsample_amount(obj) 
-           value = obj.dt./obj.tick_dt; 
+        function value = get.downsample_amount(obj)
+            value = obj.dt./obj.tick_dt;
         end
     end
     
@@ -77,26 +77,33 @@ classdef channel < sl.obj.display_class
         
         %I'd like to remove this ...
         %------------------------------------------------------
-        function comment_objs = getRecordComments(obj,record_id)
-           %x Small helper to get the comments for a given record
-           
-           %I'm not thrilled that this is here ...
-           comment_objs = obj.record_handles(record_id).comments; 
+        function comment_objs = getRecordComments(obj,record_id,varargin)
+            %x Small helper to get the comments for a given record
+            %
+            %
+            
+            
+            in.time_range = [];
+            in.all_channels = true;
+            in = adi.sl.in.processVarargin(in,varargin);
+            
+            comment_objs = obj.record_handles(record_id).comments;
+            
+            %
+            if ~isempty(in.time_range) && ~isempty(comment_objs)
+                comment_objs = comment_objs.filterByTime(in.time_range);
+            end
+            
+            if ~in.all_channels && ~isempty(comment_objs)
+                comment_objs = comment_objs.filterByChannel(in.time_range);
+            end
+            
+            
         end
         
-        % % %         function idx_bounds = getIndexBoundsGivenTimeBounds(obj,time_bounds,record_id)
-% % %            %
-% % %            %    
-% % %            %    This may or may not be used ...
-% % %            
-% % %            idx_bounds = [floor(time_bounds(1)/obj.dt(record_id)) ceil(time_bounds(2)/obj.dt(record_id))];
-% % %            
-% % %            %  data = getDataSubset(obj,record_id,idx_bounds(1),idx_bounds(2)-idx_bounds(1)+1,true);
-% % %         end
-
         %------------------------------------------------------
         
-
+        
         function printChannelNames(objs)
             %x  Prints all channel names to the command window
             %
@@ -126,18 +133,12 @@ classdef channel < sl.obj.display_class
             %       For example we could get the channel 'Bladder Pressure'
             %       by using the <name> 'pres' since 'pres' is in the
             %       string 'Bladder Pressure'
-            %    multiple_channel_rule:
-            %       - 'error'
-            %       - 'first'
-            %       - 'last'
-            %       - # - use index
             %
             %    See Also:
             %    adi.file.getChannelByName
             
             in.case_sensitive = false;
             in.partial_match  = true;
-            in.multiple_channel_rule = 'error';
             in = adi.sl.in.processVarargin(in,varargin);
             
             all_names = {objs.name};
@@ -156,26 +157,13 @@ classdef channel < sl.obj.display_class
             if isempty(I)
                 error('Unable to find channel with name: %s',name)
             elseif length(I) > 1
-                switch in.multiple_channel_rule
-                    case 'error'
-                        error('Multiple matches for channel name found')
-                    case 'first'
-                        I = I(1);
-                    case 'last'
-                        I = I(end);
-                    otherwise
-                        if isnumeric(in.multiple_channel_rule)
-                            I = I(in.multiple_channel_rule);
-                        else
-                            error('Unrecognized option: %s',in.multiple_channel_rule)
-                        end
-                end
+                error('Multiple matches for channel name found')
             end
             
             chan = objs(I);
         end
         function objs_with_data = removeEmptyObjects(objs)
-            %x Removes channels with no data in them. 
+            %x Removes channels with no data in them.
             %
             %   This is done by default on loading the channels so that
             %   empty channels don't clutter things up.
@@ -194,35 +182,31 @@ classdef channel < sl.obj.display_class
         end
         function varargout = getData(obj,record_id,varargin)
             %
-            %   Full Path:
-            %   adi.channel.getData
-            %
             %   Inputs:
             %   -------
-            %   record_id: 
+            %   record_id:
             %       Record # from which to retrieve data.
-            %   
+            %
             %   Optional Inputs:
             %   ----------------
             %   return_object: (default true)
             %   data_range: [min max] (default full range)
-            %       Range of the data to retrieve, in samples.
-            %   time_range: [min max]
-            %       This can be specified instead of data_range to get a
-            %       range of data
             %   get_as_samples: (default true)
             %       If false the channel is upsampled to the highest rate
             %       using sample and hold.
-            %   
-            %   
+            %   time_range: [min max]
+            %       Often times it is more natural to specify a range of
+            %       time over which to request the data, rather than a
+            %       range of samples. Use this to specify the data that is
+            %       between the specified min and max time values.
+            %
             
             if record_id < 1 || record_id > obj.n_records
-               error('Record input: %d, out of range: [1 %d]',record_id,obj.n_records);
+                error('Record input: %d, out of range: [1 %d]',record_id,obj.n_records);
             end
             
             
-            in.gain_to_remove = 1;
-            in.units          = obj.units{record_id};
+            
             in.return_object  = true;
             in.data_range     = [1 obj.n_samples(record_id)];
             in.time_range     = []; %Seconds, TODO: Document this ...
@@ -231,13 +215,16 @@ classdef channel < sl.obj.display_class
             in = sl.in.processVarargin(in,varargin);
             
             %TODO: This is not right if get_as_samples is false
-            if ~isempty(in.time_range)
-               %Not sure if I want round or not ...
-               in.data_range = round(in.time_range*obj.fs(record_id));
+            if isempty(in.time_range)
+                %We populate this for comment retrieval
+                in.time_range = (in.data_range-1)/obj.fs(record_id);
+            else
+                in.data_range(1) = floor(in.time_range(1)*obj.fs(record_id))+1;
+                in.data_range(2) = ceil(in.time_range(2)*obj.fs(record_id))+1;
             end
             
             if any(in.data_range > obj.n_samples(record_id))
-               error('Data requested out of range') 
+                error('Data requested out of range')
             end
             
             if in.data_range(1) > in.data_range(2)
@@ -245,33 +232,36 @@ classdef channel < sl.obj.display_class
             end
             
             data = obj.sdk.getChannelData(...
-                        obj.file_h,...
-                        record_id,...
-                        obj.id,...
-                        in.data_range(1),...
-                        in.data_range(2)-in.data_range(1)+1,...
-                        in.get_as_samples,...
-                        'leave_raw',in.leave_raw);
+                obj.file_h,...
+                record_id,...
+                obj.id,...
+                in.data_range(1),...
+                in.data_range(2)-in.data_range(1)+1,...
+                in.get_as_samples,...
+                'leave_raw',in.leave_raw);
             
-            if in.gain_to_remove ~= 1
-               data = data/in.gain_to_remove; 
-            end
-                    
             if isrow(data)
                 data = data';
-            end    
+            end
             
             if in.return_object
+                comments = obj.getRecordComments(record_id,'time_range',in.time_range);
+                
+                time_events = sci.time_series.time_events('comments',...
+                    [comments.time],'values',[comments.id],...
+                    'msgs',{comments.str});
+                
                 %TODO: This is not right if get_as_samples is false
-               time_object = sci.time_series.time(...
-                   obj.dt(record_id),...
-                   length(data),...
-                   'sample_offset',in.data_range(1));
-               varargout{1} = sci.time_series.data(data,...
-                   time_object,...
-                   'units',in.units,...
-                   'channel_labels',obj.name,...
-                   'history',sprintf('File: %s\nRecord: %d',obj.file_path,record_id));
+                time_object = sci.time_series.time(...
+                    obj.dt(record_id),...
+                    length(data),...
+                    'sample_offset',in.data_range(1));
+                varargout{1} = sci.time_series.data(data,...
+                    time_object,...
+                    'units',obj.units{record_id},...
+                    'channel_labels',obj.name,...
+                    'history',sprintf('File: %s\nRecord: %d',obj.file_path,record_id),...
+                    'events',time_events);
             else
                 varargout{1} = data;
                 if nargout == 2
@@ -284,52 +274,52 @@ classdef channel < sl.obj.display_class
         exportToHDF5File(objs,fobj,save_path,conversion_options)
         function exportToMatFile(objs,m,conversion_options)
             
-           MAX_SAMPLES_AT_ONCE = 1e7;
-           
-           m.channel_version = 1;
-           
-           m.channel_meta = struct(...
-               'id',        {objs.id},...
-               'name',      {objs.name},...
-               'units',     {objs.units},...
-               'n_samples', {objs.n_samples},...
-               'dt',        {objs.dt});
-           
-           %NOTE: It would be nice to be able to save the raw data ...
-           %-----------------------------------
-           m.data_version = 1;
-           
-           %NOTE: We can't go deeper than a single element :/
-           
-           n_objs    = length(objs);
-           n_records = objs(1).n_records; %#ok<PROP>
-           for iChan = 1:n_objs
-               cur_chan = objs(iChan);
-               for iRecord = 1:n_records %#ok<PROP>
-                  cur_n_samples = cur_chan.n_samples(iRecord);
-                  chan_name = sprintf('data__chan_%d_rec_%d',iChan,iRecord);
-                  if cur_n_samples < MAX_SAMPLES_AT_ONCE
-                     %(obj,record_id,get_as_samples) 
-                     m.(chan_name) = cur_chan.getAllData(iRecord,'leave_raw',true);
-                  else
-                      
-                     start_I = 1:MAX_SAMPLES_AT_ONCE:cur_n_samples;
-                     end_I   = MAX_SAMPLES_AT_ONCE:MAX_SAMPLES_AT_ONCE:cur_n_samples;
-                     
-                     if length(end_I) < length(start_I)
-                         end_I(end+1) = cur_n_samples; %#ok<AGROW>
-                     end
-                     
-                     m.(chan_name)(cur_n_samples,1) = 0; %Initialize output
-                     for iChunk = 1:length(start_I)
-                        cur_start = start_I(iChunk);
-                        cur_end   = end_I(iChunk);
-                        n_samples_get = cur_end-cur_start + 1;
-                        m.(chan_name)(cur_start:cur_end,1) = cur_chan.getDataSubset(iRecord,cur_start,n_samples_get,'leave_raw',true);
-                     end
-                  end
-               end 
-           end
+            MAX_SAMPLES_AT_ONCE = 1e7;
+            
+            m.channel_version = 1;
+            
+            m.channel_meta = struct(...
+                'id',        {objs.id},...
+                'name',      {objs.name},...
+                'units',     {objs.units},...
+                'n_samples', {objs.n_samples},...
+                'dt',        {objs.dt});
+            
+            %NOTE: It would be nice to be able to save the raw data ...
+            %-----------------------------------
+            m.data_version = 1;
+            
+            %NOTE: We can't go deeper than a single element :/
+            
+            n_objs    = length(objs);
+            n_records = objs(1).n_records; %#ok<PROP>
+            for iChan = 1:n_objs
+                cur_chan = objs(iChan);
+                for iRecord = 1:n_records %#ok<PROP>
+                    cur_n_samples = cur_chan.n_samples(iRecord);
+                    chan_name = sprintf('data__chan_%d_rec_%d',iChan,iRecord);
+                    if cur_n_samples < MAX_SAMPLES_AT_ONCE
+                        %(obj,record_id,get_as_samples)
+                        m.(chan_name) = cur_chan.getAllData(iRecord,'leave_raw',true);
+                    else
+                        
+                        start_I = 1:MAX_SAMPLES_AT_ONCE:cur_n_samples;
+                        end_I   = MAX_SAMPLES_AT_ONCE:MAX_SAMPLES_AT_ONCE:cur_n_samples;
+                        
+                        if length(end_I) < length(start_I)
+                            end_I(end+1) = cur_n_samples; %#ok<AGROW>
+                        end
+                        
+                        m.(chan_name)(cur_n_samples,1) = 0; %Initialize output
+                        for iChunk = 1:length(start_I)
+                            cur_start = start_I(iChunk);
+                            cur_end   = end_I(iChunk);
+                            n_samples_get = cur_end-cur_start + 1;
+                            m.(chan_name)(cur_start:cur_end,1) = cur_chan.getDataSubset(iRecord,cur_start,n_samples_get,'leave_raw',true);
+                        end
+                    end
+                end
+            end
         end
     end
     

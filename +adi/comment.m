@@ -79,51 +79,19 @@ classdef comment < sl.obj.display_class
                 end
             end
         end
-        function [objs_out,times] = getCommentsForChannel(objs,channel_obj,record_id,x_limits)
-            %
-            %
-            %   adi.comment.getCommentsForChannel
-            %
-            %   Returns comments that:
-            %   1) Have the same record as that being requested
-            %   2) Pertain to the given channel
-            %
-            %   Inputs:
-            %   -------
-            %   channel_obj :
-            %
-            %   record_id   :
-            %
-            %   x_limits    :
-            
-            keep_mask = [objs.record] == record_id;
-            kept_objs = objs(keep_mask);
-            if isempty(kept_objs)
-                objs_out = kept_objs;
-                times    = [];
-                return
-            end
-            
-            %Channel filtering
-            %-------------------------------
-            temp_channels = [kept_objs.channel];
-            
-            keep_mask = temp_channels == -1 | temp_channels == channel_obj.id;
-            kept_objs     = kept_objs(keep_mask);
-            if isempty(kept_objs)
-                objs_out = kept_objs;
-                times    = [];
-                return
-            end
-            
-            %Time filtering
-            %-------------------------------
-            %TODO: Might need to subtract 1 ...
-            obj_times_scaled = [kept_objs.tick_position]*channel_obj.tick_dt(record_id);
-            
-            keep_mask = obj_times_scaled >= x_limits(1) & obj_times_scaled <= x_limits(2);
-            objs_out  = kept_objs(keep_mask);
-            times     = obj_times_scaled(keep_mask);
+        function objs_out = filterByRecord(objs_in,record_id)
+           keep_mask = [objs.record] == record_id;
+           objs_out  = objs_in(keep_mask);
+        end
+        function objs_out = filterByTime(objs_in,time_range)
+            times     = [objs_in.time];
+            keep_mask = times >= time_range(1) & times <= time_range(2);
+            objs_out  = objs_in(keep_mask);            
+        end
+        function objs_out = filterByChannel(objs_in,channel_id)
+           channels  = [kept_objs.channel];
+           keep_mask = channels == -1 | channels == channel_id;
+           objs_out  = objs_in(keep_mask);
         end
     end
     methods
