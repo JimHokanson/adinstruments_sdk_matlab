@@ -50,10 +50,11 @@ classdef sdk
         %This should only be called with everything closed and cleared to
         %avoid crashing Matlab
         %{
+        %TODO: Can we move all of this into the function itself ...
         clear all
-close all
-adi.sdk.unlockMex
-clear all
+        close all
+        adi.sdk.unlockMex
+        clear all
         %}
 
         function unlockMex()
@@ -146,6 +147,8 @@ clear all
             
         end
         function file_h = createFile(file_path)
+            
+            %This is a work in progress ...
             [result_code,pointer_value,data] = sdk_mex(0,[int16(file_path) 0]);
             [result_code,pointer_value] = sdk_mex(0,[int16(file_path) 0]);
             

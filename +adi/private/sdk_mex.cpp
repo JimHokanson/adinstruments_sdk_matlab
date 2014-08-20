@@ -20,9 +20,9 @@
 #include <time.h>
 #include <float.h>
 #include "mex.h"
-//#include "ADIDatCAPI_mex.h"
+#include "ADIDatCAPI_mex.h"
 #include <ctime>
-#include "LoadADIDatDll.h"
+//#include "LoadADIDatDll.h"
 
 int ref_count = 0; //NYI
 int locked = 0;
@@ -178,16 +178,6 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
     //Documentation of the calling forms is given within each if clause
 
-    #ifdef ADI_USELOADIDATDLL
-        HMODULE dllInstance = LoadADIDatDll(); //Explicity link to the dll
-        
-        if(!dllInstance)
-        {
-            mexErrMsgIdAndTxt("wtf:aaaaah","asdfasdfasdf");
-        }
-        
-#endif
-    
     if (!locked)
     {
         
@@ -252,35 +242,11 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  [result_code,file_h] = sdk_mex(0,file_path)
         
         wchar_t *w_file_path = (wchar_t *)mxGetData(prhs[1]);
-        
-        mexPrintf("asdfasdfsadfsdf\n");
-        
-        const int kBuffSize = 1024;
-        
+
         result        = ADI_OpenFile(w_file_path, &fileH, kOpenFileForReadOnly);
         out_result[0] = result;
-        
-        plhs[2]     = mxCreateNumericMatrix(1,(mwSize)1024,mxSINGLE_CLASS,mxREAL);
-        float *data = (float *)mxGetData(plhs[2]);
-        
-        float* dataBuffer = (float*)malloc(sizeof(float) * kBuffSize);
-        
-        mexPrintf("Wtf Matlab\n");
-        long channel = 4;
-long record  = 3;
-long samplePos = 0;
-long retrieved = 0;
-        ADI_GetSamples(fileH, channel, record, samplePos, kADICDataAtSampleRate, kBuffSize, dataBuffer, &retrieved);
-        
-        mexPrintf("# Returned: %d\n",retrieved);
-        
-        free(dataBuffer);
-        
-        setFileHandle(plhs,result,fileH);
-        
-        ADI_CloseFile(&fileH);
 
-    
+        setFileHandle(plhs,result,fileH);
     }
     else if (function_option == 1)
     {
@@ -458,15 +424,7 @@ long retrieved = 0;
         long nLength  = getLongInput(prhs,5);
         
         ADICDataFlags dataType = static_cast<ADICDataFlags>(getLongInput(prhs,6));
-        
-        //Trying this as long and int are not the same ...
-        //const int kBuffSize = 1024;
-        
-        mexPrintf("channel: %d\n",channel);
-        mexPrintf("record: %d\n",record);
-        mexPrintf("startPos: %d\n",startPos);
-        mexPrintf("nLength: %d\n",nLength);
-        
+
         plhs[1]     = mxCreateNumericMatrix(1,(mwSize)nLength,mxSINGLE_CLASS,mxREAL);
         float *data = (float *)mxGetData(plhs[1]);
         
@@ -786,11 +744,7 @@ long retrieved = 0;
         mexErrMsgIdAndTxt("adinstruments:sdk_mex",
                 "Invalid function option");
     }
-    
-    #ifdef ADI_USELOADIDATDLL
-UnloadADIDatDll(dllInstance);
-#endif
-    
+
     //ADI_GetRecordSamplePeriod
     //ADI_GetRecordTime
 }

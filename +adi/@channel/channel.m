@@ -133,12 +133,14 @@ classdef channel < sl.obj.display_class
             %       For example we could get the channel 'Bladder Pressure'
             %       by using the <name> 'pres' since 'pres' is in the
             %       string 'Bladder Pressure'
+            %    multiple_channel_rule: {'error','first','last',index #}
             %
             %    See Also:
             %    adi.file.getChannelByName
             
             in.case_sensitive = false;
             in.partial_match  = true;
+            in.multiple_channel_rule = 'error';
             in = adi.sl.in.processVarargin(in,varargin);
             
             all_names = {objs.name};
@@ -157,7 +159,22 @@ classdef channel < sl.obj.display_class
             if isempty(I)
                 error('Unable to find channel with name: %s',name)
             elseif length(I) > 1
-                error('Multiple matches for channel name found')
+                if isnumeric(in.multiple_channel_rule)
+                    I = I(in.multiple_channel_rule);
+                else
+                    switch in.multiple_channel_rule
+                        case 'error'
+                            error('Multiple matches for channel name found')
+                        case 'first'
+                            I = I(1);
+                        case 'last'
+                            I = I(end);
+                        otherwise
+                            error(['Multiple matches for channel name found and' ...
+                                ' multiple matches option: "%s" not recognized'],...
+                                in.multiple_channel_rule)
+                    end
+                end
             end
             
             chan = objs(I);
