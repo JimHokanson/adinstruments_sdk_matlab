@@ -47,14 +47,10 @@ else
 end
 
 if nargin == 0 || isempty(file_path)
-    [file_name,file_root] = uigetfile(...
-        {'*.adicht','Labchart Files (*.adicht)'; ...
-        '*.h5','HDF5 Files (*.h5)';...
-        '*.mat','Matlab Files (*.mat)'},'Pick a file to read'); 
-    if isnumeric(file_name)
+    file_path = adi.uiGetChartFile();
+    if isnumeric(file_path)
         return
     end
-    file_path = fullfile(file_root,file_name);
 end
 
 [~,~,file_extension] = fileparts(file_path);

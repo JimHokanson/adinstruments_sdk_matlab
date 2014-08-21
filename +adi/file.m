@@ -63,7 +63,7 @@ classdef file < sl.obj.display_class
             
             obj.file_path   = file_path;
             
-            obj.n_records  = sdk.getNumberOfRecords(file_h);
+            obj.n_records   = sdk.getNumberOfRecords(file_h);
             temp_n_channels = sdk.getNumberOfChannels(file_h);
             
             %Get record objects
