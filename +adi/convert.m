@@ -1,4 +1,4 @@
-function save_path = convert(file_path,varargin)
+function save_path = convert(file_path_or_paths,varargin)
 %
 %   adi.convert(*file_path,varargin)
 %
@@ -13,9 +13,9 @@ function save_path = convert(file_path,varargin)
 %
 %   Optional Inputs:
 %   ----------------
-%   file_path : str (default: prompts user)
-%       Path to the file. If omitted a prompt will ask the user to select
-%       the file to convert.
+%   file_path_or_paths : str or cellstr (default: prompts user)
+%       Path to the file or files. If omitted a prompt will ask the user 
+%       to select the file to convert.
 %   format : {'h5','mat'} (default 'h5')
 %       The format to convert the file to.
 %   conversion_options: {.h5_conversion_options,.mat_conversion_options}
@@ -39,30 +39,39 @@ if in.format(1) == '.'
     in.format(1) = [];
 end
    
-if nargin == 0 || isempty(file_path)
-   [file_name,file_root] = uigetfile({'*.adicht'},'Pick a file to convert',base_path); 
-
-    if isnumeric(file_name)
+if nargin == 0 || isempty(file_path_or_paths)
+    
+    [file_path_or_paths,file_root] = adi.uiGetChartFile('prompt','Pick a file to convert','start_path',base_path,'multi_select',true);
+    
+    if isnumeric(file_path_or_paths)
         return
     end
     
     base_path = file_root;
     
-    file_path = fullfile(file_root,file_name);
 else
-    base_path = fileparts(file_path);
+    if ischar(file_path_or_paths)
+        base_path = fileparts(file_path_or_paths);
+    else
+        base_path = fileparts(file_path_or_paths{1});
+    end
 end
 
+for iFile = 1:length(file_path_or_paths)
 
-file_obj = adi.readFile(file_path);
+    cur_file_path = file_path_or_paths{iFile};
+    
+    file_obj = adi.readFile(cur_file_path);
 
-switch in.format
-    case 'h5'
-        %adi.file.exportToMatFile
-        save_path = file_obj.exportToHDF5File(in.save_path,in.conversion_options);
-    case 'mat'
-        %adi.file.exportToMatFile
-        save_path = file_obj.exportToMatFile(in.save_path,in.conversion_options);
-    otherwise
-        error('Unrecognized format option: %s',in.format);
+    switch in.format
+        case 'h5'
+            %adi.file.exportToMatFile
+            save_path = file_obj.exportToHDF5File(in.save_path,in.conversion_options);
+        case 'mat'
+            %adi.file.exportToMatFile
+            save_path = file_obj.exportToMatFile(in.save_path,in.conversion_options);
+        otherwise
+            error('Unrecognized format option: %s',in.format);
+    end
+
 end

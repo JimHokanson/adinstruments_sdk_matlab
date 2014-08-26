@@ -221,9 +221,7 @@ classdef channel < sl.obj.display_class
             if record_id < 1 || record_id > obj.n_records
                 error('Record input: %d, out of range: [1 %d]',record_id,obj.n_records);
             end
-            
-            
-            
+
             in.return_object  = true;
             in.data_range     = [1 obj.n_samples(record_id)];
             in.time_range     = []; %Seconds, TODO: Document this ...
@@ -317,7 +315,7 @@ classdef channel < sl.obj.display_class
                     chan_name = sprintf('data__chan_%d_rec_%d',iChan,iRecord);
                     if cur_n_samples < MAX_SAMPLES_AT_ONCE
                         %(obj,record_id,get_as_samples)
-                        m.(chan_name) = cur_chan.getAllData(iRecord,'leave_raw',true);
+                        m.(chan_name) = cur_chan.getData(iRecord,'leave_raw',true,'return_object',false);
                     else
                         
                         start_I = 1:MAX_SAMPLES_AT_ONCE:cur_n_samples;
@@ -331,8 +329,10 @@ classdef channel < sl.obj.display_class
                         for iChunk = 1:length(start_I)
                             cur_start = start_I(iChunk);
                             cur_end   = end_I(iChunk);
-                            n_samples_get = cur_end-cur_start + 1;
-                            m.(chan_name)(cur_start:cur_end,1) = cur_chan.getDataSubset(iRecord,cur_start,n_samples_get,'leave_raw',true);
+                            %n_samples_get = cur_end-cur_start + 1;
+                            m.(chan_name)(cur_start:cur_end,1) = ...
+                                cur_chan.getData(iRecord,'data_range',[cur_start cur_end],...
+                                'leave_raw',true,'return_object',false);
                         end
                     end
                 end
