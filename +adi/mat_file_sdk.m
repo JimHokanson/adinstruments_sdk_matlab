@@ -107,9 +107,13 @@ classdef mat_file_sdk < handle
             n_samples = cm(channel).n_samples(record);
             
         end
-        function output_data  = getChannelData(file_h,record,channel,start_sample,n_samples_get,get_samples)
+        function output_data  = getChannelData(file_h,record,channel,start_sample,n_samples_get,get_samples,varargin)
             %
-
+            %(file_h,record,channel,start_sample,n_samples_get,get_samples,varargin)
+            
+            in.leave_raw = false;
+            in = sl.in.processVarargin(in,varargin);
+            
             if get_samples == false
                 %JAH: NYI
                 error('Sorry, I can''t let you do that ...')
@@ -117,6 +121,13 @@ classdef mat_file_sdk < handle
             
             chan_name   = sprintf('data__chan_%d_rec_%d',channel,record);    
             output_data = file_h.m.(chan_name)(start_sample:(start_sample+n_samples_get-1),1);
+            
+            if in.leave_raw
+                %output_data = output_data;
+            else
+                output_data = double(output_data); %Matlab can get finicky working with singles
+            end
+            
         end
         function units        = getUnits(file_h,record,channel)
             %getUnits
