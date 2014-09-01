@@ -45,7 +45,7 @@ classdef sdk
     %   See Also:
     %   adi.readFile
     
-    methods (Static,Hidden)
+    methods (Static)
         %adi.sdk.makeMex
         %This should only be called with everything closed and cleared to
         %avoid crashing Matlab
@@ -76,7 +76,7 @@ classdef sdk
             %decrementing every time handles are destroyed. If this count
             %is zero, then we could safely clear the mex dll from memory.
             
-            base_path = sl.dir.getMyBasePath;
+            base_path = sl.stack.getMyBasePath;
             mex_path  = fullfile(base_path,'private');
             
             wd = cd; %wd - working directory
