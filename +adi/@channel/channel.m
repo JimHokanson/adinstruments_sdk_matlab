@@ -325,7 +325,8 @@ classdef channel < sl.obj.display_class
                             end_I(end+1) = cur_n_samples; %#ok<AGROW>
                         end
                         
-                        m.(chan_name)(cur_n_samples,1) = 0; %Initialize output
+                        %I am assuming that the output is single.
+                        m.(chan_name)(cur_n_samples,1) = single(0); %Initialize output
                         for iChunk = 1:length(start_I)
                             cur_start = start_I(iChunk);
                             cur_end   = end_I(iChunk);
