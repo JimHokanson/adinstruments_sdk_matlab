@@ -9,7 +9,12 @@ classdef file_read_options < handle
        %adi.file
        remove_empty_channels = true; %If true, channels without data for 
        %all records are removed.
-       conversion_max_
+       channels_remove = {} %TODO: On setting ensure it is a cell array
+       %
+       %    This should be a cell array of channels which you wish to not
+       %    include when reading the file.
+       
+       %conversion_max_
     end
     
     properties %Mat file format only

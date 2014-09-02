@@ -90,6 +90,15 @@ classdef file < sl.obj.display_class
                 obj.channel_specs = obj.channel_specs.removeEmptyObjects();
             end
             
+            if ~isempty(in.channels_remove)
+               mask = ismember(in.channels_remove,obj.channel_names);
+               if ~all(mask)
+                  %TODO: Print warning message 
+               end
+               
+               mask = ismember(obj.channel_names,in.channels_remove);
+               obj.channel_specs(mask) = [];
+            end
             obj.n_channels = length(obj.channel_specs);
         end
     end
