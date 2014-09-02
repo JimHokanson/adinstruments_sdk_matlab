@@ -199,24 +199,46 @@ classdef channel < sl.obj.display_class
         end
         function varargout = getData(obj,record_id,varargin)
             %
+            %   data_object = obj.getData(record_id,varargin)
+            %
+            %   [data,time] = obj.getData(record_id,'return_object',false,varargin)
+            %
             %   Inputs:
             %   -------
-            %   record_id:
-            %       Record # from which to retrieve data.
+            %   record_id: number
+            %       Record # from which to retrieve data. Adinstruments
+            %       stores data in chunks known as records, which can be
+            %       like trials depending on how the user uses them.
+            %       Channel properties can change between records.
             %
             %   Optional Inputs:
             %   ----------------
             %   return_object: (default true)
+            %       If true then a sci.time_series.data object is returned
             %   data_range: [min max] (default full range)
+            %       Values are in samples. Specifies which samples to get.
+            %       ex. [10 30] specifies to get sample 10 through sample
+            %       30
             %   get_as_samples: (default true)
             %       If false the channel is upsampled to the highest rate
-            %       using sample and hold.
+            %       using sample and hold. NOTE: This is not very well
+            %       tested and might break things but it is offered in the
+            %       underlying SDK.
             %   time_range: [min max]
             %       Often times it is more natural to specify a range of
             %       time over which to request the data, rather than a
             %       range of samples. Use this to specify the data that is
             %       between the specified min and max time values.
+            %   leave_raw: (default false)
+            %       If true the data are not converted to double (most
+            %       likely they will be returned as type 'single'). This is
+            %       mostly used when converting from the adicht format to
+            %       another file format.
             %
+            %   Outputs:
+            %   --------
+            %   data_object : 
+            %   
             
             if record_id < 1 || record_id > obj.n_records
                 error('Record input: %d, out of range: [1 %d]',record_id,obj.n_records);
