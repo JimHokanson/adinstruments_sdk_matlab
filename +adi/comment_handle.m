@@ -20,13 +20,15 @@ classdef (Hidden) comment_handle < handle
        %for a given record
        record
        tick_dt
+       file_name
     end
     
     methods
-        function obj = comment_handle(pointer_value,is_valid,record_id,tick_dt)
+        function obj = comment_handle(file_name,pointer_value,is_valid,record_id,tick_dt)
             %
             %   obj = adi.comment_handle(pointer_value,is_valid)
             
+           obj.file_name = file_name;
            obj.pointer_value = pointer_value;
            obj.is_valid      = is_valid;
            obj.record        = record_id;
@@ -36,7 +38,7 @@ classdef (Hidden) comment_handle < handle
             if ~obj.is_valid
                 return
             end 
-            
+            %fprintf(2,'ADI SDK: Deleting comment: %s\n',obj.file_name);
            adi.sdk.closeCommentAccessor(obj.pointer_value);
         end
         function has_another_comment = advanceCommentPointer(obj)
@@ -46,6 +48,7 @@ classdef (Hidden) comment_handle < handle
            cur_comment = adi.sdk.getCommentInfo(obj);
         end
         function close(obj)
+           %fprintf(2,'ADI SDK: Closing comment: %s\n',obj.file_name);
            adi.sdk.closeCommentAccessor(obj.pointer_value);
            obj.is_valid = false;
         end
