@@ -11,7 +11,13 @@ classdef (Hidden) test_SDK
     
     methods (Static)
         function run_tests()
-           temp_file_path = [tempname() '.adicht']; 
+            
+           %This code might move or the function might be renamed ...
+           temp_file_path = [tempname() '.adicht'];
+           
+           file_writer = adi.createFile(temp_file_path);
+           
+           %TODO: I think I need to delete the temp file from the disk
         end
     end
     

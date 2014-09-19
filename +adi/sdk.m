@@ -148,13 +148,11 @@ classdef sdk
         end
         function file_h = createFile(file_path)
             
-            %This is a work in progress ...
-            [result_code,pointer_value,data] = sdk_mex(0,[int16(file_path) 0]);
-            [result_code,pointer_value] = sdk_mex(0,[int16(file_path) 0]);
-            
-            file_h = adi.file_handle(pointer_value);
+            [result_code,pointer_value] = sdk_mex(17,h__toWChar(file_path));
             
             adi.sdk.handleErrorCode(result_code)
+            
+            file_h = adi.file_handle(pointer_value,file_path);
         end
         function closeFile(pointer_value)
             %

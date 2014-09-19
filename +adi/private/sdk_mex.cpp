@@ -568,6 +568,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //   ADI_CreateFile   <>   createFile
         //   ==============================================================
         //   [result_code,file_h] = sdk_mex(17,file_path)
+        //    
+        //   Implemented via sdk.createFile
         
         wchar_t *w_file_path = (wchar_t *)mxGetData(prhs[1]);
         
@@ -595,6 +597,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //   ADI_CreateWriter  <>  createDataWriter
         //   ===========================================
         //   [result_code,writer_h] = sdk_mex(19,file_h)
+        //
+        //  Implemented via sdk.createDataWriter
         
         ADI_WriterHandle writerH(0);
         
