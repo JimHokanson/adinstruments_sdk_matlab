@@ -208,10 +208,16 @@ classdef sdk
             adi.sdk.handleErrorCode(result_code) 
         end
         function commitFile(writer_h)
+            %
+            %   adi.sdk.commitFile(writer_h)
+            
            result_code = sdk_mex(24,writer_h.pointer_value);
            adi.sdk.handleErrorCode(result_code)
         end
         function closeWriter(pointer_value)
+            %
+            %   adi.sdk.closeWriter(pointer_value)
+            
             result_code = sdk_mex(25,pointer_value);
             adi.sdk.handleErrorCode(result_code) 
         end
@@ -294,7 +300,9 @@ classdef sdk
            %
            %    Optional Inputs:
            %    ----------------
-           %    
+           %    trigger_time:
+           %    fractional_seconds:
+           %    trigger_minus_rec_start:
             
            %JAH TODO: At this point 
            in.trigger_time = now;
@@ -307,6 +315,9 @@ classdef sdk
            adi.sdk.handleErrorCode(result_code)
         end
         function finishRecord(writer_h)
+            %
+            %   adi.sdk.finishRecord(writer_h)
+            
            result_code = sdk_mex(23, writer_h.pointer_value); 
            adi.sdk.handleErrorCode(result_code) 
         end
@@ -371,11 +382,17 @@ classdef sdk
             end
         end
         function addComment(channel,record,tick_position,comment_string)
+            %
+            %   adi.sdk.addComment(channel,record,tick_position,comment_string)
+            
             result_code = sdk_mex(27,file_h.pointer_value,...
                 c0(channel), c0(record), tick_position, comment_string);
             adi.sdk.handleErrorCode(result_code);
         end
         function deleteComment(file_h,comment_number)
+            %
+            %   adi.sdk.deleteComment(file_h,comment_number)
+            
             result_code = sdk_mex(27,file_h.pointer_value,comment_number);
             adi.sdk.handleErrorCode(result_code);
         end
@@ -517,6 +534,14 @@ classdef sdk
         end
         function setChannelName(file_h,channel,channel_name)
             %
+            %   adi.sdk.setChannelName(file_h,channel,channel_name)
+            %
+            %   Inputs:
+            %   -------
+            %   file_h: adi.file_handle   
+            %   channel: channel index, starting from zero
+            %   channel_name: 
+            
             %??? - Does this create a new channel if it doesn't exist yet?
             
             result_code = sdk_mex(18,file_h.pointer_value,c0(channel),h__toWChar(channel_name));
@@ -560,6 +585,14 @@ classdef sdk
            adi.sdk.handleErrorCode(result_code)
         end
         function addChannelSamples(writer_h,channel,data)
+            %
+            %   adi.sdk.addChannelSamples(writer_h,channel,data)
+            %   
+            %   Inputs:
+            %   -------
+            %   writer_h:
+            %   channel:
+            %   data:
             
             result_code = sdk_mex(22,writer_h.pointer_value,channel,data);
             adi.sdk.handleErrorCode(result_code)

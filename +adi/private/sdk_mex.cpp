@@ -583,14 +583,14 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //   ADI_SetChannelName  <>  setChannelName
         //   ==============================================================
         //   [result_code,file_h] = sdk_mex(18,file_h,channel,name)
-        
+        //
+        //   Implemented via sdk.setChannelName
         
         fileH = getFileHandle(prhs);
         long channel = getLongInput(prhs,2);
         wchar_t *channel_name = (wchar_t *)mxGetData(prhs[3]);
         
         out_result[0] = ADI_SetChannelName(fileH, channel, channel_name);
-        
     }
     else if (function_option == 19){
         //
@@ -614,6 +614,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //   ADI_SetChannelInfo  <>  setChannelInfo
         //   ===========================================
         //   [result_code] = sdk_mex(20,writer_h,channel,enabled,seconds_per_sample,units,limits)
+        //
+        //   implemented via adi.sdk.setChannelInfo
         
         ADI_WriterHandle writerH = getWriterHandle(prhs);
         
@@ -637,6 +639,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //   ADI_StartRecord  <>  startRecord
         //   ===========================================
         //   result_code = sdk_mex(21, writerH, trigger_time, fractional_seconds, trigger_minus_rec_start)
+        //
+        //   implemented via adi.sdk.startRecord
         
         ADI_WriterHandle writerH = getWriterHandle(prhs);
         time_t trigger_time = (time_t)getDoubleInput(prhs,2);
@@ -653,6 +657,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //   ADI_AddChannelSamples  <>  addChannelSamples
         //   ===========================================
         //   [result_code,new_ticks_added] = sdk_mex(22, writerH, channel, data, n_samples)
+        //
+        //  adi.sdk.addChannelSamples
         
         ADI_WriterHandle writerH = getWriterHandle(prhs);
         long channel = getLongInput(prhs,2);
@@ -672,6 +678,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //   ADI_FinishRecord  <>  finishRecord
         //   ===========================================
         //   [result_code] = sdk_mex(23, writerH)
+        //
+        //  Implemented via adi.sdk.finishRecord
         
         ADI_WriterHandle writerH = getWriterHandle(prhs);
         
@@ -684,6 +692,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //   ADI_CommitFile  <>  commitFile
         //   ===========================================
         //   [result_code] = sdk_mex(24, writerH, flags)
+        //
+        //  Implemented via adi.sdk.commitFile
         
         ADI_WriterHandle writerH = getWriterHandle(prhs);
         
@@ -698,6 +708,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //   ADI_CloseWriter  <>  closeWriter
         //   ===========================================
         //   [result_code] = sdk_mex(25, writerH)
+        //
+        //  Implemented via adi.sdk.closeWriter
         
         ADI_WriterHandle writerH = getWriterHandle(prhs);
         
@@ -711,6 +723,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //   ===========================================
         //   [result_code, comment_number] =
         //      sdk_mex(26, file_h, channel, record, tick_position, text)
+        //
+        //  Implemented via adi.sdk.addComment
         
         fileH = getFileHandle(prhs);
         long channel = getLongInput(prhs,2);
@@ -731,6 +745,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //   ADI_DeleteComment  <>  deleteComment
         //   ===========================================
         //   result_code = sdk_mex(27,file_h,comment_number)
+        //
+        //  Implemented via adi.sdk.deleteComment
         
         fileH = getFileHandle(prhs);
         long comment_number = getLongInput(prhs,2);

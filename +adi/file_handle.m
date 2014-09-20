@@ -9,13 +9,19 @@ classdef (Hidden) file_handle < sl.obj.display_class
     properties
         pointer_value %Pointer to the file object in the mex code. This gets
         %cast to ADI_FileHandle in the mex code.
-        file_name
+        file_path
     end
     
     methods
-        function obj = file_handle(pointer_value,file_name)
+        function obj = file_handle(pointer_value,file_path)
+            %
+            %   Inputs:
+            %   -------
+            %   pointer_value:
+            %   file_path: 
+            
             obj.pointer_value = pointer_value;
-            obj.file_name = file_name;
+            obj.file_name = file_path;
         end
         function delete(obj)
             %
