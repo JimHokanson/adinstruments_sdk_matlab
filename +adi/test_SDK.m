@@ -16,6 +16,10 @@ classdef (Hidden) test_SDK
            %    adi.test_SDK.run_tests
            
            COPY_BLANK = false;
+           %If true a blank Labchart file - created in Labchart 8 - is
+           %copied from this repo to the destination location and a
+           %openFile with read/write support is called. 
+           %If false then a create_file command is issued instead.
            
            %This code might move or the function might be renamed ...
            temp_file_path = [tempname() '.adicht'];
