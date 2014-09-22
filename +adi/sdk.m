@@ -76,7 +76,7 @@ classdef sdk
             %decrementing every time handles are destroyed. If this count
             %is zero, then we could safely clear the mex dll from memory.
             
-            base_path = sl.stack.getMyBasePath;
+            base_path = adi.sl.stack.getMyBasePath;
             mex_path  = fullfile(base_path,'private');
             
             wd = cd; %wd - working directory
@@ -121,7 +121,7 @@ classdef sdk
     methods (Static)
         %File specific functions
         %------------------------------------------------------------------
-        function file_h = openFile(file_path)
+        function file_h = openFile(file_path,varargin)
             %
             %   file = adi.sdk.openFile(file_path)
             %
@@ -137,9 +137,16 @@ classdef sdk
             %   ===============================================
             %   file : adi.file_handle
             
+            in.read_and_write = false;
+            in = adi.sl.in.processVarargin(in,varargin);
             
             %fprintf(2,'ADI SDK - Opening: %s\n',file_path);
-            [result_code,pointer_value] = sdk_mex(0,h__toWChar(file_path));
+            %TODO: Change this so we can call the same function
+            if in.read_and_write
+                [result_code,pointer_value] = sdk_mex(0.5,h__toWChar(file_path));
+            else
+                [result_code,pointer_value] = sdk_mex(0,h__toWChar(file_path));
+            end
             
             file_h = adi.file_handle(pointer_value,file_path);
             
@@ -291,8 +298,8 @@ classdef sdk
             data_start_unix = record_start_unix - double(trigger_minus_rec_start);
             
             %NOTE: Times are local, not in GMT
-            record_start = sl.datetime.unixToMatlab(record_start_unix,0);
-            data_start   = sl.datetime.unixToMatlab(data_start_unix,0);
+            record_start = adi.sl.datetime.unixToMatlab(record_start_unix,0);
+            data_start   = adi.sl.datetime.unixToMatlab(data_start_unix,0);
             
         end
         function startRecord(writer_h,varargin)
@@ -442,7 +449,7 @@ classdef sdk
             %   adi.channel.getAllData
             
             in.leave_raw = false;
-            in = sl.in.processVarargin(in,varargin);
+            in = adi.sl.in.processVarargin(in,varargin);
             
             data_type = c(0);
             if ~get_samples
@@ -565,6 +572,7 @@ classdef sdk
            %    ----------------
            %    enabled_for_record : (default true)
            %    limits :
+           %        ???? Why do we care what the limits are????
            %
            %    ??? - when is this done relative to a new record? Does
            %    this need to be done every time or does a default carry
@@ -578,7 +586,7 @@ classdef sdk
            result_code = sdk_mex(20,...
                writer_h.pointer_value,...
                c0(channel),...
-               int(in.enabled_for_record),...
+               h__toInt(in.enabled_for_record),...
                seconds_per_sample,...
                h__toWChar(units),...
                single(in.limits));
@@ -594,7 +602,7 @@ classdef sdk
             %   channel:
             %   data:
             
-            result_code = sdk_mex(22,writer_h.pointer_value,channel,data);
+            result_code = sdk_mex(22,writer_h.pointer_value,c0(channel),single(data));
             adi.sdk.handleErrorCode(result_code)
         end
         %Helper functions
@@ -654,7 +662,7 @@ classdef sdk
             
             if ~adi.sdk.checkNullChannelErrorCodes(result_code)
                 %if result_code ~= 0
-                temp      = sl.stack.calling_function_info;
+                temp      = adi.sl.stack.calling_function_info;
                 errorID   = sprintf('ADINSTRUMENTS:SDK:%s',temp.name);
                 error_msg = adi.sdk.getErrorMessage(result_code);
                 
@@ -771,6 +779,10 @@ classdef sdk
     end
     
     
+end
+
+function int_out = h__toInt(value_in)
+    int_out = int32(value_in);
 end
 
 function str_out = h__toWChar(str_in)

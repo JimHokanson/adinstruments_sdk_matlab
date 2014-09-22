@@ -1,4 +1,4 @@
-classdef comment < sl.obj.display_class
+classdef (Hidden) comment < handle
     %
     %   Class:
     %   adi.comment
@@ -7,6 +7,7 @@ classdef comment < sl.obj.display_class
     %
     %   NOTE: Comments can be moved after they are placed. I think
     %   this means that the comments might not be ordered by ID.
+    %
     %   Also comments can be deleted, which might cause gaps in the ID
     %   numbering as well.
     
@@ -21,7 +22,7 @@ classdef comment < sl.obj.display_class
     end
     
     properties (Dependent)
-        time
+        time %Time in seconds since the start of the record.
     end
     
     methods
@@ -60,7 +61,7 @@ classdef comment < sl.obj.display_class
             % 007: 3011.50: qp 2
             
             all_records = [objs.record];
-            [u,uI] = sl.array.uniqueWithGroupIndices(all_records);
+            [u,uI] = adi.sl.array.uniqueWithGroupIndices(all_records);
             
             n_records = length(u);
             

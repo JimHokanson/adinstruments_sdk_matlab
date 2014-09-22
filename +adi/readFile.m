@@ -43,7 +43,7 @@ if length(varargin) == 1 && strcmp(class(varargin{1}),adi.file_read_options)
     in = varargin{1};
 else
     in = adi.file_read_options;
-    in = sl.in.processVarargin(in,varargin);
+    in = adi.sl.in.processVarargin(in,varargin);
 end
 
 if nargin == 0 || isempty(file_path)

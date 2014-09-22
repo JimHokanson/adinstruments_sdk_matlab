@@ -243,7 +243,20 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         
         wchar_t *w_file_path = (wchar_t *)mxGetData(prhs[1]);
 
+        //long openMode  = getLongInput(prhs,2);
+        
         result        = ADI_OpenFile(w_file_path, &fileH, kOpenFileForReadOnly);
+        out_result[0] = result;
+
+        setFileHandle(plhs,result,fileH);
+    }
+    else if (function_option == 0.5)
+    {
+        //TODO: Replace this with an input to function 0
+        
+        wchar_t *w_file_path = (wchar_t *)mxGetData(prhs[1]);
+
+        result        = ADI_OpenFile(w_file_path, &fileH, kOpenFileForReadAndWrite);
         out_result[0] = result;
 
         setFileHandle(plhs,result,fileH);

@@ -1,4 +1,4 @@
-classdef (Hidden) record < sl.obj.display_class
+classdef (Hidden) record < handle
     %
     %   Class:
     %   adi.record

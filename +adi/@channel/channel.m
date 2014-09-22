@@ -1,4 +1,4 @@
-classdef channel < sl.obj.display_class
+classdef (Hidden) channel < handle
     %
     %   Class:
     %   adi.channel
@@ -249,7 +249,7 @@ classdef channel < sl.obj.display_class
             in.time_range     = []; %Seconds, TODO: Document this ...
             in.get_as_samples = true; %Alternatively ...
             in.leave_raw      = false;
-            in = sl.in.processVarargin(in,varargin);
+            in = adi.sl.in.processVarargin(in,varargin);
             
             %TODO: This is not right if get_as_samples is false
             if isempty(in.time_range)

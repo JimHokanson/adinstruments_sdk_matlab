@@ -7,6 +7,13 @@ classdef adi
     end
     
     methods (Hidden,Static)
+        function createBlankFileAtPath(file_path)
+            %
+            %   adi.createBlankFileAtPath(file_path)
+           repo_path = adi.sl.stack.getPackageRoot();
+           blank_file_path = fullfile(repo_path,'files','blank_labchart_8_file.adicht');
+           copyfile(blank_file_path,file_path)
+        end
         function [file_path, file_root] = uiGetChartFile(varargin)
             %
             %

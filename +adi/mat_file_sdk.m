@@ -112,7 +112,7 @@ classdef mat_file_sdk < handle
             %(file_h,record,channel,start_sample,n_samples_get,get_samples,varargin)
             
             in.leave_raw = false;
-            in = sl.in.processVarargin(in,varargin);
+            in = adi.sl.in.processVarargin(in,varargin);
             
             if get_samples == false
                 %JAH: NYI

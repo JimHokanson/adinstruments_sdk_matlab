@@ -28,7 +28,7 @@ classdef mat_file_h < handle
            %TODO: Link this to input options in read file
            
            in.load_all = false;
-           in = sl.in.processVarargin(in,varargin);
+           in = adi.sl.in.processVarargin(in,varargin);
            if in.load_all
               obj.m = load(file_path); 
            else

@@ -47,7 +47,7 @@ classdef h5_file_sdk < adi.mat_file_sdk
             %   file_h  : adi.h5_file_h
 
             in.leave_raw = false;
-            in = sl.in.processVarargin(in,varargin);
+            in = adi.sl.in.processVarargin(in,varargin);
             
             if get_samples == false
                 %JAH: NYI

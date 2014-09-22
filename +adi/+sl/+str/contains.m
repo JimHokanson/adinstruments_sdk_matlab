@@ -25,7 +25,7 @@ function flag = contains(input_string,string_to_match,varargin)
 
 in.case_sensitive = true;
 in.location = 'anywhere';
-in = sl.in.processVarargin(in,varargin);
+in = adi.sl.in.processVarargin(in,varargin);
 
 switch in.location
     case 'start'

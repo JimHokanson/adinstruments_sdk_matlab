@@ -1,4 +1,4 @@
-classdef (Hidden) process_varargin_result < sl.obj.handle_light
+classdef (Hidden) process_varargin_result < handle
     %
     %   Class:
     %   sl.in.process_varargin_result

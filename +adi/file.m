@@ -1,4 +1,4 @@
-classdef file < sl.obj.display_class
+classdef (Hidden) file < handle
     %
     %   Class:
     %   adi.file
@@ -122,7 +122,7 @@ classdef file < sl.obj.display_class
             in.case_sensitive = false;
             in.partial_match  = true;
             in.multiple_channel_rule = 'error';
-            in = sl.in.processVarargin(in,varargin);
+            in = adi.sl.in.processVarargin(in,varargin);
             
             temp = obj.channel_specs;
             if isempty(temp)
@@ -159,7 +159,7 @@ classdef file < sl.obj.display_class
             end
             
             if ~exist('save_path','var') || isempty(save_path)
-               save_path = sl.dir.changeFileExtension(obj.file_path,'h5');
+               save_path = adi.sl.dir.changeFileExtension(obj.file_path,'h5');
             end
             
             if strcmp(save_path,obj.file_path)
@@ -199,7 +199,7 @@ classdef file < sl.obj.display_class
             end
             
             if ~exist('save_path','var') || isempty(save_path)
-               save_path = sl.dir.changeFileExtension(obj.file_path,'mat');
+               save_path = adi.sl.dir.changeFileExtension(obj.file_path,'mat');
             end
             
             if strcmp(save_path,obj.file_path)

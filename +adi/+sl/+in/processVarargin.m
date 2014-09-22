@@ -109,7 +109,7 @@ function [in,extras] = processVararginHelper(in,v,c,is_parsing_options)
 %   c  - options for processing 
 %   is_parsing_options - specifies we are parsing the parsing options
 
-extras = sl.in.process_varargin_result(in,v);
+extras = adi.sl.in.process_varargin_result(in,v);
 
 %Checking the optional inputs, either a structure or a prop/value cell
 %array is allowed, or various forms of empty ...
@@ -194,7 +194,7 @@ if ~all(is_present)
         error(['Bad variable names given in input structure: ' ...
             '\n--------------------------------- \n %s' ...
             ' \n--------------------------------------'],...
-            sl.cellstr.join(badVariables,'d',','))
+            adi.sl.cellstr.join(badVariables,'d',','))
     end
 end
 

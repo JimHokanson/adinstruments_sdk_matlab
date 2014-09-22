@@ -1,4 +1,4 @@
-classdef (Hidden) file_handle < sl.obj.display_class
+classdef (Hidden) file_handle < handle
     %
     %   Class:
     %   adi.file_handle
@@ -21,7 +21,7 @@ classdef (Hidden) file_handle < sl.obj.display_class
             %   file_path: 
             
             obj.pointer_value = pointer_value;
-            obj.file_name = file_path;
+            obj.file_path = file_path;
         end
         function delete(obj)
             %
