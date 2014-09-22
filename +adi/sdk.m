@@ -339,10 +339,10 @@ classdef sdk
             
             [result_code,comment_pointer] = sdk_mex(6,file_h.pointer_value,c0(record));
             if adi.sdk.isMissingCommentError(result_code)
-                comments_h  = adi.comment_handle(file_h.file_name,0,false,record,tick_dt);
+                comments_h  = adi.comment_handle(file_h.file_path,0,false,record,tick_dt);
             else
                 adi.sdk.handleErrorCode(result_code)
-                comments_h  = adi.comment_handle(file_h.file_name,comment_pointer,true,record,tick_dt);
+                comments_h  = adi.comment_handle(file_h.file_path,comment_pointer,true,record,tick_dt);
             end
         end
         function closeCommentAccessor(pointer_value)
