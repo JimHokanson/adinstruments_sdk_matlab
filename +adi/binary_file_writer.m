@@ -2,6 +2,14 @@ classdef binary_file_writer
     %
     %   Class:
     %   adi.binary_header
+    %
+    %   Work on this has halted.
+    %
+    %   This is meant to handle the binary file format which is publically
+    %   available online. It only supports writing one record. There is no
+    %   SDK for this format. Instead low level read/write options should be
+    %   used.
+    %   
     
     %{
     Each channel header has the following format:

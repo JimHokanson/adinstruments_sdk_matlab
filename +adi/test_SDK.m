@@ -14,6 +14,12 @@ classdef (Hidden) test_SDK
            %
            %
            %    adi.test_SDK.run_tests
+           %
+           %    See Also:
+           
+           %This is a simple write test which eventually should be moved to
+           %its own function ...
+           
            
            COPY_BLANK = false;
            %If true a blank Labchart file - created in Labchart 8 - is
