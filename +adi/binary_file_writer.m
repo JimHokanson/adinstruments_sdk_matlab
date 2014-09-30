@@ -26,7 +26,7 @@ classdef binary_file_writer < handle
      %{
     %Test code:
     %----------
-    file_path = 'C:\\repos\test_bin.adibin';
+    file_path = 'C:\repos\test_bin.adibin';
     obj = adi.binary_file_writer(file_path)
     obj.addNewChannel('Pressure','cmH2O',1000,1:1000);
     obj.addNewChannel('EUS EMG Corrected','mV',20000,1:20000);
