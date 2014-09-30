@@ -20,6 +20,8 @@ classdef (Hidden) binary_channel_writer
     properties
         name
         units
+        data
+        fs
         %These are only needed for 16 bit data, although they must be in
         %the binary.
         scale  = 1
@@ -27,12 +29,28 @@ classdef (Hidden) binary_channel_writer
     end
     
     methods
-        function obj = binary_channel_writer(channel_name,units)
+        function obj = binary_channel_writer(channel_name,units,fs,data)
+            %TODO: Check name size
            obj.name  = channel_name;
            obj.units = units;
+           obj.data  = data;
+           obj.fs    = fs;
         end
-        function write(obj,fid)
+        function writeHeader(obj,fid)
            %pass 
+           
+           temp_title = zeros(1,32,'uint8');
+           temp_units = zeros(1,32,'uint8');
+           temp_title(1:length(obj.name)) = uint8(obj.name);
+           temp_units(1:length(obj.units)) = uint8(obj.units);
+           
+           fwrite(fid,temp_title,'*char');
+            fwrite(fid,temp_units,'*char');
+            fwrite(fid,obj.scale,'double');
+            fwrite(fid,obj.offset,'double');
+            %Range high and low ... - not currently used
+            fwrite(fid,Inf,'double');
+            fwrite(fid,-Inf,'double');
         end
     end
     

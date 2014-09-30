@@ -45,7 +45,7 @@ classdef (Hidden) channel < handle
         function obj = channel(file_h,sdk,channel_id,record_handles,file_path)
             %x adi.channel constructor
             %
-            %   obj = adi.channel(file_h,id,n_records,tick_dt)
+            %   obj = adi.channel(file_h,sdk,channel_id,record_handles,file_path)
             %
             %
             
@@ -80,7 +80,7 @@ classdef (Hidden) channel < handle
         function comment_objs = getRecordComments(obj,record_id,varargin)
             %x Small helper to get the comments for a given record
             %
-            %
+            %   comment_objs = obj.getRecordComments(record_id,varargin)
             
             
             in.time_range = [];
@@ -100,10 +100,7 @@ classdef (Hidden) channel < handle
             
             
         end
-        
         %------------------------------------------------------
-        
-        
         function printChannelNames(objs)
             %x  Prints all channel names to the command window
             %
@@ -297,6 +294,7 @@ classdef (Hidden) channel < handle
                     time_object,...
                     'units',obj.units{record_id},...
                     'channel_labels',obj.name,...
+                    'y_label',obj.name,...
                     'history',sprintf('File: %s\nRecord: %d',obj.file_path,record_id),...
                     'events',time_events);
             else
