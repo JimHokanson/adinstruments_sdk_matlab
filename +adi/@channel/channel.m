@@ -281,9 +281,13 @@ classdef (Hidden) channel < handle
             if in.return_object
                 comments = obj.getRecordComments(record_id,'time_range',in.time_range);
                 
-                time_events = sci.time_series.time_events('comments',...
-                    [comments.time],'values',[comments.id],...
-                    'msgs',{comments.str});
+                if isempty(comments)
+                    time_events = sci.time_series.time_events.empty();
+                else
+                    time_events = sci.time_series.time_events('comments',...
+                        [comments.time],'values',[comments.id],...
+                        'msgs',{comments.str});
+                end
                 
                 %TODO: This is not right if get_as_samples is false
                 time_object = sci.time_series.time(...
