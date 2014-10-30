@@ -140,6 +140,9 @@ classdef sdk
             in.read_and_write = false;
             in = adi.sl.in.processVarargin(in,varargin);
             
+            
+            
+            adi.handle_logger.logOperation(file_path,'openFile',-1)
             %fprintf(2,'ADI SDK - Opening: %s\n',file_path);
             %TODO: Change this so we can call the same function
             if in.read_and_write
@@ -147,6 +150,8 @@ classdef sdk
             else
                 [result_code,pointer_value] = sdk_mex(0,h__toWChar(file_path));
             end
+            
+            adi.handle_logger.logOperation(file_path,'openFile',pointer_value)
             
             file_h = adi.file_handle(pointer_value,file_path);
             
@@ -172,8 +177,9 @@ classdef sdk
             %   it seemed weird to pass in that object ot this method, so
             %   instead the pointer value is passed in directly.
             
+            
             result_code = sdk_mex(13,pointer_value);
-            adi.sdk.handleErrorCode(result_code)
+            adi.sdk.handleErrorCode(result_code);
         end
         function n_records  = getNumberOfRecords(file_h)
             %getNumberOfRecords  Get the number of records for a file.

@@ -7,9 +7,23 @@ classdef adi
     end
     
     methods (Hidden,Static)
+
         function createBlankFileAtPath(file_path)
             %
             %   adi.createBlankFileAtPath(file_path)
+            %
+            %   This function was written to try and test out the
+            %   importance of creating a new file, from scratch, versus 
+            %   just copying a new file that I had previously created using
+            %   LabChart 8. 
+            %
+            %   I was having trouble with the writing aspect of the SDK. It
+            %   turns out there were bugs in the code that had yet to be
+            %   finished. 
+            %
+            %   I'm not sure if this function is necessary anymore, but
+            %   I'll leave it here for now.
+            
            repo_path = adi.sl.stack.getPackageRoot();
            blank_file_path = fullfile(repo_path,'files','blank_labchart_8_file.adicht');
            copyfile(blank_file_path,file_path)
