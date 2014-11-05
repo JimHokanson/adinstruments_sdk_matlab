@@ -27,11 +27,8 @@ classdef (Hidden) file_handle < handle
             %
             %
             %   fprintf(2,'ADI SDK - Deleting file ref: %s\n',obj.file_name);
-            
-            %keyboard
-            
+                        
             adi.handle_logger.logOperation(obj.file_path,'closeFile',obj.pointer_value)
-            
             adi.sdk.closeFile(obj.pointer_value);
         end
     end

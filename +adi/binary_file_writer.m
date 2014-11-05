@@ -3,35 +3,34 @@ classdef binary_file_writer < handle
     %   Class:
     %   adi.binary_header
     %
-    %   Work on this has halted.
-    %
     %   This is meant to handle the binary file format which is publically
     %   available online. It only supports writing one record. There is no
-    %   SDK for this format. Instead low level read/write options should be
-    %   used.
+    %   SDK for this format. Instead low level read/write options are used.
     %   
-    
+    %   This was written rather hastily. It works but it isn't pretty.
+    %
+    %   Example Code:
+    %   -------------
+    %   file_path = 'C:\repos\test_bin.adibin';
+    %   obj = adi.binary_file_writer(file_path)
+    %   %FORMAT: channel name, units, sampling_rate, data
+    %   obj.addNewChannel('Pressure','cmH2O',1000,1:2000);
+    %   obj.addNewChannel('EUS EMG Corrected','mV',20000,1:40000);
+    %   obj.addNewChannel('Stim','V',20000,1:40000);
+    %   obj.write();
+    %
+    %   See Also:
+    %   adi.binary_channel_writer
+        
     %{
-    Each channel header has the following format:
-    type name description
-    char Title[32] channel title
-    char Units[32] units name
-    double scale see text
-    double offset see text
-    double RangeHigh see text
-    double RangeLow see text
-
-    %}
-    
-     %{
-    %Test code:
-    %----------
-    file_path = 'C:\repos\test_bin.adibin';
-    obj = adi.binary_file_writer(file_path)
-    obj.addNewChannel('Pressure','cmH2O',1000,1:1000);
-    obj.addNewChannel('EUS EMG Corrected','mV',20000,1:20000);
-    obj.addNewChannel('Stim','V',20000,1:20000);
-    obj.write();
+        %Test code:
+        %----------
+        file_path = 'C:\repos\test_bin.adibin';
+        obj = adi.binary_file_writer(file_path)
+        obj.addNewChannel('Pressure','cmH2O',1000,1:1000);
+        obj.addNewChannel('EUS EMG Corrected','mV',20000,1:20000);
+        obj.addNewChannel('Stim','V',20000,1:20000);
+        obj.write();
     %}
     
     properties

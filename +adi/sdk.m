@@ -5,10 +5,10 @@ classdef sdk
     %
     %   This class is meant to be the singular access point for getting
     %   data from a LabChart file. Methods in this class call a mex
-    %   interface which makes calls to the C API provided by adi.
+    %   interface which makes calls to the C API provided by ADInstruments.
     %
     %   Function Definitions:
-    %   =====================
+    %   ---------------------
     %   Function definitions for the SDK can be found in the header file.
     %
     %   See:
@@ -18,7 +18,7 @@ classdef sdk
     %
     %
     %   Some definitions:
-    %   =================
+    %   -----------------
     %   tick   : sampling rate of fastest channel
     %   record : Records can be somewhat equivalent to trials or blocks
     %       in other experimental setups. Each file can consist of 1 or
@@ -28,7 +28,7 @@ classdef sdk
     %       sampling rate)
     %
     %   Usage Notes:
-    %   ============
+    %   ------------
     %   NOTE: For the typical user, this SDK doesn't need to be called
     %   directly. You can access most of the needed functionality by using
     %   adi.readFile
@@ -133,29 +133,32 @@ classdef sdk
             %   file_path : char
             %       Full path to the file.
             %
-            %   Outputs
-            %   ===============================================
+            %   Outputs:
+            %   --------
             %   file : adi.file_handle
             
             in.read_and_write = false;
             in = adi.sl.in.processVarargin(in,varargin);
             
-            
-            
             adi.handle_logger.logOperation(file_path,'openFile',-1)
             %fprintf(2,'ADI SDK - Opening: %s\n',file_path);
-            %TODO: Change this so we can call the same function
+            %TODO: Change this so we can call the same function but with
+            %an additional input that specifies reading or writing
             if in.read_and_write
                 [result_code,pointer_value] = sdk_mex(0.5,h__toWChar(file_path));
             else
                 [result_code,pointer_value] = sdk_mex(0,h__toWChar(file_path));
             end
             
+            adi.sdk.handleErrorCode(result_code)
+            
+            adi.handle_manager.openFile(file_path,pointer_value)
+            
             adi.handle_logger.logOperation(file_path,'openFile',pointer_value)
             
             file_h = adi.file_handle(pointer_value,file_path);
             
-            adi.sdk.handleErrorCode(result_code)
+            
             
         end
         function file_h = createFile(file_path)
@@ -177,9 +180,8 @@ classdef sdk
             %   it seemed weird to pass in that object ot this method, so
             %   instead the pointer value is passed in directly.
             
+            adi.handle_manager.closeFile(pointer_value)
             
-            result_code = sdk_mex(13,pointer_value);
-            adi.sdk.handleErrorCode(result_code);
         end
         function n_records  = getNumberOfRecords(file_h)
             %getNumberOfRecords  Get the number of records for a file.

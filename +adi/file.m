@@ -17,6 +17,10 @@ classdef (Hidden) file < handle
         file_path  %Full path to the file from which this class was populated.
     end
     
+    properties (Hidden)
+       file_h 
+    end
+    
     properties
         n_records
         n_channels %# of channels in the file (across all records). This may
@@ -47,21 +51,24 @@ classdef (Hidden) file < handle
     methods
         function obj = file(file_path,file_h,sdk,in)
             %
-            %    This should be created by adi.readFile
+            %   This should be created by adi.readFile
             %
             %   Inputs:
             %   -------
             %   file_path : str
             %       The path of the file (for reference).
-            %   file_h : 
-            %       
+            %   file_h : adi.file_handle
+            %       A reference to the actual file.
+            %   sdk: {adi.sdk, adi.h5_file_sdk, mat_file_sdk}
+            %       Calls are made to the SDK to interact with the file.
             %   in : adi.file_read_options
-            %       Options for reading the file
+            %       Options for reading the file.
             %
-            %    See Also:
-            %    adi.readFile
+            %   See Also:
+            %   adi.readFile
             
-            obj.file_path   = file_path;
+            obj.file_path = file_path;
+            obj.file_h    = file_h;
             
             obj.n_records   = sdk.getNumberOfRecords(file_h);
             temp_n_channels = sdk.getNumberOfChannels(file_h);
@@ -93,6 +100,8 @@ classdef (Hidden) file < handle
             if ~isempty(in.channels_remove)
                mask = ismember(in.channels_remove,obj.channel_names);
                if ~all(mask)
+                   %Some of the channels that were requested to be removed
+                   %are not in the file
                   %TODO: Print warning message 
                end
                
@@ -104,7 +113,7 @@ classdef (Hidden) file < handle
     end
     methods
         function summarizeRecords(obj)
-            %NYI
+            %x Not Yet Implemented
             %For each record:
             %# of comments
             %which channels contain data
@@ -143,8 +152,7 @@ classdef (Hidden) file < handle
     %File Methods
     methods
         function save_path = exportToHDF5File(obj,save_path,conversion_options)
-            %
-            %   Exports contents to a HDF5 file.
+            %x Exports contents to a HDF5 file.
             %
             %   This is similiar to the v7.3 mat files but by calling the
             %   HDF5 library functions directly we can control how the data
