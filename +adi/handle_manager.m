@@ -14,34 +14,92 @@ classdef (Hidden) handle_manager
         map %containers.Map
         %
         %   key - pointer value of open file
-        %   value - file path (for debugging only)
+        %   value - file path
+        path_key_map
+        %
+        %   key - file path
+        %   value - count of how many are open
     end
     
     methods
         function obj = handle_manager()
             obj.map = containers.Map('KeyType','int32','ValueType','char');
+            obj.path_key_map = containers.Map('KeyType','char','ValueType','any');
         end
     end
     
     methods (Static)
+        function pointer_value = checkFilePointer(file_path)
+            %   pointer_value = adi.handle_manager.checkFilePointer(file_path)
+            %
+            %   This gets called on opening a file using the ADI sdk. If 
+            %   a file is already open, we return its pointer, rather
+            %   than creating a new pointer for the file.
+            %
+            %   If a file is not already open, then we return 0, indicating
+            %   that a new pointer should be requested from the SDK.
+            %   
+            %   Inputs:
+            %   -------
+            %   file_path = 
+            %
+            %   See Also:
+            %   adi.sdk.openFile
+            
+            pointer_value = 0;
+            
+%            obj = adi.handle_manager.getReference();
+%            if obj.path_key_map.isKey(file_path)
+%                temp = obj.path_key_map(file_path);
+%                pointer_value = temp(1);
+%                temp(2) = temp(2) + 1;
+%                obj.path_key_map(file_path) = temp;
+%            else
+%                pointer_value = 0;
+%            end
+           
+        end
         function openFile(file_path,pointer_value)
             %
             %   adi.handle_manager.openFile(file_path,pointer_value)
+            %
+            %   See Also:
+            %   adi.sdk.openFile
             
             obj = adi.handle_manager.getReference();
             if obj.map.isKey(pointer_value)
                 error('Pointer value is redundant, this is not expected')
             end
             obj.map(pointer_value) = file_path;
+            
+            %[pointer_value  count]
+            %obj.path_key_map(file_path) = [pointer_value 1];
         end
         function closeFile(pointer_value)
             %
             %    adi.handle_manager.closeFile(pointer_value)
+            %
+            %   See Also:
+            %   adi.sdk.closeFile
+            
             obj = adi.handle_manager.getReference();
             if obj.map.isKey(pointer_value)
+                file_path = obj.map(pointer_value);
+                
                 obj.map.remove(pointer_value);
                 result_code = sdk_mex(13,pointer_value);
                 adi.sdk.handleErrorCode(result_code);
+
+% % %                 temp = obj.path_key_map(file_path);
+% % %                 if temp(2) == 1
+% % %                     obj.map.remove(pointer_value);
+% % %                     obj.path_key_map.remove(file_path);
+% % %                     result_code = sdk_mex(13,pointer_value);
+% % %                     adi.sdk.handleErrorCode(result_code);
+% % %                 else
+% % %                    temp(2) = temp(2) - 1;
+% % %                    obj.path_key_map(file_path) = temp;
+% % %                 end
             else
                 %TODO: Move formatted warning into adi.sl
                 warning('Trying to close a file whose pointer is not logged')
