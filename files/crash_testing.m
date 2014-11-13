@@ -12,7 +12,7 @@
 %EXPT_ID = ''140724_C'; %can crash, takes some work
 
 for i = 1:100
-EXPT_ID = '140724_C';
+EXPT_ID = '141010_J';
 c = dba.GSK.cmg_expt(EXPT_ID);
 pres_data = c.getData('pres');
 c2 = dba.GSK.cmg_expt(EXPT_ID);

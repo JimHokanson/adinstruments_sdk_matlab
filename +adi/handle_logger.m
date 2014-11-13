@@ -2,6 +2,9 @@ classdef (Hidden) handle_logger < handle
     %
     %   Class:
     %   adi.handle_logger
+    %
+    %   This is hopefully a temporary class that logs open and close
+    %   operations.
     
     properties
        fid
