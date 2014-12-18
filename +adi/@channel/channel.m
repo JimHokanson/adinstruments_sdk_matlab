@@ -17,6 +17,13 @@ classdef (Hidden) channel < handle
         dt         %array - time between samples
         fs         %array - sampling rate (1/dt)
         
+        %????? I'm not sure what the heck this is ....
+        data_starts   %This may be different than record start if a trigger
+        %is involved. I think this also changes to match the data when a
+        %subset of data from a record is extracted into a new file using
+        %Labchart
+        
+        record_starts
     end
     
     properties (Hidden)
@@ -54,6 +61,8 @@ classdef (Hidden) channel < handle
             obj.n_records      = length(record_handles);
             obj.file_h         = file_h;
             obj.tick_dt        = [record_handles.tick_dt];
+            obj.data_starts    = [record_handles.data_start];
+            obj.record_starts  = [record_handles.record_start];
             obj.record_handles = record_handles;
             obj.file_path      = file_path;
             
@@ -293,7 +302,8 @@ classdef (Hidden) channel < handle
                 time_object = sci.time_series.time(...
                     obj.dt(record_id),...
                     length(data),...
-                    'sample_offset',in.data_range(1));
+                    'sample_offset',in.data_range(1),...
+                    'start_datetime',obj.data_starts(record_id));
                 varargout{1} = sci.time_series.data(data,...
                     time_object,...
                     'units',obj.units{record_id},...

@@ -14,9 +14,11 @@ classdef (Hidden) record < handle
         tick_fs   %Sampling frequency, computed for convenience from tick_dt
         record_start %(Matlab time)
         
+        
         data_start  %(Matlab time) Time at which the data that was collected 
         %during the record was collected. This may not correspond to the
-        %record_start if a trigger delay was involved.
+        %record_start if a trigger delay was involved. This also apparently
+        %changes when data are extracted from a file into another file
         
         data_start_str
     end
@@ -39,15 +41,18 @@ classdef (Hidden) record < handle
                       
            obj.n_ticks  = sdk.getNTicksInRecord(file_h,record_id);
            
-           [obj.record_start,obj.data_start] = sdk.getRecordStartTime(file_h,record_id);
-
-           obj.data_start_str = datestr(obj.data_start);
-           
            %This is not channel specific, the channel input is not actually
            %used according to:
            %    http://forum.adi.com/viewtopic.php?f=7&t=563
            obj.tick_dt  = sdk.getTickPeriod(file_h,record_id,1);
            obj.tick_fs  = 1./obj.tick_dt;
+           
+           
+           [obj.record_start,obj.data_start] = sdk.getRecordStartTime(file_h,record_id,obj.tick_dt);
+
+           obj.data_start_str = datestr(obj.data_start);
+           
+
            
            obj.comments = sdk.getAllCommentsForRecord(file_h,obj.id,obj.tick_dt);
         end

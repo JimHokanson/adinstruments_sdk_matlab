@@ -282,8 +282,9 @@ classdef sdk
             [result_code,dt_tick] = sdk_mex(4,file_h.pointer_value,c0(record),c0(channel));
             adi.sdk.handleErrorCode(result_code)
         end
-        function [record_start,data_start] = getRecordStartTime(file_h,record)
+        function [record_start,data_start] = getRecordStartTime(file_h,record,tick_dt)
             %
+            %   [record_start,data_start] = getRecordStartTime(file_h,record,tick_dt)
             %
             %   Outputs:
             %   ------------
@@ -306,8 +307,8 @@ classdef sdk
             %+ trigger_minus_rec_start => data starts before trigger
             %- trigger_minus_rec_start => data starts after trigger
             %
-            %  ??? NOTE: I'm assuming this is in seconds. I've only seen 0!
-            data_start_unix = record_start_unix - double(trigger_minus_rec_start);
+            %Units are in ticks and needs to be converted to seconds
+            data_start_unix = record_start_unix - double(trigger_minus_rec_start*tick_dt);
             
             %NOTE: Times are local, not in GMT
             record_start = adi.sl.datetime.unixToMatlab(record_start_unix,0);
