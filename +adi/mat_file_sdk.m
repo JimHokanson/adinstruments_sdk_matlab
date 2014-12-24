@@ -71,7 +71,7 @@ classdef mat_file_sdk < handle
             record_meta = file_h.m.record_meta(1,record);
             dt_tick = record_meta.tick_dt;
         end
-        function [record_start,data_start] = getRecordStartTime(file_h,record)
+        function [record_start,data_start] = getRecordStartTime(file_h,record,tick_dt)
             %
             record_meta  = file_h.m.record_meta(1,record);
             record_start = record_meta.record_start;
