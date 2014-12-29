@@ -41,7 +41,7 @@ adi.extractRecordToNewFile(file_h,record_id,'channels',{eus_chan.name},'data',{r
 in.new_file_path = '';
 in.channels = {};
 in.data = {};
-in = sl.in.processVarargin(in,varargin);
+in = adi.sl.in.processVarargin(in,varargin);
 
 if isobject(source_file_path)
     file_h = source_file_path;

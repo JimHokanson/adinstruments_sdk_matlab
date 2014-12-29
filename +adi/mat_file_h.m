@@ -1,4 +1,4 @@
-classdef mat_file_h < handle
+classdef (Hidden) mat_file_h < handle
     %
     %   Class:
     %   adi.mat_file_h

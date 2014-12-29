@@ -1,4 +1,4 @@
-classdef h5_file_h < handle
+classdef (Hidden) h5_file_h < handle
     %
     %   Class:
     %   adi.h5_file_h

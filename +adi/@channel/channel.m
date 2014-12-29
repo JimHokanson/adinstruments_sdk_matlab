@@ -220,7 +220,9 @@ classdef (Hidden) channel < handle
             %   Optional Inputs:
             %   ----------------
             %   return_object: (default true)
-            %       If true then a sci.time_series.data object is returned
+            %       If true then a sci.time_series.data object is returned.
+            %       This is made false if the class doesn't exist (such
+            %       as when the adi package is being used on its own)
             %   data_range: [min max] (default full range)
             %       Values are in samples. Specifies which samples to get.
             %       ex. [10 30] specifies to get sample 10 through sample
@@ -256,6 +258,8 @@ classdef (Hidden) channel < handle
             in.get_as_samples = true; %Alternatively ...
             in.leave_raw      = false;
             in = adi.sl.in.processVarargin(in,varargin);
+            
+            in.return_object = in.return_object && logical(exist('sci.time_series.data','class'));
             
             %TODO: This is not right if get_as_samples is false
             if isempty(in.time_range)

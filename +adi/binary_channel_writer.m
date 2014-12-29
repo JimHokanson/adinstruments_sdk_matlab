@@ -3,8 +3,12 @@ classdef (Hidden) binary_channel_writer
     %   Class:
     %   adi.binary_channel_writer
     %
+    %   This class facilities writing a channel to the binary file format.
+    %   More details can be found in adi.binary_file_writer
+    %
     %   See Also:
     %   adi.binary_file_writer
+
   
     %{
         Each channel header has the following format:

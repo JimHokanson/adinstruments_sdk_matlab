@@ -25,7 +25,7 @@ classdef file_writer < handle
     
     %}
     properties
-        file_path
+        file_path %Where we are writing to
         current_record   %NaN - not recording
         last_record = 0  %will always point to last record completed
         channels = {}
@@ -66,6 +66,12 @@ classdef file_writer < handle
             
         end
         function addComment(obj,tick_position,comment_string,varargin)
+            %
+            %
+            %   Optional Inputs:
+            %   ----------------
+            %   record : (default, current record)
+            %   channel : 
             
             in.record  = obj.current_record;
             in.channel = -1;
@@ -90,7 +96,7 @@ classdef file_writer < handle
             in.trigger_minus_rec_start = 0;
             in = adi.sl.in.processVarargin(in,varargin);
             
-            %TODO: Check that a record isn't currently
+            %TODO: Check that a record isn't currently going
             
             if ~isempty(in.old_record)
                 %TODO: Update in based on old record

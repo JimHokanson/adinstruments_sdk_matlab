@@ -1,4 +1,4 @@
-classdef h5_file_sdk < adi.mat_file_sdk
+classdef (Hidden) h5_file_sdk < adi.mat_file_sdk
     %
     %   Class:
     %   adi.h5_file_sdk

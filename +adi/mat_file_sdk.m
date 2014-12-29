@@ -1,4 +1,4 @@
-classdef mat_file_sdk < handle
+classdef (Hidden) mat_file_sdk < handle
     %
     %   Class:
     %   adi.mat_file_sdk

@@ -4,10 +4,19 @@ classdef binary_file_writer < handle
     %   adi.binary_header
     %
     %   This is meant to handle the binary file format which is publically
-    %   available online. It only supports writing one record. There is no
-    %   SDK for this format. Instead low level read/write options are used.
+    %   available online. The binary format only supports writing one 
+    %   record. There is no SDK for this format. Instead low 
+    %   level read/write options are used.
     %   
-    %   This was written rather hastily. It works but it isn't pretty.
+    %   This was written RATHER HASITLY. It works but it isn't pretty.
+    %
+    %   Limitations of Binary Format:
+    %   -----------------------------
+    %   - no record support
+    %   - no comment support
+    %   - all channels are written to file at the same rate (leads to
+    %   larger file sizes)
+    %   - channel data are not compressed
     %
     %   Example Code:
     %   -------------
@@ -74,6 +83,8 @@ classdef binary_file_writer < handle
         function obj = binary_file_writer(file_path)
             %
             %   obj = adi.binary_file_writer(file_path)
+            %
+            %   See the examples at the top of this file
            obj.file_path = file_path; 
         end
         function addNewChannel(obj,channel_name,units,fs,data)

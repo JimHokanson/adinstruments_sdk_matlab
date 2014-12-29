@@ -1,4 +1,4 @@
-classdef sdk
+classdef (Hidden) sdk
     %
     %   Class:
     %   adi.sdk

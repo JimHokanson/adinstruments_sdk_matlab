@@ -15,7 +15,7 @@ classdef (Hidden) handle_logger < handle
         function obj = handle_logger()
            %Call this via:
            %    
-           repo_root = sl.stack.getPackageRoot;
+           repo_root = adi.sl.stack.getPackageRoot;
            file_path = fullfile(repo_root,'temp_logger.txt');
            obj.fid = fopen(file_path,'a'); 
         end

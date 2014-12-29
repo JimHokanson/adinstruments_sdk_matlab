@@ -1,7 +1,9 @@
-classdef channel_writer < handle
+classdef (Hidden) channel_writer < handle
     %
     %   Class:
     %   adi.channel_writer
+    %
+    %   This is meant to be an interface
     %
     %   adi.setChannelName(file_h,channel,channel_name)
     %   adi.sdk.setChannelInfo

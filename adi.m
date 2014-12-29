@@ -2,9 +2,8 @@ classdef adi
     %
     %   Class:
     %   adi
-    
-    properties
-    end
+    %
+    %   This class is meant to hold simple helpers for the package.
     
     methods (Hidden,Static)
 
@@ -30,6 +29,7 @@ classdef adi
         end
         function [file_path, file_root] = uiGetChartFile(varargin)
             %
+            %   [file_path, file_root] = adi.uiGetChartFile(varargin)
             %
             %   This function can be used to select a particular LabChart
             %   file.
@@ -39,6 +39,8 @@ classdef adi
             %   file_path : str, 0, or cellstr
             %       If the user cancels the output is 0. Otherwise this is
             %       the full path to the file.
+            
+            persistent last_file_root
             
             in.multi_select = false;
             in.prompt = 'Pick a file to read';
@@ -56,6 +58,10 @@ classdef adi
                 multi_select_value = 'off';
             end
             
+            if isempty(in.start_path) && ~isempty(last_file_root)
+               in.start_path = last_file_root;
+            end
+            
             if isempty(in.start_path)
                 [file_name_or_names,file_root] = uigetfile(filter_specifications,in.prompt,'MultiSelect',multi_select_value);
             else
@@ -65,6 +71,7 @@ classdef adi
             if isnumeric(file_name_or_names)
                 file_path = 0;
             else
+                last_file_root = file_root;
                 if ischar(file_name_or_names)
                     file_path = fullfile(file_root,file_name_or_names);
                     if in.multi_select
