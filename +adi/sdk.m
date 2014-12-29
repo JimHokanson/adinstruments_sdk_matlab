@@ -140,6 +140,9 @@ classdef (Hidden) sdk
             in.read_and_write = false;
             in = adi.sl.in.processVarargin(in,varargin);
             
+            %If the pointer value is already valid - i.e. already open -
+            %then we just use the current pointer value rather than
+            %requesting a second
             pointer_value = adi.handle_manager.checkFilePointer(file_path);
             
             if (pointer_value == 0)            
@@ -167,9 +170,13 @@ classdef (Hidden) sdk
         end
         function file_h = createFile(file_path)
             
-            [result_code,pointer_value] = sdk_mex(17,h__toWChar(file_path));
-            
-            adi.sdk.handleErrorCode(result_code)
+            pointer_value = adi.handle_manager.checkFilePointer(file_path);
+            if pointer_value == 0
+                [result_code,pointer_value] = sdk_mex(17,h__toWChar(file_path));
+                adi.sdk.handleErrorCode(result_code)
+                adi.handle_manager.openFile(file_path,pointer_value)
+                adi.handle_logger.logOperation(file_path,'createFile',pointer_value)
+            end
             
             file_h = adi.file_handle(pointer_value,file_path);
         end
@@ -331,7 +338,9 @@ classdef (Hidden) sdk
            in = adi.sl.in.processVarargin(in,varargin);    
            
            result_code = sdk_mex(21, writer_h.pointer_value, ...
-               in.trigger_time, in.fractional_seconds, in.trigger_minus_rec_start);
+               double(in.trigger_time), ...
+               double(in.fractional_seconds), ...
+               clong(in.trigger_minus_rec_start));
            adi.sdk.handleErrorCode(result_code)
         end
         function finishRecord(writer_h)
@@ -401,19 +410,19 @@ classdef (Hidden) sdk
                 comment_info = [];
             end
         end
-        function addComment(channel,record,tick_position,comment_string)
+        function comment_number = addComment(file_h,channel,record,tick_position,comment_string)
             %
-            %   adi.sdk.addComment(channel,record,tick_position,comment_string)
+            %   comment_number = adi.sdk.addComment(channel,record,tick_position,comment_string)
             
-            result_code = sdk_mex(27,file_h.pointer_value,...
-                c0(channel), c0(record), tick_position, comment_string);
+            [result_code,comment_number] = sdk_mex(26,file_h.pointer_value,...
+                c0(channel), c0(record), clong(tick_position), h__toWChar(comment_string));
             adi.sdk.handleErrorCode(result_code);
         end
         function deleteComment(file_h,comment_number)
             %
             %   adi.sdk.deleteComment(file_h,comment_number)
             
-            result_code = sdk_mex(27,file_h.pointer_value,comment_number);
+            result_code = sdk_mex(27,file_h.pointer_value,clong(comment_number));
             adi.sdk.handleErrorCode(result_code);
         end
         %Channel specific functions
@@ -487,13 +496,14 @@ classdef (Hidden) sdk
                 output_data = double(data); %Matlab can get finicky working with singles
             end
         end
-        function units        = getUnits(file_h,record,channel)
+        function units = getUnits(file_h,record,channel)
             %getUnits
             %
             %   units = adi.sdk.getUnits(file_h,record,channel)
             
             
-            [result_code,str_data,str_length] = sdk_mex(11,file_h.pointer_value,c0(record),c0(channel));
+            [result_code,str_data,str_length] = sdk_mex(11,...
+                file_h.pointer_value,c0(record),c0(channel));
             
             %TODO: Replace with function call to isGoodResultCode
             if result_code == 0 || result_code == 1
@@ -511,7 +521,8 @@ classdef (Hidden) sdk
             %
             %   Status: DONE
             
-            [result_code,str_data,str_length] = sdk_mex(12,file_h.pointer_value,c0(channel));
+            [result_code,str_data,str_length] = sdk_mex(12,...
+                file_h.pointer_value,c0(channel));
             
             if result_code == 0
                 channel_name = adi.sdk.getStringFromOutput(str_data,str_length);
@@ -548,7 +559,8 @@ classdef (Hidden) sdk
             %             tick_dt             = adi.sdk.getTickPeriod(file_h,record,channel);
             %             dt_channel_temp = tick_dt * n_ticks_in_record/n_samples_in_record;
             
-            [result_code,dt_channel] = sdk_mex(15,file_h.pointer_value,c0(record),c0(channel));
+            [result_code,dt_channel] = sdk_mex(15,...
+                file_h.pointer_value,c0(record),c0(channel));
             
             adi.sdk.handleErrorCode(result_code)
         end
@@ -564,7 +576,8 @@ classdef (Hidden) sdk
             
             %??? - Does this create a new channel if it doesn't exist yet?
             
-            result_code = sdk_mex(18,file_h.pointer_value,c0(channel),h__toWChar(channel_name));
+            result_code = sdk_mex(18,file_h.pointer_value,....
+                c0(channel),h__toWChar(channel_name));
             
             adi.sdk.handleErrorCode(result_code)
             
@@ -600,7 +613,7 @@ classdef (Hidden) sdk
                writer_h.pointer_value,...
                c0(channel),...
                h__toInt(in.enabled_for_record),...
-               seconds_per_sample,...
+               double(seconds_per_sample),...
                h__toWChar(units),...
                single(in.limits));
            adi.sdk.handleErrorCode(result_code)

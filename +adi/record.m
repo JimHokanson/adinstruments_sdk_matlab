@@ -12,6 +12,7 @@ classdef (Hidden) record < handle
         comments  %adi.comment
         tick_dt   %The highest sampling rate of any channel in this record.
         tick_fs   %Sampling frequency, computed for convenience from tick_dt
+        duration
         record_start %(Matlab time)
         
         
@@ -47,6 +48,7 @@ classdef (Hidden) record < handle
            obj.tick_dt  = sdk.getTickPeriod(file_h,record_id,1);
            obj.tick_fs  = 1./obj.tick_dt;
            
+           obj.duration = obj.n_ticks*obj.tick_dt;
            
            [obj.record_start,obj.data_start] = sdk.getRecordStartTime(file_h,record_id,obj.tick_dt);
 

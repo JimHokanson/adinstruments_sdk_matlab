@@ -1,9 +1,11 @@
 /*
  *
+ *      Old compiling notes:
+ *      --------------------
  *      mex sdk_mex.cpp ADIDatIOWin.lib
- *
  *      mex -v sdk_mex.cpp LoadADIDatDll.cpp ADIDatIOWin64.lib
  *
+ *      Compiling should be done via:
  *      adi.sdk.makeMex()
  *
  *      http://www.mathworks.com/help/matlab/matlab_external/passing-arguments-to-shared-library-functions.html
@@ -745,10 +747,11 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         long tick_position = getLongInput(prhs,4);
         wchar_t *text = (wchar_t *)mxGetData(prhs[5]);
         long comment_number = 0;
+        //long comment_number = getLongInput(prhs,6);
         
         out_result[0] = ADI_AddComment(fileH, channel, record, tick_position, text, &comment_number);
         
-        setLongOutput(plhs,1,tick_position);
+        setLongOutput(plhs,1,comment_number);
         
 //        DLLEXPORT ADIResultCode ADI_AddComment(ADI_FileHandle fileH, long channel, long record, long tickPos,
 //       const wchar_t* text, long* commentNum);

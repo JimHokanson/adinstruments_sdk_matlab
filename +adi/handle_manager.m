@@ -6,9 +6,12 @@ classdef (Hidden) handle_manager
     %   This class keeps track of open files and attempts to prevent
     %   closing a file that for some reason is not actually open.
     %
+    %   This class is called directly by functions in adi.sdk
+    %
     %
     %   See Also:
     %   adi.sdk
+    %   adi.sdk.openFile
     
     properties
         
@@ -21,6 +24,9 @@ classdef (Hidden) handle_manager
         USE_FIX = true
         %true - single file only ever gets one pointer
         %false - single file gets multiple pointers
+        %
+        %   By default this should be true unless we're inspecting how 
+        %   the SDK works when this is not true.
     end
     
     properties
@@ -99,7 +105,7 @@ classdef (Hidden) handle_manager
             %
             %   See Also:
             %   adi.sdk.closeFile
-            
+                        
             obj = adi.handle_manager.getReference();
             if obj.map.isKey(pointer_value)
                 file_path = obj.map(pointer_value);

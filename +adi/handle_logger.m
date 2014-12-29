@@ -15,12 +15,12 @@ classdef (Hidden) handle_logger < handle
         function obj = handle_logger()
            %Call this via:
            %    
-           repo_root = adi.sl.stack.getPackageRoot;
-           file_path = fullfile(repo_root,'temp_logger.txt');
-           obj.fid = fopen(file_path,'a'); 
+% % % % %            repo_root = adi.sl.stack.getPackageRoot;
+% % % % %            file_path = fullfile(repo_root,'temp_logger.txt');
+% % % % %            obj.fid = fopen(file_path,'a'); 
         end
         function delete(obj)
-           fclose(obj.fid);
+% % % %            fclose(obj.fid);
         end
     end
     
@@ -38,14 +38,14 @@ classdef (Hidden) handle_logger < handle
             %       Who is calling the logger?
             %   handle_value : integer
             
-            persistent obj
-            
-            if isempty(obj)
-                obj = adi.handle_logger;
-            end
-            
-            write_str = sprintf('%s %s:\t%s:%ld\n',datestr(now),file_path,handle_type,handle_value);
-            fwrite(obj.fid,write_str);
+% % % %             persistent obj
+% % % %             
+% % % %             if isempty(obj)
+% % % %                 obj = adi.handle_logger;
+% % % %             end
+% % % %             
+% % % %             %write_str = sprintf('%s %s:\t%s:%ld\n',datestr(now),file_path,handle_type,handle_value);
+% % % %             fwrite(obj.fid,write_str);
         end
     end
     
