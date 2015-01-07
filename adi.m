@@ -5,8 +5,19 @@ classdef adi
     %
     %   This class is meant to hold simple helpers for the package.
     
+    methods (Static)
+        function view()
+            %
+            %   adi.view(*file_path)
+            %
+            %   This is 
+           %TODO: Run the viewer
+           file_path = adi.uiGetChartFile();
+           adi.file_viewer(file_path);
+        end
+    end
+    
     methods (Hidden,Static)
-
         function createBlankFileAtPath(file_path)
             %
             %   adi.createBlankFileAtPath(file_path)
@@ -33,6 +44,12 @@ classdef adi
             %
             %   This function can be used to select a particular LabChart
             %   file.
+            %
+            %   Optional Inputs:
+            %   ----------------
+            %   multi_select : logical (default: false)
+            %   prompt : string (default: 'Pick a file to read'
+            %   start_path : string (default: '')
             %
             %   Output:
             %   -------
