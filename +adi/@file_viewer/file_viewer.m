@@ -35,13 +35,13 @@ classdef file_viewer
             
             for iChannel = 1:f.n_channels
                 cur_channel_name = f.channel_names{iChannel};
-                chan_obj = f.getChannelByName(cur_channel_name);
+                chan_obj = f.getChannelByName(cur_channel_name,'partial_match',false);
                 
                 %TODO: Allow array retrieval of data for multiple records
-                %all_chan_data = cell(1,f.n_records);
-                all_chan_data = cell(1,1);
-                for iRecord = 4:f.n_records
-                   all_chan_data{1} = chan_obj.getData(iRecord);
+                all_chan_data = cell(1,f.n_records);
+                %all_chan_data = cell(1,1);
+                for iRecord = 1:f.n_records
+                   all_chan_data{iRecord} = chan_obj.getData(iRecord);
                 end
                 
                 subplot(f.n_channels,1,iChannel);
