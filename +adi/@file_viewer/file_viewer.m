@@ -20,26 +20,28 @@ classdef file_viewer
             %---------------------------
             %- Display comments in panel
             %   - click on comment to go to comment
-            %- Add title to figue window
+            %X DONE Add title to figue window
             %- manual ylims - create nice interface for this
             %- support panning
             %- build in processing support - filtering
-            %- add a channel
+            %- add support for adding a channel
             %- reorder channels
             %- display comments on figures
             %- allow saving viewing settings into a file for 
             %   later retrieval
             
             f = adi.readFile(file_path);
+            h_figure = figure;
             
             for iChannel = 1:f.n_channels
                 cur_channel_name = f.channel_names{iChannel};
                 chan_obj = f.getChannelByName(cur_channel_name);
                 
                 %TODO: Allow array retrieval of data for multiple records
-                all_chan_data = cell(1,f.n_records);
-                for iRecord = 1:f.n_records
-                   all_chan_data{iRecord} = chan_obj.getData(iRecord);
+                %all_chan_data = cell(1,f.n_records);
+                all_chan_data = cell(1,1);
+                for iRecord = 4:f.n_records
+                   all_chan_data{1} = chan_obj.getData(iRecord);
                 end
                 
                 subplot(f.n_channels,1,iChannel);
@@ -47,8 +49,15 @@ classdef file_viewer
                 
             end
             
-            set(gcf,'name',file_path);
-            sl.plot.postp.linkFigureAxes(gcf,'x');
+            set(h_figure,'name',file_path);
+            sl.plot.postp.linkFigureAxes(h_figure,'x');
+            
+            h_axes = sl.hg.figure.getAxes(h_figure);
+            
+            set(h_axes,'YLimMode','manual');
+            
+            
+            scroll = sl.plot.big_data.scrollbar(gca);
             
             keyboard
            
