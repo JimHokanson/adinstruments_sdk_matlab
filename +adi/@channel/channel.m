@@ -139,7 +139,7 @@ classdef (Hidden) channel < handle
             %       For example we could get the channel 'Bladder Pressure'
             %       by using the <name> 'pres' since 'pres' is in the
             %       string 'Bladder Pressure'
-            %    multiple_channel_rule: {'error','first','last',index #}
+            %    multiple_channel_rule: {'error','first','last',index #,'shortest'}
             %
             %    See Also:
             %    adi.file.getChannelByName
@@ -175,6 +175,10 @@ classdef (Hidden) channel < handle
                             I = I(1);
                         case 'last'
                             I = I(end);
+                        case 'shortest'
+                            name_lengths = cellfun('length',all_names(I));
+                            [~,I2] = min(name_lengths);                            
+                            I = I(I2);
                         otherwise
                             error(['Multiple matches for channel name found and' ...
                                 ' multiple matches option: "%s" not recognized'],...
