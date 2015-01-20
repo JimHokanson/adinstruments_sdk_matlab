@@ -59,6 +59,10 @@ classdef file_viewer
             
             scroll = sl.plot.big_data.scrollbar(gca);
             
+            for iAxes = 1:length(h_axes)
+                sl.plot.postp.autoscale(h_axes(iAxes))
+            end
+            
             keyboard
            
         end
