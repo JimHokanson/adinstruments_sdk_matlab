@@ -8,6 +8,9 @@ classdef (Hidden) handle_manager
     %
     %   This class is called directly by functions in adi.sdk
     %
+    %   It is only used by the ADInstruments SDK since I've had some issues
+    %   with getting 
+    %
     %
     %   See Also:
     %   adi.sdk
@@ -20,6 +23,10 @@ classdef (Hidden) handle_manager
         %
         %   adi.handle_manager.unlock
         %   clear classes
+        
+        DEBUG = true
+        %Set this to be true to enable printing of statements in the class
+        %methods
         
         USE_FIX = true
         %true - single file only ever gets one pointer
@@ -60,7 +67,13 @@ classdef (Hidden) handle_manager
             %
             %   Inputs:
             %   -------
-            %   file_path =
+            %   file_path : path to the file to open
+            %
+            %   Outputs:
+            %   --------
+            %   pointer_value : numeric value acting as c pointer
+            %       If the file is not already open, a value of 0 is
+            %       returned
             %
             %   See Also:
             %   adi.sdk.openFile
@@ -68,11 +81,15 @@ classdef (Hidden) handle_manager
             obj = adi.handle_manager.getReference();
             if obj.USE_FIX
                 if obj.path_key_map.isKey(file_path)
+                    if obj.DEBUG
+                       fprintf(2,'Pointer found for:\n%s\n',file_path); 
+                    end
                     temp = obj.path_key_map(file_path);
                     pointer_value = temp(1);
                     temp(2) = temp(2) + 1;
                     obj.path_key_map(file_path) = temp;
                 else
+                    %fprintf(2,'Pointer not found for:\n%s\n',file_path); 
                     pointer_value = 0;
                 end
                 
@@ -105,25 +122,31 @@ classdef (Hidden) handle_manager
             %
             %   See Also:
             %   adi.sdk.closeFile
+            %
+            %   TODO: The encapsulation is a bit lacking here.
                         
             obj = adi.handle_manager.getReference();
             if obj.map.isKey(pointer_value)
                 file_path = obj.map(pointer_value);
                 
                 if ~obj.USE_FIX
+                    %Then just close the file
+                    %TODO: We should return the count to the SDK instead
+                    %here we would return 0 (or 1, depending on the design)
                     obj.map.remove(pointer_value);
                     result_code = sdk_mex(13,pointer_value);
                     adi.sdk.handleErrorCode(result_code);
-                    
                 else
                     
                     temp = obj.path_key_map(file_path);
                     if temp(2) == 1
+                        %fprintf(2,'Closing reference for:\n%s\n',file_path); 
                         obj.map.remove(pointer_value);
                         obj.path_key_map.remove(file_path);
                         result_code = sdk_mex(13,pointer_value);
                         adi.sdk.handleErrorCode(result_code);
                     else
+                        %fprintf(2,'Decrementing reference count for:\n%s\n',file_path); 
                         temp(2) = temp(2) - 1;
                         obj.path_key_map(file_path) = temp;
                     end

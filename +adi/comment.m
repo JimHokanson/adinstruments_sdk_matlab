@@ -17,22 +17,32 @@ classdef (Hidden) comment < handle
         tick_position %?????????
         %TODO: Add time since start of record and experiment ...
         channel %-1 indicates all channels
-        record
+        record  %(#, not a pointer)
         tick_dt
+        trigger_minus_rec_start %(in seconds)
     end
     
     properties (Dependent)
         time %Time in seconds since the start of the record.
     end
     
+    properties
+       d1 = '------ Options -----'
+       time_relative_to_file = true
+    end
+    
     methods
         function value = get.time(obj)
-            value = obj.tick_position*obj.tick_dt;
+            if obj.time_relative_to_file
+                value = obj.tick_position*obj.tick_dt;
+            else
+                value = obj.tick_position*obj.tick_dt + obj.trigger_minus_rec_start;
+            end
         end
     end
     
     methods
-        function obj = comment(comment_string,tick_pos,channel,comment_num,record_id,tick_dt)
+        function obj = comment(comment_string,tick_pos,channel,comment_num,record_id,tick_dt,trigger_minus_rec_start)
             
             obj.str           = comment_string;
             obj.id            = comment_num;
@@ -40,10 +50,14 @@ classdef (Hidden) comment < handle
             obj.channel       = channel;
             obj.record        = record_id;
             obj.tick_dt       = tick_dt;
+            obj.trigger_minus_rec_start = trigger_minus_rec_start;
         end
         %         function objs = sortByID(objs)
         %
         %         end
+        function changeTimeBasis(objs)
+            
+        end
         function pretty_print(objs)
             %
             %

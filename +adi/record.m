@@ -22,10 +22,14 @@ classdef (Hidden) record < handle
         %changes when data are extracted from a file into another file
         
         data_start_str
+        
+        trigger_minus_rec_start %(seconds) How long after the record
+        %started did the data start
     end
     
     properties (Hidden)
        file_h %adi.file_handle
+       trigger_minus_rec_start_samples
     end
     
     methods
@@ -50,13 +54,16 @@ classdef (Hidden) record < handle
            
            obj.duration = obj.n_ticks*obj.tick_dt;
            
-           [obj.record_start,obj.data_start] = sdk.getRecordStartTime(file_h,record_id,obj.tick_dt);
+           [obj.record_start,obj.data_start,obj.trigger_minus_rec_start_samples] = ...
+                      sdk.getRecordStartTime(file_h,record_id,obj.tick_dt);
 
+           obj.trigger_minus_rec_start = -1*obj.trigger_minus_rec_start_samples*obj.tick_dt;   
+                  
            obj.data_start_str = datestr(obj.data_start);
            
 
            
-           obj.comments = sdk.getAllCommentsForRecord(file_h,obj.id,obj.tick_dt);
+           obj.comments = sdk.getAllCommentsForRecord(file_h,obj.id,obj.tick_dt,obj.trigger_minus_rec_start);
         end
     end
     

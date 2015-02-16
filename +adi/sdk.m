@@ -289,7 +289,7 @@ classdef (Hidden) sdk
             [result_code,dt_tick] = sdk_mex(4,file_h.pointer_value,c0(record),c0(channel));
             adi.sdk.handleErrorCode(result_code)
         end
-        function [record_start,data_start] = getRecordStartTime(file_h,record,tick_dt)
+        function [record_start,data_start,trigger_minus_rec_start_samples] = getRecordStartTime(file_h,record,tick_dt)
             %
             %   [record_start,data_start] = getRecordStartTime(file_h,record,tick_dt)
             %
@@ -305,7 +305,9 @@ classdef (Hidden) sdk
             %   For easier viewing you can use datestr(record_start) or
             %   datestr(data_start).
             
-            [result_code,trigger_time,fractional_seconds,trigger_minus_rec_start] = sdk_mex(16,file_h.pointer_value,c0(record));
+            [result_code,trigger_time,fractional_seconds,trigger_minus_rec_start_samples] = sdk_mex(16,file_h.pointer_value,c0(record));
+            
+            trigger_minus_rec_start_samples = double(trigger_minus_rec_start_samples);
             
             adi.sdk.handleErrorCode(result_code);
             
@@ -315,7 +317,7 @@ classdef (Hidden) sdk
             %- trigger_minus_rec_start => data starts after trigger
             %
             %Units are in ticks and needs to be converted to seconds
-            data_start_unix = record_start_unix - double(trigger_minus_rec_start*tick_dt);
+            data_start_unix = record_start_unix - trigger_minus_rec_start_samples*tick_dt;
             
             %NOTE: Times are local, not in GMT
             record_start = adi.sl.datetime.unixToMatlab(record_start_unix,0);
@@ -352,7 +354,7 @@ classdef (Hidden) sdk
         end
         %Comment specific functions
         %------------------------------------------------------------------
-        function comments_h = getCommentAccessor(file_h,record,tick_dt)
+        function comments_h = getCommentAccessor(file_h,record,tick_dt,trigger_minus_record_start_s)
             %
             %
             %   comments_h = adi.sdk.getCommentAccessor(file_handle,record_idx_0b)
@@ -361,10 +363,10 @@ classdef (Hidden) sdk
             
             [result_code,comment_pointer] = sdk_mex(6,file_h.pointer_value,c0(record));
             if adi.sdk.isMissingCommentError(result_code)
-                comments_h  = adi.comment_handle(file_h.file_path,0,false,record,tick_dt);
+                comments_h  = adi.comment_handle(file_h.file_path,0,false,record,tick_dt,trigger_minus_record_start_s);
             else
                 adi.sdk.handleErrorCode(result_code)
-                comments_h  = adi.comment_handle(file_h.file_path,comment_pointer,true,record,tick_dt);
+                comments_h  = adi.comment_handle(file_h.file_path,comment_pointer,true,record,tick_dt,trigger_minus_record_start_s);
             end
         end
         function closeCommentAccessor(pointer_value)
@@ -397,6 +399,10 @@ classdef (Hidden) sdk
             %
             %
             %   comment_info = adi.sdk.getCommentInfo(comments_h)
+            %
+            %   Inputs:
+            %   -------
+            %   adi.comment_handle
             
             [result_code,comment_string_data,comment_length,tick_pos,channel,comment_num] = sdk_mex(8,comments_h.pointer_value);
             
@@ -404,7 +410,9 @@ classdef (Hidden) sdk
             
             if result_code == 0
                 comment_string = adi.sdk.getStringFromOutput(comment_string_data,comment_length);
-                comment_info   = adi.comment(comment_string,d(tick_pos),d(channel),d(comment_num),comments_h.record,comments_h.tick_dt);
+                comment_info   = adi.comment(comment_string,d(tick_pos),...
+                    d(channel),d(comment_num),comments_h.record,...
+                    comments_h.tick_dt,comments_h.trigger_minus_rec_start);
             else
                 adi.sdk.handleErrorCode(result_code);
                 comment_info = [];
@@ -755,8 +763,10 @@ classdef (Hidden) sdk
     
     %Wrapper methods ------------------------------------------------------
     methods (Static)
-        function comments = getAllCommentsForRecord(file_h,record_id,tick_dt,sdk)
+        function comments = getAllCommentsForRecord(file_h,record_id,tick_dt,trigger_minus_record_start_s,sdk)
             %
+            %
+            %   DOCUMENTATION: Out of date
             %
             %   comments = adi.sdk.getAllCommentsForRecord(file_handle,record_obj)
             %
@@ -782,7 +792,7 @@ classdef (Hidden) sdk
             end
             
             temp_comments_ca = cell(1,MAX_NUMBER_COMMENTS);
-            comments_h = sdk.getCommentAccessor(file_h,record_id,tick_dt);
+            comments_h = sdk.getCommentAccessor(file_h,record_id,tick_dt,trigger_minus_record_start_s);
             
             if ~comments_h.is_valid
                 comments = [];

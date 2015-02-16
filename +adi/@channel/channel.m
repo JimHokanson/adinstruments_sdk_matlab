@@ -275,6 +275,7 @@ classdef (Hidden) channel < handle
             end
             
             if any(in.data_range > obj.n_samples(record_id))
+                %TODO: Make this error more explicit
                 error('Data requested out of range')
             end
             

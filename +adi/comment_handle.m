@@ -21,10 +21,11 @@ classdef (Hidden) comment_handle < handle
        record
        tick_dt
        file_name
+       trigger_minus_rec_start
     end
     
     methods
-        function obj = comment_handle(file_name,pointer_value,is_valid,record_id,tick_dt)
+        function obj = comment_handle(file_name,pointer_value,is_valid,record_id,tick_dt,trigger_minus_rec_start)
             %
             %   obj = adi.comment_handle(pointer_value,is_valid)
             
@@ -33,6 +34,7 @@ classdef (Hidden) comment_handle < handle
            obj.is_valid      = is_valid;
            obj.record        = record_id;
            obj.tick_dt       = tick_dt;
+           obj.trigger_minus_rec_start = trigger_minus_rec_start;
         end
         function delete(obj)
             if ~obj.is_valid
