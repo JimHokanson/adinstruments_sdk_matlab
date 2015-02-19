@@ -71,21 +71,22 @@ classdef (Hidden) mat_file_sdk < handle
             record_meta = file_h.m.record_meta(1,record);
             dt_tick = record_meta.tick_dt;
         end
-        function [record_start,data_start] = getRecordStartTime(file_h,record,tick_dt)
+        function [record_start,data_start,trigger_minus_rec_start_samples] = getRecordStartTime(file_h,record,tick_dt)
             %
             record_meta  = file_h.m.record_meta(1,record);
             record_start = record_meta.record_start;
             data_start   = record_meta.data_start;
+            trigger_minus_rec_start_samples = record_meta.trigger_minus_rec_start_samples;
         end
         %Comment specific functions
         %------------------------------------------------------------------
-        function comments_h = getCommentAccessor(file_h,record,tick_dt)
+        function comments_h = getCommentAccessor(file_h,record,tick_dt,trigger_minus_record_start_s)
             %
             
             comments = file_h.m.comments;
             comments_for_record = comments([comments.record] == record);
             comments_h = adi.mat_comment_handle(comments_for_record,...
-                ~isempty(comments_for_record),record,tick_dt);
+                ~isempty(comments_for_record),record,tick_dt,trigger_minus_record_start_s);
         end
 %         function closeCommentAccessor(pointer_value)
 %         end
@@ -96,8 +97,13 @@ classdef (Hidden) mat_file_sdk < handle
             %
             %   comment_info = adi.sdk.getCommentInfo(comments_h)
             
-            comment_info   = adi.comment(data.str,data.tick_position,...
-                data.channel,data.id,comments_h.record,comments_h.tick_dt);
+            comment_info   = adi.comment(data.str,...
+                data.tick_position,...
+                data.channel,...
+                data.id,...
+                comments_h.record,...
+                comments_h.tick_dt,...
+                comments_h.trigger_minus_record_start_s);
         end
         %Channel specific functions
         %------------------------------------------------------------------
@@ -148,11 +154,11 @@ classdef (Hidden) mat_file_sdk < handle
     
     %Wrapper methods
     methods (Static)
-        function comments = getAllCommentsForRecord(file_h,record_id,tick_dt)
+        function comments = getAllCommentsForRecord(file_h,record_id,tick_dt,trigger_minus_rec_start_samples)
             %
             %TODO: This isn't right
             
-            comments = adi.sdk.getAllCommentsForRecord(file_h,record_id,tick_dt,adi.mat_file_sdk);
+            comments = adi.sdk.getAllCommentsForRecord(file_h,record_id,tick_dt,trigger_minus_rec_start_samples,adi.mat_file_sdk);
         end
     end
     

@@ -72,7 +72,8 @@ classdef (Hidden) record < handle
         function exportToHDF5File(objs,fobj,save_path,conversion_options)
             %
             %
-            %   
+            %   Make sure to also update:
+            %   adi.h5_file_h
            group_name = '/record_meta';
            h5m.group.create(fobj,'record_version');
            h5writeatt(save_path,'/record_version','version',1);
@@ -83,6 +84,7 @@ classdef (Hidden) record < handle
            h5writeatt(save_path,group_name,'tick_dt',[objs.tick_dt]);
            h5writeatt(save_path,group_name,'record_start',[objs.record_start]);
            h5writeatt(save_path,group_name,'data_start',[objs.data_start]);
+           h5writeatt(save_path,group_name,'trigger_minus_rec_start_samples',[objs.trigger_minus_rec_start_samples]);
            
            exportToHDF5File([objs.comments],fobj,save_path,conversion_options)
         end
@@ -93,7 +95,8 @@ classdef (Hidden) record < handle
                'n_ticks',       {objs.n_ticks}, ...
                'tick_dt',       {objs.tick_dt},...
                'record_start',  {objs.record_start},...
-               'data_start',    {objs.data_start});
+               'data_start',    {objs.data_start},...
+               'trigger_minus_rec_start_samples',{objs.trigger_minus_rec_start_samples});
                
            exportToMatFile([objs.comments],m,conversion_options)
         end

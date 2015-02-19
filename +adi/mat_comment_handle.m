@@ -20,6 +20,7 @@ classdef (Hidden) mat_comment_handle < handle
         tick_dt
         
         current_index = 1
+        trigger_minus_record_start_s
     end
     
     properties (Hidden)
@@ -28,7 +29,7 @@ classdef (Hidden) mat_comment_handle < handle
     end
     
     methods
-        function obj = mat_comment_handle(comment_data,is_valid,record_id,tick_dt)
+        function obj = mat_comment_handle(comment_data,is_valid,record_id,tick_dt,trigger_minus_record_start_s)
             %
             %   adi.mat_comment_handle(comment_data,is_valid,record_id,tick_dt)
             
@@ -39,6 +40,7 @@ classdef (Hidden) mat_comment_handle < handle
             obj.record        = record_id;
             obj.tick_dt       = tick_dt;
             obj.n_comments    = length(comment_data);
+            obj.trigger_minus_record_start_s = trigger_minus_record_start_s;
         end
         function delete(~)
         end

@@ -66,10 +66,10 @@ classdef (Hidden) h5_file_sdk < adi.mat_file_sdk
     
     %Wrapper methods
     methods (Static)
-        function comments = getAllCommentsForRecord(file_h,record_id,tick_dt)
+        function comments = getAllCommentsForRecord(file_h,record_id,tick_dt,trigger_minus_rec_start)
             %
             
-            comments = adi.sdk.getAllCommentsForRecord(file_h,record_id,tick_dt,adi.mat_file_sdk);
+            comments = adi.sdk.getAllCommentsForRecord(file_h,record_id,tick_dt,trigger_minus_rec_start,adi.mat_file_sdk);
         end
     end
     
