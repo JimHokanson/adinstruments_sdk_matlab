@@ -24,7 +24,7 @@ classdef (Hidden) handle_manager
         %   adi.handle_manager.unlock
         %   clear classes
         
-        DEBUG = true
+        DEBUG = false
         %Set this to be true to enable printing of statements in the class
         %methods
         

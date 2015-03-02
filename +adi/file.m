@@ -72,8 +72,14 @@ classdef (Hidden) file < handle
             obj.file_path = file_path;
             obj.file_h    = file_h;
             
+            %Could try switching these to determine what is causing
+            %the crash. Is it records or the first call to the sdk after
+            %opening? Currently those 2 are the same. Flipping these 2
+            %lines could disambiguate the situation.
             obj.n_records   = sdk.getNumberOfRecords(file_h);
             temp_n_channels = sdk.getNumberOfChannels(file_h);
+            
+            
             
             %Get record objects
             %-------------------------------------------
