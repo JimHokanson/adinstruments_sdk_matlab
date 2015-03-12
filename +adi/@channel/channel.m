@@ -300,9 +300,9 @@ classdef (Hidden) channel < handle
                 comments = obj.getRecordComments(record_id,'time_range',in.time_range);
                 
                 if isempty(comments)
-                    time_events = sci.time_series.time_events.empty();
+                    time_events = sci.time_series.discrete_events.empty();
                 else
-                    time_events = sci.time_series.time_events('comments',...
+                    time_events = sci.time_series.discrete_events('comments',...
                         [comments.time],'values',[comments.id],...
                         'msgs',{comments.str});
                 end
