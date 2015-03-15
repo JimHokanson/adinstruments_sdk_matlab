@@ -7,11 +7,6 @@ classdef (Hidden) file < handle
     %   data and classes with more meta data. The channel classes can
     %   be used to actually get data.
     %
-    %   JAH NOTE: This class was hidden to indicate that it should be
-    %   constructed from readFile, but this screws up the class display :/
-    %   TODO: I've made it hidden, and I almost have enough of the object
-    %   display class written where being hidden won't matter
-    %
     %   See Also:
     %   adi.readFile
     
