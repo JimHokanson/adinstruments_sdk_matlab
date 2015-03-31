@@ -16,7 +16,7 @@
 //sort of dynamic allocation. Since strings aren't that long, I'm fine
 //hardcoding this value for now, assuming that this value is plenty large
 
-
+#include <stdint.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <time.h>
@@ -51,6 +51,16 @@ void setDoubleOutput(mxArray *plhs[],int index, double value)
     plhs[index] = mxCreateNumericMatrix(1,1,mxDOUBLE_CLASS,mxREAL);
     double *p_value;
     p_value    = (double *)mxGetData(plhs[index]);
+    p_value[0] = value;
+}
+
+void setInt64Output(mxArray *plhs[],int index, int64_t value)
+{
+	plhs[index] = mxCreateNumericMatrix(1,1,mxINT64_CLASS,mxREAL);
+    
+    
+    int64_t *p_value;
+    p_value    = (int64_t *)mxGetData(plhs[index]);
     p_value[0] = value;
 }
 
@@ -110,6 +120,14 @@ long getLongInput(const mxArray *prhs[], int index){
     p_value = (long *)mxGetData(prhs[index]);
     return p_value[0];
 }
+
+int64_t getInt64Input(const mxArray *prhs[], int index){
+    
+    int64_t *p_value;
+    p_value = (int64_t *)mxGetData(prhs[index]);
+    return p_value[0];
+}
+
 //===================================================================
 
 ADI_FileHandle getFileHandle(const mxArray *prhs[])
@@ -118,16 +136,18 @@ ADI_FileHandle getFileHandle(const mxArray *prhs[])
     //ASSUMPTION: We currently assume the file handle will be the second
     //input to the function, after the function option (i.e. index 1)
     
-    return ADI_FileHandle(getLongInput(prhs,1));
+    return ADI_FileHandle(getInt64Input(prhs,1));
 }
 
 ADI_CommentsHandle getCommentsHandle(const mxArray *prhs[])
 {
     
     //TODO: I can replace this now with a call to getLongInput ...
-    int *input_file_handle;
-    input_file_handle = (int *)mxGetData(prhs[1]);
-    return ADI_CommentsHandle(input_file_handle[0]);
+//     int *input_file_handle;
+//     input_file_handle = (int *)mxGetData(prhs[1]);
+//     return ADI_CommentsHandle(input_file_handle[0]);
+//     
+    return ADI_CommentsHandle(getInt64Input(prhs,1));
 }
 
 ADI_WriterHandle getWriterHandle(const mxArray *prhs[]){
@@ -144,13 +164,13 @@ void setFileHandle(mxArray *plhs[], ADIResultCode result, ADI_FileHandle fileH){
     
     //Used by openFile and createFile
     
-    int *fh_pointer;
+    int64_t *fh_pointer;
     //Assign to 2nd value, first is the status code ...
-    plhs[1]    = mxCreateNumericMatrix(1,1,mxINT32_CLASS,mxREAL);
-    fh_pointer = (int *) mxGetData(plhs[1]);
+    plhs[1]    = mxCreateNumericMatrix(1,1,mxINT64_CLASS,mxREAL);
+    fh_pointer = (int64_t *) mxGetData(plhs[1]);
     if (result == 0)
     {
-        fh_pointer[0] = (int)fileH;
+        fh_pointer[0] = (int64_t)fileH;
     }
     else
     {
@@ -160,13 +180,13 @@ void setFileHandle(mxArray *plhs[], ADIResultCode result, ADI_FileHandle fileH){
 
 void setWriterHandle(mxArray *plhs[], ADIResultCode result, ADI_WriterHandle writerH){
     
-    int *wh_pointer;
+    int64_t *wh_pointer;
     //Assign to 2nd value, first is the status code ...
-    plhs[1]    = mxCreateNumericMatrix(1,1,mxINT32_CLASS,mxREAL);
-    wh_pointer = (int *) mxGetData(plhs[1]);
+    plhs[1]    = mxCreateNumericMatrix(1,1,mxINT64_CLASS,mxREAL);
+    wh_pointer = (int64_t *) mxGetData(plhs[1]);
     if (result == 0)
     {
-        wh_pointer[0] = (int)writerH;
+        wh_pointer[0] = (int64_t)writerH;
     }
     else
     {
@@ -254,6 +274,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else if (function_option == 0.5)
     {
+		//This is a call to open the file for reading and writing
+		//
         //TODO: Replace this with an input to function 0
         
         wchar_t *w_file_path = (wchar_t *)mxGetData(prhs[1]);
@@ -285,7 +307,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  [result_code,n_channels] = sdk_mex(2,file_handle)
         
         long nChannels = 0;
-        fileH          = getFileHandle(prhs);
+        fileH = getFileHandle(prhs);
         
         //ADIResultCode ADI_GetNumberOfChannels(ADI_FileHandle fileH, long* nChannels);
         result         = ADI_GetNumberOfChannels(fileH,&nChannels);
@@ -298,7 +320,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  ======================================================
         //  [result,n_ticks] = sdk_mex(3,file_handle,record_idx_0b)
         
-        fileH          = getFileHandle(prhs);
+        fileH = getFileHandle(prhs);
         
         //0 or 1 based ...
         long record = getLongInput(prhs,2);
@@ -356,11 +378,11 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         result = ADI_CreateCommentsAccessor(fileH,record,&commentsH);
         out_result[0] = result;
         
-        int *p_c;
-        plhs[1]    = mxCreateNumericMatrix(1,1,mxINT32_CLASS,mxREAL);
-        p_c = (int *) mxGetData(plhs[1]);
+        int64_t *p_c;
+        plhs[1]    = mxCreateNumericMatrix(1,1,mxINT64_CLASS,mxREAL);
+        p_c = (int64_t *) mxGetData(plhs[1]);
         if (result == 0)
-            p_c[0] = (int)commentsH;
+            p_c[0] = (int64_t)commentsH;
         else
             p_c[0] = 0;
     }
@@ -431,7 +453,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //  ===========================================================
         //  [result,data,n_returned] = sdk_mex(10,file_h,channel_0b,record_0b,startPos,nLength,dataType)
         
-        fileH          = getFileHandle(prhs);
+        fileH = getFileHandle(prhs);
         
         long channel  = getLongInput(prhs,2);
         long record   = getLongInput(prhs,3);
@@ -617,7 +639,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         
         ADI_WriterHandle writerH(0);
         
-        fileH          = getFileHandle(prhs);
+        fileH = getFileHandle(prhs);
         
         result        = ADI_CreateWriter(fileH,&writerH);
         out_result[0] = result;
