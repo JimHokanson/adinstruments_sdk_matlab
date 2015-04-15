@@ -14,14 +14,13 @@ General parts include:
 Motivation
 ==========
 
-LabChart provides functionality for exporting data to a '.mat' file, although I have yet to get it to work. I also would prefer not to have files that are simply copies of the original data but in a different format. This code allows reading data directly from LabChart data files.
+LabChart provides functionality for exporting data to a '.mat' file, although I have yet to get it to work. I also prefer not having files that are simply copies of an original file but in a different format. This code allows reading data directly from LabChart data files.
 
 
 ===================
 Top Level Functions
 ===================
 - adi.readFile : Reads a file
-- adi.binary_file_writer : Can be used to write a binary (.adibin) file
 - adi.convert : Converts the a given file to another format (e.g. from .adicht to .mat)
 
 ===================
@@ -48,18 +47,12 @@ To read these files on a Mac first requires converting the 'adicht' format into 
 Current Status
 ==============
 
-I've fully implemented the reading portion. I've started the writing portion but I haven't finished it yet. The code is not yet stable; I'm still refactoring and cleaning it up.
+I've fully implemented the reading portion. I've started the writing portion but I haven't finished it. I have no plans to finish the writing portion at this point in time.
 
-=================================
-Requirments, Installation & Usage
-=================================
+===========================
+Requirements & Installation
+===========================
 
-The SDK requires Windows. A 64 bit dll was released (9/1/2014). Please notify me of any bugs found in the 64 bit version.
+Requires 64bit Matlab on Windows. 32bit Matlab could be supported but some of the mex code would need to be rewritten.
 
-To install the package needs to be on the Matlab path. I also currently have several references to my `"Matlab Standard Library" <https://github.com/JimHokanson/matlab_standard_library>`_. I'm working on removing trivial dependencies in this library although some of the fancier functionality will probably continue to rely on that repository.
-
-.. code-block:: matlab
-
-   f = adi.readFile()
-   f = adi.convert()
-
+To install the package ('+adi') needs to be on the Matlab path. Sub-folders of the package should not be added to the path.

@@ -5,6 +5,12 @@ function save_path = convert(file_path_or_paths,varargin)
 %   This function will save a .adicht file's contents into a .mat file 
 %   (v7.3) or a hdf5 file
 %
+%   The format is a bit awkward since it was originally written using a
+%   32bit SDK which meant that partial reads and writes needed to be
+%   supported.
+%
+%   Once converted, the converted file can be read by this program as well.
+%
 %   Current Status:
 %   ---------------
 %   Things are working however the HDF5 format will likely change soon as I
@@ -16,8 +22,10 @@ function save_path = convert(file_path_or_paths,varargin)
 %   file_path_or_paths : str or cellstr (default: prompts user)
 %       Path to the file or files. If omitted a prompt will ask the user 
 %       to select the file to convert.
-%   format : {'h5','mat'} (default 'h5')
-%       The format to convert the file to.
+%   format : {'h5','mat'} (default 'mat')
+%       The format to convert the file to. H5 (HDF5) requires additional
+%       code, located at:
+%           https://github.com/JimHokanson/hdf5_matlab
 %   conversion_options: {.h5_conversion_options,.mat_conversion_options}
 %       These classes provide access to the conversion options. The main 
 %       point of these options (at least initially) was to have control
@@ -31,7 +39,7 @@ function save_path = convert(file_path_or_paths,varargin)
 persistent base_path
 
 in.conversion_options = [];
-in.format = 'h5'; %or 'mat'
+in.format = 'mat'; %or 'h5'
 in.save_path = '';
 in = adi.sl.in.processVarargin(in,varargin);
 
