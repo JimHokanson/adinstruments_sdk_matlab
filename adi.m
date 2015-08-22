@@ -38,7 +38,10 @@ classdef adi
            blank_file_path = fullfile(repo_path,'files','blank_labchart_8_file.adicht');
            copyfile(blank_file_path,file_path)
         end
+    end
+    methods (Static)
         function [file_path, file_root] = uiGetChartFile(varargin)
+            %x Show user selection window to select Labchart files
             %
             %   [file_path, file_root] = adi.uiGetChartFile(varargin)
             %
@@ -48,14 +51,20 @@ classdef adi
             %   Optional Inputs:
             %   ----------------
             %   multi_select : logical (default: false)
+            %       If true multiple files can be selected.
             %   prompt : string (default: 'Pick a file to read'
             %   start_path : string (default: '')
+            %       If not empty the selection will start in the specified
+            %       folder. If empty AND the function was previously used 
+            %       the previously selected path will be used.
             %
             %   Output:
             %   -------
             %   file_path : str, 0, or cellstr
             %       If the user cancels the output is 0. Otherwise this is
             %       the full path to the file.
+            %   file_root : str or 0
+            %       Path to the folder that contains the file.
             
             persistent last_file_root
             
@@ -87,6 +96,7 @@ classdef adi
             
             if isnumeric(file_name_or_names)
                 file_path = 0;
+                file_root = 0;
             else
                 last_file_root = file_root;
                 if ischar(file_name_or_names)
