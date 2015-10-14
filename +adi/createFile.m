@@ -2,6 +2,7 @@ function file_writer = createFile(file_path,varargin)
 %
 %   file_writer = adi.createFile(file_path)
 %
+%   This is a work in progress
 %
 
 in.copy_blank_when_new = false;
@@ -24,8 +25,10 @@ if is_new
 else
     file_h = adi.sdk.openFile(file_path,'read_and_write',true);
 end
+%file_h : adi.file_handle
 
 data_writer_h = adi.sdk.createDataWriter(file_h);
+%data_writer_h : adi.data_writer_handle
 
 file_writer = adi.file_writer(file_path, file_h, data_writer_h, is_new);
 
