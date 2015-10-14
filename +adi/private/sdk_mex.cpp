@@ -705,7 +705,7 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         
         out_result[0] = ADI_AddChannelSamples(writerH, channel, data, n_samples, &new_ticks_added);
         
-        
+        setLongOutput(plhs,1,new_ticks_added);
         
 //       DLLEXPORT ADIResultCode ADI_AddChannelSamples(ADI_WriterHandle writerH, long channel,
 //       float* data, long nSamples, long *newTicksAdded);

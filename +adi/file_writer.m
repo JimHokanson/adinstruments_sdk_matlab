@@ -28,8 +28,10 @@ classdef (Hidden) file_writer < handle
         file_path %Where we are writing to
         current_record = NaN  %NaN - not recording
         last_record = 0  %will always point to last record completed
+        %0 indicates that no records have been recorded
         record_durations %???? We can get this for
         record_dts %We'll log this for every record
+        record_trigger_times %Unix time values (Units: s)
         channels = {} %{adi.channel_writer}
         current_channel_names
     end
@@ -67,7 +69,16 @@ classdef (Hidden) file_writer < handle
             %
             %   obj = adi.file_writer(file_path,file_h)
             %
+            %   Inputs:
+            %   -------
+            %   file_path : string
+            %       Path to the file being written to.
+            %   file_h :
+            %   data_writer_h : adi.data_writer_handle
+            %       
+            %
             %   See Also:
+            %   ---------
             %   adi.createFile
             
             obj.file_path = file_path;
@@ -85,20 +96,48 @@ classdef (Hidden) file_writer < handle
                %
                
                records = temp_file.records;
+               if ~isempty(records)
+               
+               %TODO: This isn't needed if there are no records
                obj.record_durations = [records.duration];
                obj.record_dts = [records.tick_dt];
+               %
+               %Need to add the record times
+               error('Not yet implemented')
+               end
             end
         end
         function comment_number = addComment(obj,record,comment_time,comment_string,varargin)
+            %x Adds a comment to the specified record
             %
             %   comment_number = addComment(obj,tick_position,comment_string,varargin)
             %
-            %   Optional Inputs:
-            %   ----------------
+            %   Inputs:
+            %   -------
             %   record : 
             %       -1 means current record
-            %   
+            %   comment_time : 
+            %       Time is in seconds ...
+            %       TODO: Clarify how this relates to the trigger
+            %       and data start
+            %   comment_string : string
+            %       The actual text of the comment to add
+            %
+            %   Optional Inputs:
+            %   ----------------
             %   channel : 
+            %       -1 indicates to add to all channels
+            %       1 - add to channel 1
+            %       2 - add to channel 2
+            %
+            %   Outputs:
+            %   --------
+            %   comment_number : numeric
+            %       The resulting id of the comment.
+            %
+            %   TODO: We could build in support to adding to channels
+            %   by name
+            %   TODO: Build check on the channel if it is out of range
             
             in.channel = -1;
             in = adi.sl.in.processVarargin(in,varargin);
@@ -107,7 +146,7 @@ classdef (Hidden) file_writer < handle
             %If -1, check that we are in a record
             %otherwise, make sure record is between 1 and n records
             if record == -1
-                record = obj.curent_record;
+                record = obj.current_record;
             end
             tick_position = round(comment_time/obj.record_dts(record));
             
@@ -153,6 +192,9 @@ classdef (Hidden) file_writer < handle
             if isempty(in.trigger_time)
                 %If record 2, add duration of record 1 to this value
                 if obj.current_record > 1
+                    %trigger_times are in Unix time (seconds)
+                    %Do we need to add a slight offset ????
+                    in.trigger_time = obj.record_trigger_times(end) + obj.record_durations(end)+30;
                     %Add duration of last record to last record start time
                 else
                     in.trigger_time = sl.datetime.matlabToUnix(now);
@@ -172,25 +214,36 @@ classdef (Hidden) file_writer < handle
             %which has the highest fs
             highest_fs = max([all_chans.fs]);
             obj.record_dts = [obj.record_dts 1/highest_fs];
+            obj.record_trigger_times = [obj.record_trigger_times in.trigger_time];
         end
         function stopRecord(obj)
             obj.last_record = obj.current_record;
             obj.current_record = NaN;
             adi.sdk.finishRecord(obj.data_writer_h)
             
-            %TODO: Get duration. I'm not sure how Labchart is doing
-            %this when the channels disagree with each other ...
-            
-            obj.record_durations = [obj.record_durations NaN];
+            channel_objects = [obj.channels{:}];            
+            channel_durations = [channel_objects.last_record_duration];
+            obj.record_durations = [obj.record_durations max(channel_durations)];
         end
         function save(obj)
            adi.sdk.commitFile(obj.data_writer_h) 
         end
         function close(obj)
             %This just closes the writer :/, not the file
-           adi.sdk.closeWriter(obj.data_writer_h.pointer_value) 
+            %
+            %I think I might want this as a delete method in
+            %adi.data_writer_handle
+           %adi.sdk.closeWriter(obj.data_writer_h.pointer_value) 
+           
+           %MOVED TO DELETE
         end
         %addChannel
+    end
+    
+    methods (Hidden)
+        function updateSampleCount(obj,channel_obj,n_samples)
+           %We may not need this ...  
+        end
     end
     
 end

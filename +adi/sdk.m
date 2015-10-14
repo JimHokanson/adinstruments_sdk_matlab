@@ -423,7 +423,7 @@ classdef (Hidden) sdk
             %   comment_number = adi.sdk.addComment(channel,record,tick_position,comment_string)
             
             [result_code,comment_number] = sdk_mex(26,file_h.pointer_value,...
-                c0(channel), c0(record), clong(tick_position), h__toWChar(comment_string));
+                clong(channel), c0(record), clong(tick_position), h__toWChar(comment_string));
             adi.sdk.handleErrorCode(result_code);
         end
         function deleteComment(file_h,comment_number)
@@ -635,8 +635,11 @@ classdef (Hidden) sdk
             %   writer_h:
             %   channel:
             %   data:
+            %
+            %   DLLEXPORT ADIResultCode ADI_AddChannelSamples(ADI_WriterHandle writerH, long channel, 
+            %         float* data, long nSamples, long *newTicksAdded);
             
-            result_code = sdk_mex(22,writer_h.pointer_value,c0(channel),single(data));
+            [result_code,new_ticks_added] = sdk_mex(22,writer_h.pointer_value,c0(channel),single(data));
             adi.sdk.handleErrorCode(result_code)
         end
         %Helper functions
