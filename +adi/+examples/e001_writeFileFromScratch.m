@@ -30,7 +30,7 @@ eus_w  = fw.addChannel(2,'eus',200,'uV');
 for iRecord = 1:2 %N_RECORDS
 fw.startRecord;
 
-fprintf(2,'Pressure \n');
+%fprintf(2,'Pressure \n');
 pres_w.addSamples((1:1000)/1000)
 pres_w.addSamples((1:1000)/1000)
 pres_w.addSamples((1:1000)/1000)
@@ -38,7 +38,7 @@ pres_w.addSamples((1:1000)/1000)
 pres_w.addSamples((1:1000)/1000)
 %t=0:0.001:2;  
 
-fprintf(2,'Onto EUS \n');
+%fprintf(2,'Onto EUS \n');
 t = 0.001:0.001:1;
 
 y=chirp(t,0,1,150); 

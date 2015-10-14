@@ -207,7 +207,7 @@ classdef (Hidden) file_writer < handle
             
             adi.sdk.startRecord(obj.data_writer_h,in);
             
-            
+            %in.trigger_time
             
             
             %TODO: Check if the channel is enabled or not for determining
