@@ -3,6 +3,8 @@ classdef (Hidden) file < handle
     %   Class:
     %   adi.file
     %
+    %   ***** This object should be instantiated via adi.readFile  *****
+    %
     %   This is the root class for a Labchart file. It holds meta
     %   data and classes with more meta data. The channel classes can
     %   be used to actually get data.
@@ -115,6 +117,10 @@ classdef (Hidden) file < handle
         end
     end
     methods
+        function all_comments = getAllComments(obj)
+           all_records = obj.records;
+           all_comments = [all_records.comments]; 
+        end
         function summarizeRecords(obj)
             %x Not Yet Implemented
             %For each record:

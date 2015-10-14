@@ -41,7 +41,12 @@ classdef file_viewer
                 all_chan_data = cell(1,f.n_records);
                 %all_chan_data = cell(1,1);
                 for iRecord = 1:f.n_records
-                   all_chan_data{iRecord} = chan_obj.getData(iRecord);
+                   if ~isnan(chan_obj.dt(iRecord))
+                      all_chan_data{iRecord} = chan_obj.getData(iRecord);
+                   else
+                       error('This causes problems with offsets, need to fix this')
+                      all_chan_data{iRecord} = []; 
+                   end
                 end
                 
                 subplot(f.n_channels,1,iChannel);

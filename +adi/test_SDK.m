@@ -21,7 +21,15 @@ classdef (Hidden) test_SDK
            %its own function ...
            
            
+
+        end
+        function writeChannelTest()
+           
+            
            COPY_BLANK = false;
+           %This option is temporary as I was having problems getting
+           %things to work.
+           
            %If true a blank Labchart file - created in Labchart 8 - is
            %copied from this repo to the destination location and a
            %openFile with read/write support is called. 
@@ -29,9 +37,9 @@ classdef (Hidden) test_SDK
            
            %This code might move or the function might be renamed ...
            temp_file_path = [tempname() '.adicht'];
-           disp(temp_file_path)
+           fprintf(2,'Temporary file being created at:\n%s',temp_file_path)
            
-           file_writer = adi.createFile(temp_file_path,COPY_BLANK);
+           file_writer = adi.createFile(temp_file_path,'copy_blank_when_new',COPY_BLANK);
            
            fw = file_writer; %Let's shorten things
            
@@ -46,7 +54,7 @@ classdef (Hidden) test_SDK
            fw.save();
            fw.close();
            
-           %TODO: I think I need to delete the temp file from the disk
+           %TODO: I think I need to delete the temp file from the disk 
         end
     end
     

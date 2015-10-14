@@ -49,7 +49,7 @@ classdef (Hidden) handle_manager
     
     methods
         function obj = handle_manager()
-            obj.map = containers.Map('KeyType','int32','ValueType','char');
+            obj.map = containers.Map('KeyType','int64','ValueType','char');
             obj.path_key_map = containers.Map('KeyType','char','ValueType','any');
         end
     end
@@ -105,7 +105,8 @@ classdef (Hidden) handle_manager
             %   adi.sdk.openFile
             
             obj = adi.handle_manager.getReference();
-            
+            %disp(file_path)
+            %disp(pointer_value)
             if obj.map.isKey(pointer_value)
                 error('Pointer value is redundant, this is not expected')
             end

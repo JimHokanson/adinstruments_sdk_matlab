@@ -3,6 +3,8 @@ classdef (Hidden) record < handle
     %   Class:
     %   adi.record
     %
+    %   Labchart Record
+    %
     %   A new record is created in a file whenever settings are changed, or
     %   whenever the users stops (then starts) a recording.
     
@@ -13,8 +15,9 @@ classdef (Hidden) record < handle
         tick_dt   %The highest sampling rate of any channel in this record.
         tick_fs   %Sampling frequency, computed for convenience from tick_dt
         duration
-        record_start %(Matlab time)
-        
+        record_start %(Matlab time) Time in which the record started according
+        %to Labchart. This is not always the time in which data collection
+        %for that record started.
         
         data_start  %(Matlab time) Time at which the data that was collected 
         %during the record was collected. This may not correspond to the

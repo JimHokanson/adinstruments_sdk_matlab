@@ -13,7 +13,7 @@ classdef (Hidden) channel_writer < handle
     properties
         id
     end
-    %NOTE: These are currently not write safe - they don't get updated
+    %*** These are currently not write safe - they don't get updated
     properties
         name
         fs

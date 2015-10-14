@@ -1,4 +1,5 @@
 function file_writer = editFile(file_path,varargin)
+%x  Open a file for editing
 %
 %   file_writer = adi.editFile(file_path)
 %

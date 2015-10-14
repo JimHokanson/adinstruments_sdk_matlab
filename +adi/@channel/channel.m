@@ -18,11 +18,7 @@ classdef (Hidden) channel < handle
         fs         %array - sampling rate (1/dt)
         
         %????? I'm not sure what the heck this is ....
-        data_starts   %This may be different than record start if a trigger
-        %is involved. I think this also changes to match the data when a
-        %subset of data from a record is extracted into a new file using
-        %Labchart
-        
+        data_starts   %See definition in adi.record
         record_starts
     end
     
@@ -54,6 +50,9 @@ classdef (Hidden) channel < handle
             %
             %   obj = adi.channel(file_h,sdk,channel_id,record_handles,file_path)
             %
+            %   Inputs:
+            %   -------
+            %   sdk : reference to an sdk object
             %
             
             obj.sdk            = sdk;
