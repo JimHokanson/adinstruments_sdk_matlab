@@ -1,6 +1,14 @@
 function file_writer = createFile(file_path,copy_blank)
+%x Creates a new file for writing to
 %
-%   file_writer = adi.createFile(file_path)
+%   file_writer = adi.createFile(file_path,*copy_blank)
+%
+%   This file is a work in progress
+%
+%   Output:
+%   -------
+%   adi.writing.file_writer
+%
 
 is_new = ~exist(file_path,'file');
 
@@ -19,7 +27,7 @@ end
 
 data_writer_h = adi.sdk.createDataWriter(file_h);
 
-file_writer = adi.file_writer(file_path, file_h, data_writer_h, is_new);
+file_writer = adi.writing.file_writer(file_path, file_h, data_writer_h, is_new);
 
 
 
