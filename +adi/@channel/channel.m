@@ -273,26 +273,30 @@ classdef (Hidden) channel < handle
                 in.data_range(2) = ceil(in.time_range(2)*obj.fs(record_id))+1;
             end
             
-            if any(in.data_range > obj.n_samples(record_id))
-                %TODO: Make this error more explicit
-                error('Data requested out of range')
-            end
-            
-            if in.data_range(1) > in.data_range(2)
-                error('Specified data range must be increasing')
-            end
-            
-            data = obj.sdk.getChannelData(...
-                obj.file_h,...
-                record_id,...
-                obj.id,...
-                in.data_range(1),...
-                in.data_range(2)-in.data_range(1)+1,...
-                in.get_as_samples,...
-                'leave_raw',in.leave_raw);
-            
-            if isrow(data)
-                data = data';
+            if obj.n_samples(record_id) == 0
+                data = [];
+            else
+                if any(in.data_range > obj.n_samples(record_id))
+                    %TODO: Make this error more explicit
+                    error('Data requested out of range')
+                end
+
+                if in.data_range(1) > in.data_range(2)
+                    error('Specified data range must be increasing')
+                end
+
+                data = obj.sdk.getChannelData(...
+                    obj.file_h,...
+                    record_id,...
+                    obj.id,...
+                    in.data_range(1),...
+                    in.data_range(2)-in.data_range(1)+1,...
+                    in.get_as_samples,...
+                    'leave_raw',in.leave_raw);
+
+                if isrow(data)
+                    data = data';
+                end
             end
             
             if in.return_object
