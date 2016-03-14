@@ -177,6 +177,8 @@ classdef (Hidden) file < handle
             
             if ~exist('save_path','var') || isempty(save_path)
                save_path = adi.sl.dir.changeFileExtension(obj.file_path,'h5');
+            else
+               save_path = adi.sl.dir.changeFileExtension(save_path,'h5'); 
             end
             
             if strcmp(save_path,obj.file_path)
@@ -186,6 +188,8 @@ classdef (Hidden) file < handle
             if exist(save_path,'file')
                delete(save_path); 
             end
+            
+            adi.sl.dir.createFolderIfNoExist(fileparts(save_path));
             
             %TODO: I'd eventually like to use the h5m library I'm writing.
             %This would change the calls to h5writteatt
@@ -212,16 +216,22 @@ classdef (Hidden) file < handle
             %   remedy this problem the HDF5 conversion code was created.
             
             if nargin < 3 || isempty(conversion_options)
-                conversion_options = adi.h5_conversion_options;
+                conversion_options = adi.mat_conversion_options;
             end
             
             if ~exist('save_path','var') || isempty(save_path)
                save_path = adi.sl.dir.changeFileExtension(obj.file_path,'mat');
+            else
+               save_path = adi.sl.dir.changeFileExtension(save_path,'mat'); 
             end
+            
+            
             
             if strcmp(save_path,obj.file_path)
                error('Conversion path and file path are the same') 
             end
+            
+            adi.sl.dir.createFolderIfNoExist(fileparts(save_path));
             
             if exist(save_path,'file')
                delete(save_path); 

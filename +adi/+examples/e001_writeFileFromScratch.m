@@ -12,7 +12,8 @@ function e001_writeFileFromScratch
 
 N_RECORDS = 4;
 
-file_path = 'C:\Users\RNEL\Desktop\merge_adi_test\wtf.adicht';
+%file_path = 'C:\Users\RNEL\Desktop\merge_adi_test\wtf.adicht';
+file_path = 'C:\Users\Jim\Desktop\merge_adi_test\wtf.adicht';
 
 if exist(file_path,'file')
     delete(file_path)
@@ -56,6 +57,4 @@ end
 
 
 fw.save;
-fw.close;
 clear fw
-clear all

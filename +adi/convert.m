@@ -26,11 +26,29 @@ function save_path = convert(file_path_or_paths,varargin)
 %       The format to convert the file to. H5 (HDF5) requires additional
 %       code, located at:
 %           https://github.com/JimHokanson/hdf5_matlab
-%   conversion_options: {.h5_conversion_options,.mat_conversion_options}
+%   conversion_options: {adi.h5_conversion_options OR adi.mat_conversion_options}
 %       These classes provide access to the conversion options. The main 
 %       point of these options (at least initially) was to have control
 %       over options that impact how fast the data is written (and then
 %       subsequently written)
+%   save_path : 
+%       Final file save path. This is not recommended for multiple files to
+%       convert
+%   save_root : 
+%       Folder to save converted files in. See also "root_path"
+%   root_path :
+%       If this is specified in addition to save_root then files are saved
+%       in deeper directories after swapping this value for save_root. In
+%       other words a file at data/type_1/ coulde be moved to
+%       new_data/type_1 either via save_root = 'new_data/type_1' or more
+%       generically for other files in 'data' via:
+%           save_root = 'new_data'
+%           root_path = 'data'
+%
+%   Examples:
+%   ---------
+%
+%
 %
 %   See Also:
 %   adi.h5_conversion_options
@@ -38,9 +56,12 @@ function save_path = convert(file_path_or_paths,varargin)
 
 persistent base_path
 
-in.conversion_options = [];
+in.conversion_options = []; %{adi.mat_conversion_options, adi.h5_conversion_options}
 in.format = 'mat'; %or 'h5'
 in.save_path = '';
+in.save_root = '';
+in.root_path = ''; %To match for save root
+in.no_exist_only = false;
 in = adi.sl.in.processVarargin(in,varargin);
 
 if in.format(1) == '.'
@@ -69,17 +90,53 @@ for iFile = 1:length(file_path_or_paths)
 
     cur_file_path = file_path_or_paths{iFile};
     
+    save_path = h__getSavePath(in,cur_file_path);
+    
+% % %     if ~isempty(save_path)
+% % %         
+% % %     end
+% % %     
+% % %     if in.no_exist_only && exist(
+    
     file_obj = adi.readFile(cur_file_path);
 
+    %This is a hack ...
+    
+    
     switch in.format
         case 'h5'
             %adi.file.exportToMatFile
-            save_path = file_obj.exportToHDF5File(in.save_path,in.conversion_options);
+            save_path = file_obj.exportToHDF5File(save_path,in.conversion_options);
         case 'mat'
             %adi.file.exportToMatFile
-            save_path = file_obj.exportToMatFile(in.save_path,in.conversion_options);
+            save_path = file_obj.exportToMatFile(save_path,in.conversion_options);
         otherwise
             error('Unrecognized format option: %s',in.format);
     end
 
+end
+end
+
+function save_path = h__getSavePath(in,cur_file_path)
+%
+%Save to the save_root. Preserve structure if root path is specified.
+
+[file_root_path,file_name] = fileparts(cur_file_path);
+
+if isempty(in.save_root)
+    %If empty the converter will save it next to the original file
+    save_path = in.save_path;
+else
+    if isempty(in.root_path)
+        save_path = fullfile(in.save_root,file_name); 
+    else
+        if strncmp(in.root_path,file_root_path,length(in.root_path))
+            start_I = length(in.root_path)+1;
+            extra_path = file_root_path(start_I:end);
+            save_path = fullfile(in.save_root,extra_path,file_name);
+        else
+            error('root path needs to be in the file path being converted')
+        end
+    end
+end
 end
