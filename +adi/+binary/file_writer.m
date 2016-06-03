@@ -1,14 +1,14 @@
-classdef binary_file_writer < handle
+classdef file_writer < handle
     %
     %   Class:
-    %   adi.binary_header
+    %   adi.binary.file_writer
     %
     %   This is meant to handle the binary file format which is publically
     %   available online. The binary format only supports writing one 
     %   record. There is no SDK for this format. Instead low 
     %   level read/write options are used.
     %   
-    %   This was written RATHER HASITLY. It works but it isn't pretty.
+    %   This was written RATHER HASTILY. It works but it isn't pretty.
     %
     %   Limitations of Binary Format:
     %   -----------------------------
@@ -29,13 +29,13 @@ classdef binary_file_writer < handle
     %   obj.write();
     %
     %   See Also:
-    %   adi.binary_channel_writer
+    %   adi.binary.channel_writer
         
     %{
         %Test code:
         %----------
         file_path = 'C:\repos\test_bin.adibin';
-        obj = adi.binary_file_writer(file_path)
+        obj = adi.binary.file_writer(file_path)
         obj.addNewChannel('Pressure','cmH2O',1000,1:1000);
         obj.addNewChannel('EUS EMG Corrected','mV',20000,1:20000);
         obj.addNewChannel('Stim','V',20000,1:20000);
@@ -80,9 +80,9 @@ classdef binary_file_writer < handle
     end
     
     methods
-        function obj = binary_file_writer(file_path)
+        function obj = file_writer(file_path)
             %
-            %   obj = adi.binary_file_writer(file_path)
+            %   obj = adi.binary.file_writer(file_path)
             %
             %   See the examples at the top of this file
            obj.file_path = file_path; 

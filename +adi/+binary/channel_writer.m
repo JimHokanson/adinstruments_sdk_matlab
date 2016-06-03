@@ -1,15 +1,15 @@
-classdef (Hidden) binary_channel_writer
+classdef (Hidden) channel_writer
     %
     %   Class:
-    %   adi.binary_channel_writer
+    %   adi.channel_writer
     %
     %   This class facilities writing a channel to the binary file format.
     %   More details can be found in adi.binary_file_writer
     %
     %   See Also:
     %   adi.binary_file_writer
-
-  
+    
+    
     %{
         Each channel header has the following format:
         type name description
@@ -33,22 +33,22 @@ classdef (Hidden) binary_channel_writer
     end
     
     methods
-        function obj = binary_channel_writer(channel_name,units,fs,data)
+        function obj = channel_writer(channel_name,units,fs,data)
             %TODO: Check name size
-           obj.name  = channel_name;
-           obj.units = units;
-           obj.data  = data;
-           obj.fs    = fs;
+            obj.name  = channel_name;
+            obj.units = units;
+            obj.data  = data;
+            obj.fs    = fs;
         end
         function writeHeader(obj,fid)
-           %pass 
-           
-           temp_title = zeros(1,32,'uint8');
-           temp_units = zeros(1,32,'uint8');
-           temp_title(1:length(obj.name)) = uint8(obj.name);
-           temp_units(1:length(obj.units)) = uint8(obj.units);
-           
-           fwrite(fid,temp_title,'*char');
+            %pass
+            
+            temp_title = zeros(1,32,'uint8');
+            temp_units = zeros(1,32,'uint8');
+            temp_title(1:length(obj.name)) = uint8(obj.name);
+            temp_units(1:length(obj.units)) = uint8(obj.units);
+            
+            fwrite(fid,temp_title,'*char');
             fwrite(fid,temp_units,'*char');
             fwrite(fid,obj.scale,'double');
             fwrite(fid,obj.offset,'double');
