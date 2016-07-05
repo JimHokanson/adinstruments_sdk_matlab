@@ -1,0 +1,140 @@
+/**
+* Copyright (c) 2011-2012 ADInstruments. All rights reserved.
+*
+* \ADIDatFileSDK_license_start
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. The name of ADInstruments may not be used to endorse or promote products derived
+*    from this software without specific prior written permission.
+*
+* 3. This is an unsupported product which you use at your own risk. For unofficial 
+*    technical support, please use http://www.adinstruments.com/forum .
+*
+* THIS SOFTWARE IS PROVIDED BY ADINSTRUMENTS "AS IS" AND ANY EXPRESS OR IMPLIED
+* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+* EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ADINSTRUMENTS BE LIABLE FOR
+* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+* \ADIDatFileSDK_license_end
+*/
+
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+import "IADIDataTypes.idl";
+
+//Comment related
+
+// Event comments should generally return kCommentFlagVisibleInPrintText for the ChartCommentFlags
+typedef enum ADICommentFlags
+{
+   kCommentFlagChartDataPersist =            0x80000000, // Should the comment be saved as Chart data (warning - currently won't work for custom comments)                                                   
+   kCommentFlagVisibleInCommentView =        0x40000000, // Should the user see the comment in the comments view dialog. Must be set for comment to have a valid comment number assigned to it.
+   kCommentFlagVisibleToFindComment =        0x20000000, // The the find comment command should see this comment
+   kCommentFlagVisibleInTextOutput  =        0x10000000, // Should the comment appear in the text output.  If it does, it'll be recreated as a normal comment if loaded in Chart   
+   kCommentFlagVisibleInPrintText   =        0x04000000, // Include in printing of comment text
+   kCommentFlagCommentsDifferInShape =       0x02000000, // Include in printing of comment text
+   kCommentFlagNotAnEvent =                  0x01000000, // Indicates that this is a User comment, not an Event comment
+   kCommentFlagShowText =                    0x00800000, // Show text vertically along comment in Chart view
+   kCommentFlagDraggable =                   0x00400000, // Comment is capable of being dragged (ie moved)
+   kCommentFlagDragHandle =                  0x00200000, // Comment is dragged via handle (ie not body)
+   kCommentFlagTwoStageDrag =                0x00100000, // Comment must be selected before it can be dragged (ie two clicks required)
+   kCommentFlagSuppressPopup =               0x00080000, // Comment does NOT display popup info when clicked
+   kCommentFlagHasContextMenu =              0x00040000, // Comment supports a right-click context menu
+   kCommentFlagDefaultForEventComment = 0,
+   kCommentFlagDefaultForStdComment = kCommentFlagChartDataPersist | kCommentFlagVisibleInCommentView 
+            | kCommentFlagVisibleToFindComment | kCommentFlagVisibleInTextOutput
+            | kCommentFlagVisibleInPrintText | kCommentFlagCommentsDifferInShape
+            | kCommentFlagNotAnEvent | kCommentFlagShowText
+            | kCommentFlagDraggable | kCommentFlagDragHandle
+            | kCommentFlagTwoStageDrag | kCommentFlagHasContextMenu
+
+} ADICommentFlags;
+
+typedef enum EnumCommentFlags
+   {
+   kEnumCommentIncludeEventComments           = 0x80000000,
+   kEnumCommentEventCommentsOnly              = 0x40000000, 
+   kEnumCommentFilterUsingCAFId               = 0x20000000, // LC7.1 - Returns comments of the type passed in during construction.
+   kEnumCommentSearchTypeMask =            0xff,  //Up to 255 search types 
+   kSearchSpecificChannelOnly =               0,  // ask for a channel, only get that channel
+   kSearchAlsoAllChanComment =                1,  // ask for a channel, get that _and_ all channel comments
+   kSearchAnyChannel =                        2   // ignore the channel asked for, return anything!
+   } EnumCommentFlags;
+   
+typedef EnumCommentFlags CommentSearchType;
+
+
+typedef ulong TCommentIndex;
+
+//Since multiple comments can occur at a single tick, to uniquely identify a comment
+//we need a position which is a composite of the tick and index within that tick.
+typedef struct ChartCommentPos
+   {
+   TTickIndex mPos;                  //Tick offset from start of record
+   TCommentIndex mIndexOnTick;       //Index into comments on this tick
+   } ChartCommentPos;
+
+
+/*
+Readonly interface implemented by ADIComment objects to allow access to their
+properties.
+*/
+	[
+		object,
+		uuid(C58850BE-1FB1-4e11-B39E-8B1B3A36C58B),
+		helpstring("IADIComment Interface"),
+		pointer_default(unique)
+	]
+	interface IADIComment : IUnknown
+	{
+		[helpstring("method GetCommentInfo: returns the most important properties of the comment.")] 
+		HRESULT GetCommentInfo([out]TTickIndex *offsetInRecord,[out] TChanIndex *chanIndex,[out] TCommentNum *num,[out,retval]IAutoADIString **text) const;
+      [helpstring("method GetChannelIndex: zero based channel in which the comment is drawn. -1 for All Channel comments.")] 
+      HRESULT GetChannelIndex([out,retval] TChanIndex *channel) const;
+      [helpstring("method GetRecordOffset: returns the position of the comment in ticks from the start of the record.")] 
+      HRESULT GetRecordOffset([out]TTickIndex *offsetInRecord) const;
+      [helpstring("method GetCommentNumber: returns the number of the comment. Generally, this is the creation order (1 based).")] 
+         HRESULT GetCommentNumber([out,retval] TCommentNum* number ) const;
+      [helpstring("method GetTypeId: 32 bit identifier representing the type of the comment. Zero for user comments.")] 
+      HRESULT GetTypeId([out,retval] TCAFId *id) const;      
+      [helpstring("method GetFlags")] 
+      HRESULT GetFlags([out,retval] ADICommentFlags *flags) const;
+   };
+   
+   
+   /*
+   Interface implemented by objects that allow efficient search for and retrieval of comments within
+   a record.
+   */
+	[
+		object,
+		uuid(39AC0A31-FEC0-420c-8A1B-4E147B29F6F5),
+		helpstring("IEnumADIComment Interface"),
+		pointer_default(unique)
+	]
+	interface IEnumADIComment : IUnknown
+	{
+		[helpstring("method Next: returns up to n comments, from the current enumerator position up to but not including comments at position endTick.")] 
+		   HRESULT Next([in] TEnumCount n, [in]TTickIndex endTick, [out,size_is(n,),length_is(*nRetd,)]IADIComment **iCmt, [out,retval] TEnumCount *nRetd);
+		[helpstring("method Clone: clones the enumerator, returning a new enumerator at the same position as this one.")] 
+		   HRESULT Clone([out,retval]IEnumADIComment **retval);
+		[helpstring("method Find: searches from search, in the direction specified by findType, for the first comment in the range [limitStart,limitEnd).")] 
+		   HRESULT Find(EventFindTypes findType, TTickIndex searchPos, TTickIndex limitStart, TTickIndex limitEnd);
+		[helpstring("method GetPosition returns a ChartCommentPos greater than that of the comment returned by the last call to Next")]
+		   HRESULT GetPosition([out,retval] ChartCommentPos *nPos) const;
+	};
+   
+cpp_quote(" DEFINE_ENUMCOMMENTPTRTYPE2(IEnumADIComment,IADIComment) ") //Defines EnumXXXType template specialisation so that templates implementing enumerators can find out the enumerated type from the interface type.

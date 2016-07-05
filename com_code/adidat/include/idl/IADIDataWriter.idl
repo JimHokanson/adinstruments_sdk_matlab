@@ -1,0 +1,65 @@
+/**
+* Copyright (c) 2011-2012 ADInstruments. All rights reserved.
+*
+* \ADIDatFileSDK_license_start
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. The name of ADInstruments may not be used to endorse or promote products derived
+*    from this software without specific prior written permission.
+*
+* 3. This is an unsupported product which you use at your own risk. For unofficial 
+*    technical support, please use http://www.adinstruments.com/forum .
+*
+* THIS SOFTWARE IS PROVIDED BY ADINSTRUMENTS "AS IS" AND ANY EXPRESS OR IMPLIED
+* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+* EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ADINSTRUMENTS BE LIABLE FOR
+* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+* \ADIDatFileSDK_license_end
+*/
+
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+import "IADIDataSinkSource.idl";
+
+   // File open modes passed into IADIDataWriter::CreateADIFile().
+typedef enum ADIFileOpenFlags
+      {
+      kADIOpenFileForReadOnly       = 0,           // opens the file as read-only, so data cannot be written.
+                                                   // CreateADIFile() will fail if the specified file is not found.
+      kADIOpenFileForReadAndWrite   = 1,           // opens the file as read/write. CreateADIFile() will create a new file if the file is not found.
+      kADIWriteInADIDATFormat       = 0x80000000,  // causes the file to be written in the .adidat format
+      } ADIFileOpenFlags;
+
+
+
+interface IADIDataSink;
+
+	[
+		object,
+		local,
+		oleautomation,
+		uuid(F25E99EE-3AC0-4b3c-8CBD-7DF69A25280C),
+		helpstring("IADIDataWriter Interface"),
+		pointer_default(unique)
+	]
+	interface IADIDataWriter : IUnknown
+	{
+		[helpstring("method CreateADIFile")] HRESULT CreateADIFile([in]CONST_BSTR fileName,[in]ADIFileOpenFlags flags);
+      [helpstring("method GetADIDataSink")] HRESULT GetADIDataSink([out,retval]IADIDataSink **dataSink);
+      [helpstring("method CommitFile: completes the writing of the file to disk")] 
+         HRESULT CommitFile([in]TGenericFlags flags);
+	};

@@ -1,0 +1,225 @@
+/**
+* Copyright (c) 2011-2012 ADInstruments. All rights reserved.
+*
+* \ADIDatFileSDK_license_start
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. The name of ADInstruments may not be used to endorse or promote products derived
+*    from this software without specific prior written permission.
+*
+* 3. This is an unsupported product which you use at your own risk. For unofficial 
+*    technical support, please use http://www.adinstruments.com/forum .
+*
+* THIS SOFTWARE IS PROVIDED BY ADINSTRUMENTS "AS IS" AND ANY EXPRESS OR IMPLIED
+* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+* EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ADINSTRUMENTS BE LIABLE FOR
+* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+* \ADIDatFileSDK_license_end
+*/
+
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+import "IADIDataTypes.idl";
+import "IADIEnums.idl";
+import "IAutoADIString.idl";
+import "IADIComment.idl";
+
+
+/**
+Interface implemented by the ADIData object to provide read-only access to the data in
+a .adicht or .adidat file.
+*/
+
+[
+		object,
+      oleautomation,
+ 		uuid(4A0A2EDF-C81C-411e-ABB7-2CC0457DFB16),
+		helpstring("IADIData Interface"),
+		pointer_default(unique)
+]
+interface IADIData : IUnknown
+{
+
+[helpstring("method GetNumberOfRecords: returns number of blocks (records) in the file.\
+ Currently ignores the dataType parameter.")]
+HRESULT GetNumberOfRecords([in]ADIDataType dataType,[out,retval] TRecordIndex *nrecs) const;
+
+[helpstring("method GetNumberOfChannels: returns number of channels, i.e. the index of the last channel plus 1.\
+ Currently ignores the dataType parameter.")]
+HRESULT GetNumberOfChannels([in]ADIDataType dataType,[out,retval] TChanIndex *chan) const;
+
+[helpstring("method GetChannelName: return a pointer to the COM object holding the name of the channel.")]
+HRESULT GetChannelName([in]ADIChannelId channel,[out,retval] IAutoADIString **chanName) const;
+
+[helpstring("method GetRecordLength: returns the number of ticks (fastest samples) in the record.\
+ Currently ignores the reserved flags which should be kADIReservedNil.")]
+HRESULT GetRecordLength([in]ADIReservedFlags flags, [in]TRecordIndex rec, [out,retval]TTickIndex *ticks) const;
+
+[helpstring("method RecordHasData: returns Automation compatible boolean indicating whether or not\
+ the specified channel and record contains data.")]
+HRESULT RecordHasData([in]ADIChannelId channel, [in]TRecordIndex rec, [out,retval]AutoBool *hasData) const;
+
+[helpstring("method GetNumSamplesInRecord: returns the number of samples stored in the specified channel and record. \
+This can be less than the number expected from the length of the record in ticks.\
+If dataFlags does not have kADIDataAtTickRate set, returns the actual number of recorded samples in this record and channel.\
+If dataFlags has kADIDataAtTickRate set, returns the number of recorded samples transformed into ticks, which may not agree with the number of ticks returned by GetRecordLength().")]
+HRESULT GetNumSamplesInRecord([in]ADIDataFlags dataFlags, [in]ADIChannelId channel, [in]TRecordIndex rec, [out,retval]TTickIndex *numSamples) const;
+
+[helpstring("method GetSecsPerSample: returns secsPerTick if (dataFlags & kADIDataAtTickRate), otherwise secs per sample.")] 
+HRESULT GetSecsPerSample([in]ADIDataFlags dataFlags, [in]ADIChannelId channel, [in]TRecordIndex rec, [out,retval]double *secs) const;
+
+[helpstring("method GetTickToSample: returns a TTickToSample struct containing the linear transform mapping a tick within a record to a sample\
+ within that record and specified channel. This linear transform will be the identity transform unless the file contains multirate data.")] 
+HRESULT GetTickToSample([in]ADIDataFlags dataFlags, [in]ADIChannelId channel, [in]TRecordIndex rec, [out,retval]TTickToSample *tickToSample) const;
+
+[helpstring("method GetRecordTimeInfo: returns time information for the specified record and channel. The sizeOfTimeInfo parameter should be set to\
+ the size of the RecordTimeInfo structure in bytes (i.e. sizeof(RecordTimeInfo)).")]
+HRESULT GetRecordTimeInfo([in]ADIReservedFlags flags, [in]TRecordIndex rec, [in]uint32 sizeOfTimeInfo, [out,retval]RecordTimeInfo *timeInfo) const;
+
+[helpstring("method ADIPositionToTime: returns the time of the position specified by the parameter tick. The meaningful allowed values for the timeMode parameter are:\
+  kTModeTimeFromStartOfFile, kTModeTimeFromStartOfRecord, kTModeTimeOfDay.\
+If the timeMode is kTModeTimeOfDay, kTModeUT can mixed in using the bitwise 'or' operation (kTModeTimeOfDay | kTModeUT) to change \
+the time returned from a local time to UTC.")]
+HRESULT ADIPositionToTime([in]ADIReservedFlags flags, [in]TimeDisplayMode timeMode,[in]ADIPosition tick, [out,retval]ADITimeDate *time) const;
+
+[helpstring("method GetDataFormatId: returns an identifier describing the type of data stored in the specified channel and record.\
+The formatId will normally be one of the values in the ADIDataValueId enumeration, typically either kADIDataValue16Bit or kADIDataValueFloat.")]
+HRESULT GetDataFormatId([in]ADIChannelId channel, [in]TRecordIndex rec, [out,retval]TCAFId *formatId) const;
+
+[helpstring("method GetUnitsName: returns a string containing the name of the units for the specified record and channel. The dataFlags parameter determines whether or not the string contains a prefixed units name if the data allows these.")]
+HRESULT GetUnitsName([in]ADIDataFlags dataFlags, [in]ADIChannelId channel, [in]TRecordIndex rec, [out,retval]IAutoADIString **name) const;
+
+[helpstring("method GetADCToUnitsScaling: returns a struct containing the linear transform from ADC units to physical units for the specified \
+record and channel. The dataFlags parameter determines whether the scaling is from ADC units to prefixed physical units or not.\
+If dataFlags is kADIDataScaleToUnits, the scaling will be to physical units such as V, while kADIDataScaleToPrefixedUnits results in a scaling\
+corresponding to prefixed units (if present) such as mV.\
+Note that GetEnumFloat() will return values scaled to physical or prefixed units as appropriate if passed kADIDataScaleToUnits or kADIDataScaleToPrefixedUnits,\
+so this scaling information is only needed when creating enumerators with kADIDataScaleADCUnits.")]
+HRESULT GetADCToUnitsScaling([in]ADIDataFlags dataFlags, [in]ADIChannelId channel, [in]TRecordIndex rec,[out,retval] ADIScaling *out) const;
+
+[helpstring("method GetUnitsInfo: returns information about the units of the data in the specified record and channel. The BaseUnitsInfo contains\
+information about the scaling from ADC units to Base units, which are normally Volts, but may have a prefix such as mV or uV.\
+The UserUnitsInfo represents an optional transformation from Volts to units such as mmHg, and corresponds to the user units conversion\
+set via the LabChart Units Conversion Dialog.")] 
+HRESULT GetUnitsInfo
+   (
+   [in]ADIDataFlags dataFlags, 
+   [in]ADIChannelId channel, 
+   [in]TRecordIndex rec,
+   [out]BaseUnitsInfo *baseInfo,
+   [out]IAutoADIString **baseName,
+   [out]UserUnitsInfo *userInfo, 
+   [out,retval]IAutoADIString **userName
+   ) const;
+
+[helpstring("method FindYDataRange: returns the y range of the data values in the specified channel for the time range [startTP, endTP).\
+This function is used when auto-scaling the displayed scale for a range of data.")] 
+HRESULT FindYDataRange([in]ADIDataFlags dataFlags, [in]ADIChannelId channel, [in]ADIPosition startTP,[in]ADIPosition endTP,[in]ADIReservedFlags flags,/*[in]IAutoADIString *progressTitleIn,[in]IAutoADIString *progressMsgIn,*/ [out,retval]ChannelYDataRange *range) const;
+
+
+[helpstring("method CreateEnumComment: Creates a object to enumerate comments in the record from left to right starting at position start and ending at (but not including) stop.\
+If the parameter stop is set to kRecordEndOffset, the enumerator will continue to return comments until the last comment in the record is reached.\
+The channel parameter is ignored if the flags parameter has kSearchAnyChannel set.")] 
+HRESULT CreateEnumComment([in]EnumCommentFlags flags, [in] TChanIndex channel, [in] ADIPosition start, [in] TTickIndex stop, [in] TCAFId cafId, [out] IEnumADIComment**);
+
+[helpstring("method CreateEnumCommentFromPos: supports creating an enumerator that starts part way through comments on the same tick")] 
+HRESULT CreateEnumCommentFromPos([in]EnumCommentFlags flags, [in] TChanIndex channel, [in] TRecordIndex rec, [in] ChartCommentPos start, [in] TTickIndex stop, [in] TCAFId cafId, [out] IEnumADIComment**);
+
+[helpstring("method CreateEnumCommentReverse:\
+Creates a object to enumerate comments in the record from right to left starting at position start and ending at (and including) stop.\
+If the parameter start is set to kRecordEndOffset, the enumerator will return comments starting from the end of the record.\
+The channel parameter is ignored if the flags parameter has kSearchAnyChannel set.")] 
+HRESULT CreateEnumCommentReverse([in]EnumCommentFlags flags, [in] TChanIndex channel, [in] ADIPosition start, [in] TTickIndex stop, [in] TCAFId cafId, [out] IEnumADIComment**);
+
+[helpstring("method GetRightMostCommentInRange:\
+ Searches from right to left for a comment in the record starting at (but not including) position rightPos and ending at (and including) leftPos.\
+The channel parameter is ignored if the flags parameter has kSearchAnyChannel set.")]
+   HRESULT GetRightMostCommentInRange([in]EnumCommentFlags searchFlags, [in]ADIPosition leftPos, [in]ADIPosition rightPos, [in]TChanIndex chan, [out]IADIComment **icmt) const;
+
+
+/*
+Returns an an enumerator object which provides access to the samples in the specified
+channel for the record in the mRecordOffset field of the ADIPosition start parameter.  The mRecordOffset
+field of the start parameter determines the initial position of the enumerator, but does prevent the enumerator
+being skipped back before this start position. However, enumerators cannot cross record boundaries.
+The endOffset parameter does limit how far to the right the enumerator can be driven. Setting this
+parameter to kRecordEndOffset allows the enumerator to run to the end of the record.
+The scaling parameter is optional and may be set to null (0). If supplied, the ADIScaling struct
+supplies a linear transformation which is applied to the samples by the enumerator before they
+are returned by IEnumFloatEx::Next(). 
+Note that GetEnumFloat() will return values scaled to physical or prefixed units as appropriate if passed
+dataFlags with kADIDataScaleToUnits or kADIDataScaleToPrefixedUnits, so this ADIScaling option is not
+usually needed. 
+If dataFlags is kADIDataScaleADCUnits, unscaled recorded values in the range [-32768,32767]
+will be returned.
+If dataFlags has the kADIDataAtTickRate bit set and the file is multi-rate, the sample rate data
+in the channel will be interpolated up to the tick rate for the record. By default an interpolator
+that replicates samples to generate a step-like waveform will be used. If dataFlags has the kADIDataEnumLinear 
+bit set, a linear interpolator will be used instead.
+*/
+
+[helpstring("method GetEnumFloat:\
+Returns an an enumerator object which provides access to the samples in the specified\
+channel for the record in the mRecordOffset field of the ADIPosition start parameter.  The mRecordOffset\
+field of the start parameter determines the initial position of the enumerator, but does prevent the enumerator\
+being skipped back before this start position. However, enumerators cannot cross record boundaries.\
+The endOffset parameter does limit how far to the right the enumerator can be driven. Setting this\
+parameter to kRecordEndOffset allows the enumerator to run to the end of the record.")]
+HRESULT GetEnumFloat
+   (
+   [in] ADIDataFlags dataFlags,
+   [in] ADIChannelId channel,
+   [in] ADIPosition start,
+   [in] TTickIndex endOffset,
+   [in] const ADIScaling *scaling,
+   [out,retval] IEnumFloatEx **enumI
+   ) const;
+
+[helpstring("method GetEnumX:\
+Returns an enumerator, similar to GetEnumFloat() above.\
+However, this method can return enumerators of different types\
+depending on the enumTypeId parameter.")]
+HRESULT GetEnumX
+   (
+   [in] ADIDataFlags dataFlags,
+   [in] ADIEnumDataType enumTypeId,
+   [in] ADIChannelId channel,
+   [in] ADIPosition start,
+   [in] TTickIndex endOffset,
+   [in] const ADIScaling *scaling,
+   [out,retval] IUnknown **enumI
+   ) const;
+
+
+[helpstring("method GetValDouble: returns a single data value at the specified position. \
+To access multiple data values use GetEnumFloat or GetEnumX instead.\
+Returns E_INVALIDARG and sets val to a NAN if the position is beyond the end of the available samples.\
+Returns S_FALSE and sets val to a NAN if the specified record and channel has no data.")] 
+HRESULT GetValDouble
+   (
+   [in] ADIDataFlags dataFlags,
+   [in] ADIChannelId channel,
+   [in] ADIPosition position,
+   [in] const ADIScaling *scaling,
+   [out,retval] double *val
+   ) const;
+
+[helpstring("method GetErrorMessage: Returns a string with an error message corresponding to the HRESULT errorCode supplied.")]
+HRESULT GetErrorMessage([in]HRESULT errorCode, [in]ADIReservedFlags reserved, [out,retval] IAutoADIString **msg) const;
+
+
+};

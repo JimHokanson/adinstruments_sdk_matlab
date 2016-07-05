@@ -1,0 +1,160 @@
+/**
+* Copyright (c) 2011-2012 ADInstruments. All rights reserved.
+*
+* \ADIDatFileSDK_license_start
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. The name of ADInstruments may not be used to endorse or promote products derived
+*    from this software without specific prior written permission.
+*
+* 3. This is an unsupported product which you use at your own risk. For unofficial 
+*    technical support, please use http://www.adinstruments.com/forum .
+*
+* THIS SOFTWARE IS PROVIDED BY ADINSTRUMENTS "AS IS" AND ANY EXPRESS OR IMPLIED
+* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+* EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ADINSTRUMENTS BE LIABLE FOR
+* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+* \ADIDatFileSDK_license_end
+*/
+
+
+import "oaidl.idl";
+
+import "ADIBaseTypes.idl";
+import "IADIDataTypes.idl";
+
+typedef ADIRational TChanRateType;
+
+
+cpp_quote("#if defined(PUBLIC_OEM_UTIL) || !defined(__cplusplus)")
+cpp_quote("#if !defined(__cplusplus)")
+typedef struct TTickToSample
+    {
+    TChanRateType mSamplesPerTick;
+    double mSampleAtTickZero; //(mFractionalStartSample) Typically a record starts part way thru a sample. This value is the time in samples of the 1st tick minus the first sample.
+    } 	TTickToSample;
+cpp_quote("#else")
+cpp_quote("struct TTickToSample  //This version does not depend on boost")
+cpp_quote("{")
+cpp_quote("TChanRateType mSamplesPerTick;")
+cpp_quote("double mSampleAtTickZero;") //(mFractionalStartSample) Typically a record starts part way thru a sample. This value is the time in samples of the 1st tick minus the first sample.
+cpp_quote("explicit TTickToSample(TChanRateType samplesPerTick = 1, double sampleAtTickZero = 0) :")
+cpp_quote(" mSamplesPerTick(samplesPerTick), mSampleAtTickZero(sampleAtTickZero) {}")
+cpp_quote("double TickToSample(double tick) const")
+cpp_quote("   {")
+cpp_quote("   return tick*(static_cast<double>(mSamplesPerTick.num)/mSamplesPerTick.den)+mSampleAtTickZero;")
+cpp_quote("   }")
+cpp_quote("double SampleToTick(double sample) const")
+cpp_quote("   {")
+cpp_quote("   return (sample-mSampleAtTickZero)/(static_cast<double>(mSamplesPerTick.num)/mSamplesPerTick.den);")
+cpp_quote("   }")
+cpp_quote("};")
+cpp_quote("#endif")
+cpp_quote("#else")
+cpp_quote("struct TTickToSample")
+cpp_quote("{")
+cpp_quote("TChanRateType mSamplesPerTick;")
+cpp_quote("double mSampleAtTickZero;") //(mFractionalStartSample) Typically a record starts part way thru a sample. This value is the time in samples of the 1st tick minus the first sample.
+cpp_quote("explicit TTickToSample(TChanRateType samplesPerTick = 1, double sampleAtTickZero = 0) :")
+cpp_quote(" mSamplesPerTick(samplesPerTick), mSampleAtTickZero(sampleAtTickZero) {}")
+cpp_quote("double TickToSample(double tick) const")
+cpp_quote("   {")
+cpp_quote("   return tick*rational_cast<double>(mSamplesPerTick)+mSampleAtTickZero;")
+cpp_quote("   }")
+cpp_quote("double SampleToTick(double sample) const")
+cpp_quote("   {")
+cpp_quote("   return (sample-mSampleAtTickZero)/rational_cast<double>(mSamplesPerTick);")
+cpp_quote("   }")
+cpp_quote("void Resample(const TTickToSample &other)")
+cpp_quote("   {")
+cpp_quote("   mSamplesPerTick *= other.mSamplesPerTick;")
+cpp_quote("   mSampleAtTickZero = mSampleAtTickZero * rational_cast<double>(other.mSamplesPerTick) + other.mSampleAtTickZero;")
+cpp_quote("   }")
+cpp_quote("void Resample(TChanRateType outSamplesPerInSample)")
+cpp_quote("   {")
+cpp_quote("   mSamplesPerTick *= outSamplesPerInSample;")
+cpp_quote("   mSampleAtTickZero *= rational_cast<double>(outSamplesPerInSample);")
+cpp_quote("   }")
+cpp_quote("void Resample(double outSamplesPerInSample)")
+cpp_quote("   {")
+cpp_quote("   Resample(::ADI::gDoubleToTChanRateType(outSamplesPerInSample));")
+cpp_quote("   }")
+cpp_quote("};")
+cpp_quote("#endif")
+
+
+//These are used by enumerator traits defining macros like DEFINE_ENUMXXXTYPE 
+//which use string pasting to match names like IEnumInt32 rather than IEnumint32.
+typedef int32 Int32;
+typedef uint64 UInt64;
+
+/* Base interface for IEnumXXXEx style enumerators. Has the methods relating to positioning
+the enumerator, but no methods depending on the type XXX. */
+	[
+		object,
+		uuid(F28FCF13-679E-444f-A6D2-F9BB2827B9F5),
+		helpstring("IEnumExBase Interface"),
+		pointer_default(unique)
+	]
+interface IEnumExBase : IUnknown
+{
+[helpstring("method SkipEx: allows bi-directional skipping of the enumerator from its current position")] 
+HRESULT SkipEx([in]TTickIndex nToSkip,[out,retval]TTickIndex *nSkipped);
+
+[helpstring("method Reset")] 
+   HRESULT Reset(); //Deprecated
+   
+[helpstring("method GetPosition: offset relative to the first valid accessable value (which may be before the starting value)")]
+HRESULT GetPosition([out,retval]TTickIndex *nPos) const;
+   
+[helpstring("method IsFilling: returns true if available data will increase in future during sampling.")]
+HRESULT IsFilling([out,retval]AutoBool *isFilling) const;
+
+[helpstring("method GetTickToSample: returns a TTickToSample struct containing the linear transform mapping a tick within a record to a sample\
+ within that record. This linear transform will be the identity transform unless the file contains multirate data.")] 
+HRESULT GetTickToSample([in]TTickToSample *tickToSample) const;
+}
+
+
+/* Enumerator returning int16 data values. */
+	[
+		object,
+		uuid(B3D79151-302B-4597-AE36-79DF1E5ADA5F),
+		helpstring("IEnumShortEx Interface"),
+		pointer_default(unique)
+	]
+	interface IEnumShortEx : IEnumExBase
+	{
+		[helpstring("method Next")] HRESULT Next([in]TEnumCount n, [out,size_is(n),length_is(*nRetd)]short *out, [out,retval] TEnumCount *nRetd);
+	   [helpstring("method Clone")] HRESULT Clone([out,retval]IEnumShortEx **retval);
+	};
+
+cpp_quote(" DEFINE_ENUMXXXEXTYPE2(IEnumShortEx,short) ") //Defines EnumXXXType template specialisation so that templates implementing enumerators can find out the enumerated type from the interface type.
+
+
+/* Enumerator returning float data values. */
+	[
+		object,
+		uuid(4236EDC0-23A0-11d3-80CA-00A0C9E26433),
+		helpstring("IEnumFloatEx Interface"),
+		pointer_default(unique)
+	]
+interface IEnumFloatEx : IEnumExBase
+{
+	[helpstring("method Next")] HRESULT Next([in]TEnumCount n, [out,size_is(n),length_is(*nRetd)]float *out, [out,retval] TEnumCount *nRetd);
+	[helpstring("method Clone")] HRESULT Clone([out,retval]IEnumFloatEx **retval);
+};
+
+cpp_quote(" DEFINE_ENUMXXXEXTYPE2(IEnumFloatEx,float) ") //Defines EnumXXXType template specialisation so that templates implementing enumerators can find out the enumerated type from the interface type.

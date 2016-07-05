@@ -1,0 +1,366 @@
+/**
+* Copyright (c) 2011-2012 ADInstruments. All rights reserved.
+*
+* \ADIDatFileSDK_license_start
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. The name of ADInstruments may not be used to endorse or promote products derived
+*    from this software without specific prior written permission.
+*
+* 3. This is an unsupported product which you use at your own risk. For unofficial 
+*    technical support, please use http://www.adinstruments.com/forum .
+*
+* THIS SOFTWARE IS PROVIDED BY ADINSTRUMENTS "AS IS" AND ANY EXPRESS OR IMPLIED
+* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+* EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ADINSTRUMENTS BE LIABLE FOR
+* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+* \ADIDatFileSDK_license_end
+*/
+
+
+import "oaidl.idl";
+//import "ocidl.idl";
+
+import "ADIBaseTypes.idl";
+
+import "iautoadistring.idl";
+
+typedef int32 TChanIndex;
+typedef int32 TRecordIndex;
+typedef int32 TCommentNum; //Type for the 32 bit number stored in comments that roughly represents their creation order.
+
+
+//Type for flags reserved for future use, which are passed
+//as a parameter to some functions.
+typedef [public] enum ADIReservedFlags
+   {
+   kADIReservedNil = 0,
+   } ADIReservedFlags;
+
+
+typedef [public] enum TTickIndexConsts
+   {
+   kRecordEndOffset = 0x7fffffff,
+   } TTickIndexConsts;
+
+
+typedef [public] enum TRecordIndexConsts
+   {
+   kEndRecordIndex = 0x7fffffff,
+   kInvalidRecord = 0x7fffffff,
+   kPrototypeRecord = 0x7ffffffe,
+   } TRecordIndexConsts;
+
+typedef enum ADIDataFlags
+{
+	kADIDataScaleNone	= 0,
+	kADIDataScaleADCUnits = kADIDataScaleNone,
+	kADIDataScaleToUnits	= 0x1000,
+	kADIDataScaleToPrefixedUnits	= 0x2000,
+	kADIDataScalingForceBaseOnly	= 0x4000,
+	kADIDataScaleNoOffset	= 0x8000,
+	kADIDataEnumLinear	= 0x100,
+	kADIDataAtTickRate	= 0x80000000,
+} ADIDataFlags;
+
+typedef enum ADIDataType
+{
+	kADIDataRaw	= 1,
+	kADIDataRecorded = kADIDataRaw, //Synonyms
+	kADIDataCalc	= 2,
+	kADIDataDigital	= 3,
+	kADIDataVirtual	= 4,
+	kADIDataCalcElseRaw	         = 0x40000000,
+   //This only applies if data type is kADIDataVirtual
+   kADIDataVRecorded             = 0x20000000, //do we allow the same data to be both calculated and recorded? Or is virtual data calculated by default?
+   
+	kADIDataTypesMask    = 0x000000ff,
+	kADIDataDefault      = kADIDataCalcElseRaw | kADIDataAtTickRate,
+} ADIDataType;
+
+typedef enum ADIEnumDataType
+   { //Use flags so CalcParser can easily do type checking by anding bitsets.
+   kADIEnumDataTypeNone                   = 0,
+   kADIEnumDataTypeFloatEx                = 0x80000000,  //IEnumFloatEx
+   kADIEnumDataTypeEventEx                = 0x40000000,  //IEnumEventEx
+   kADIEnumDataTypeEventObjectEx          = 0x20000000,  //IEnumEventObjectEx
+   kADIEnumDataTypeDoubleEx               = 0x10000000,  //IEnumDoubleEx
+   kADIEnumDataTypeVectorDoubleEx         = 0x08000000,  //IEnumVectorDoubleEx
+   kADIEnumDataTypeComplexEx              = 0x04000000,  //IEnumComplexEx
+   kADIEnumDataTypeVectorComplexEx        = 0x02000000,  //IEnumVectorComplexEx
+   kADIEnumDataTypeVectorFloatEx          = 0x01000000,   //IEnumVectorFloatEx
+   kADIEnumDataTypeVectorMask             = kADIEnumDataTypeVectorFloatEx|kADIEnumDataTypeVectorDoubleEx|kADIEnumDataTypeVectorComplexEx,
+   kADIEnumDataTypeShortEx                = 0x00800000,  //IEnumShortEx
+   } ADIEnumDataType;
+
+typedef enum ADIDataValueId
+{
+kADIDataValue12Bit = 0x80020000, //kBlockDataFormatBase
+kADIDataValue16Bit,
+kADIDataValue32Bit,
+kADIDataValueFloat,
+kADIDataValueDouble,
+} ADIDataValueId;
+
+enum ADIDataConsts
+   {
+   kADIInvalidChannel   = 0x80000000,
+   };
+     
+
+cpp_quote("#ifndef __cplusplus")
+typedef struct ADIChannelId
+   {
+   TChanIndex mChan;
+   ADIDataType mDataType;
+   } ADIChannelId;
+cpp_quote("#else")
+
+cpp_quote(" }//extern C ")
+//cpp_quote("#include \"Utility/BinStream\" ")
+cpp_quote(" extern \"C\" {")
+
+cpp_quote("struct ADIChannelId")
+cpp_quote("{")
+cpp_quote("TChanIndex mChan;")
+cpp_quote("ADIDataType mDataType;")
+cpp_quote("explicit ADIChannelId(TChanIndex chan = kADIInvalidChannel, ADIDataType dataType = kADIDataDefault) :")
+cpp_quote(" mChan(chan), mDataType(dataType) {}")
+cpp_quote(" bool operator==(const ADIChannelId &other) const {return mChan==other.mChan && mDataType==other.mDataType;}")
+cpp_quote(" bool operator!=(const ADIChannelId &other) const {return !operator==(other);}")
+cpp_quote(" bool operator <(const ADIChannelId& other) const {return mChan < other.mChan || (mChan == other.mChan && mDataType < other.mDataType);}")
+cpp_quote(" static bool IsRaw(ADIDataType dataType)       {return (dataType & kADIDataTypesMask) == kADIDataRaw;}")
+cpp_quote(" static bool IsVirtual(ADIDataType dataType)   {return (dataType & kADIDataTypesMask) == kADIDataVirtual;}")  
+cpp_quote(" static bool IsCalculated(ADIDataType dataType){return (dataType & kADIDataTypesMask)==kADIDataCalc || ((dataType & kADIDataTypesMask)==kADIDataVirtual && !(dataType & kADIDataVRecorded)) ;}")  
+cpp_quote(" static void SetRaw(ADIDataType &dataType)              {dataType = ADIDataType((dataType & ~(kADIDataTypesMask | kADIDataCalcElseRaw)) | kADIDataRaw);}")
+cpp_quote(" static void SetVirtual(ADIDataType &dataType)          {dataType = ADIDataType((dataType & ~(kADIDataTypesMask | kADIDataCalcElseRaw)) | kADIDataVirtual);}")
+cpp_quote(" static void SetNonVirtualCalc(ADIDataType &dataType)   {dataType = ADIDataType((dataType & ~(kADIDataTypesMask | kADIDataCalcElseRaw)) | kADIDataCalc);}")
+cpp_quote(" static void SetVirtualRecorded(ADIDataType &dataType)  {dataType = ADIDataType((dataType & ~(kADIDataTypesMask | kADIDataCalcElseRaw)) | kADIDataVirtual | kADIDataVRecorded);}")
+cpp_quote(" void SetRaw()              {SetRaw(mDataType);}")
+cpp_quote(" void SetVirtual()          {SetVirtual(mDataType);}")
+cpp_quote(" void SetNonVirtualCalc()   {SetNonVirtualCalc(mDataType);}")
+cpp_quote(" void SetVirtualRecorded()  {SetVirtualRecorded(mDataType);}")
+cpp_quote(" bool IsInvalid() const {return mChan == kADIInvalidChannel;}")
+cpp_quote(" bool IsRaw() const {return IsRaw(mDataType);}")
+cpp_quote(" bool IsVirtual() const {return IsVirtual(mDataType);}")  
+cpp_quote(" bool IsCalculated() const {return IsCalculated(mDataType);}")  
+cpp_quote(" bool IsCalcOrRaw() const {return (mDataType & kADIDataCalcElseRaw) || (mDataType & kADIDataTypesMask)==kADIDataCalc || (mDataType & kADIDataTypesMask)==kADIDataRaw;}")  
+cpp_quote(" bool IsSameChannel(const ADIChannelId &other) const {")
+//cpp_quote("     ADIASSERT(!(mChan==other.mChan && (mDataType & kADIDataTypesMask)==(other.mDataType & kADIDataTypesMask)) || IsCalcOrRaw() == other.IsCalcOrRaw());")  //We know that they are not the same channel if only one is > kADIDataCalc.
+cpp_quote("     return mChan==other.mChan && (mDataType & kADIDataTypesMask)==(other.mDataType & kADIDataTypesMask);")  
+cpp_quote("     }")  
+//cpp_quote(" ADIDataType GetDataType(ADIDataType extraFlags = ADIDataType(0)) const {return ADIDataType(mDataType | (extraFlags & ~kADIDataTypesMask));}") //convenience function to mix in flags if needed.
+//cpp_quote("ADI::BinOStream & Write(ADI::BinOStream &s) const {s.writeInt32(mChan); s.writeInt32(mDataType); return s;}")
+//cpp_quote("ADI::BinIStream & Read(ADI::BinIStream &s) {int32 type(0); s.readInt32(mChan); s.readInt32(type); mDataType = static_cast<ADIDataType>(type); return s;}")
+cpp_quote("std::wostream & Write(std::wostream &s) const {s << mChan; s << L'\t'; s << static_cast<long>(mDataType); return s;}")
+cpp_quote("std::wistream & Read(std::wistream &s) {long type(0); s >> mChan; s >> type; mDataType = static_cast<ADIDataType>(type); return s;}")
+cpp_quote("};")
+cpp_quote("#endif")
+
+
+// ADIPositions passed into IADIData should always be normalized.
+// i.e The record index should always represent a valid record and the record offset
+// can be a valid index or kRecordEndOffset to represent the end of the current record.
+cpp_quote("#ifndef __cplusplus")
+typedef [public] struct ADIPosition
+{
+TTickIndex mRecordOffset;
+TRecordIndex mRecordIndex;
+} ADIPosition;
+cpp_quote("#else")
+cpp_quote("typedef struct ADIPosition")
+cpp_quote("{")
+cpp_quote("ADIPosition() : mRecordOffset(kRecordEndOffset), mRecordIndex(kInvalidRecord) {}")
+cpp_quote("ADIPosition(TRecordIndex rec,TTickIndex offset) : mRecordOffset(offset), mRecordIndex(rec) {}")
+cpp_quote("TTickIndex mRecordOffset;")
+cpp_quote("TRecordIndex mRecordIndex;")
+cpp_quote("void SetInValid() { mRecordIndex = kInvalidRecord;}")
+cpp_quote("bool IsValid() const { return mRecordIndex != kInvalidRecord;}")
+cpp_quote("bool operator == (const ADIPosition& other) const {return (mRecordIndex == other.mRecordIndex) && (mRecordOffset == other.mRecordOffset);}")
+cpp_quote("bool operator != (const ADIPosition& other) const {return (mRecordIndex != other.mRecordIndex) || (mRecordOffset != other.mRecordOffset);}")
+cpp_quote("bool operator < (const ADIPosition& other) const {return (mRecordIndex < other.mRecordIndex) || ((mRecordIndex == other.mRecordIndex) && (mRecordOffset < other.mRecordOffset));}")
+cpp_quote("bool operator > (const ADIPosition& other) const {return (mRecordIndex > other.mRecordIndex) || ((mRecordIndex == other.mRecordIndex) && (mRecordOffset > other.mRecordOffset));}")
+cpp_quote("bool operator <= (const ADIPosition& other) const {return (mRecordIndex < other.mRecordIndex) || ((mRecordIndex == other.mRecordIndex) && (mRecordOffset <= other.mRecordOffset));}")
+cpp_quote("bool operator >= (const ADIPosition& other) const {return (mRecordIndex > other.mRecordIndex) || ((mRecordIndex == other.mRecordIndex) && (mRecordOffset >= other.mRecordOffset));}")
+cpp_quote("} ADIPosition;")
+cpp_quote("#endif")
+
+
+//Scaling related
+
+cpp_quote("#ifndef __cplusplus")
+typedef struct ADIScaling
+{
+   double mScaleSourceToOutput;  //any output units e.g. pixels
+   double mOffsetInSourceUnits;
+} ADIScaling;
+cpp_quote("#else")
+cpp_quote("typedef struct ADIScaling")
+cpp_quote("{")
+//cpp_quote("ADIScaling() : mScaleSourceToOutput(1.0), mOffsetInSourceUnits(0.0) {}")
+cpp_quote("explicit ADIScaling(double scaleToOutput = 1.0, double offsetSourceUnits = 0.0) : mScaleSourceToOutput(scaleToOutput), mOffsetInSourceUnits(offsetSourceUnits) {}")
+cpp_quote("double mScaleSourceToOutput;")
+cpp_quote("double mOffsetInSourceUnits;")
+
+cpp_quote("bool operator == (const ADIScaling& other) const {return (mScaleSourceToOutput == other.mScaleSourceToOutput) && (mOffsetInSourceUnits == other.mOffsetInSourceUnits);}")
+cpp_quote("bool operator != (const ADIScaling& other) const {return ! operator == (other);}")
+
+cpp_quote("double Scale(double val){return (mOffsetInSourceUnits + val) * mScaleSourceToOutput;}")
+cpp_quote("double InverseScale(double val){return val/mScaleSourceToOutput - mOffsetInSourceUnits;}")
+cpp_quote("} ADIScaling;")
+cpp_quote("#endif")
+
+//Units related
+
+
+typedef enum UnitPrefix
+{
+   kUndefinedPrefix=0,
+   kNoPrefix,
+   kAtto,
+   kFemto,
+   kPico,
+   kNano,
+   kMicro,
+   kMilli,
+   kUnity,
+   kKilo,
+   kMega,
+   kGiga,
+   kTera,
+   kP,
+   kE,
+   kNumUnitPrefixes
+} UnitPrefix;
+
+cpp_quote("#pragma pack(push,1)")
+typedef struct BaseUnitsInfo
+{
+   double mScaleToBase;
+   double mMLVOffset; // Added before ScaleToBase is applied
+   float mMaxValid;
+   float mMinValid;
+   int32 mDecPlacesBase;
+   UnitPrefix mPrefixBase;
+   AutoBool mAutoPrefixBase;
+} BaseUnitsInfo;
+cpp_quote("#pragma pack(pop)")
+
+
+cpp_quote("#pragma pack(push,1)")
+typedef struct UserUnitsInfo
+{
+   double mScaleVToUnits;
+   double mUnitOffset;   //Added after mScaleVToUnits is applied
+   int32 mDecPlaces;
+   UnitPrefix mPrefix;
+   AutoBool mAutoPrefix;   // GWW 29/08/2006 - this means "not locked" as in the prefix (and corresponding data) may be adjusted for display purposes
+   AutoBool mOn;
+} UserUnitsInfo;
+cpp_quote("#pragma pack(pop)")
+
+
+typedef struct UnitPrefixInfo
+   {
+   uint32      mFlags;
+   UnitPrefix  mPrefix;
+   } UnitPrefixInfo;
+
+
+//Time related
+
+typedef enum TimeDisplayMode
+    {
+   kTModeDocCurrent        = 0,   //Use the current mode from the document settings
+   kTModeTimeFromStartOfFile,
+   kTModeTimeFromStartOfRecord,
+   kTModeTimeOfDay,
+   kTModeMask              = 0x000000ff,
+   kTModeAlwaysSecs        = 0x80000000,
+   kTModeUT                = 0x40000000,
+   kTModeAlwaysMilliSecs   = 0x20000000,
+   kTModeUnitsNotTime      = 0x10000000,
+   } TimeDisplayMode;
+
+
+typedef double ADITimeType;
+
+typedef struct ADITimeDate
+   {
+   ADITimeType mSeconds;  //Seconds since 00:00:00 1 Jan 1970
+   ADITimeType mBiasSecs; //Add to mSeconds to get UT
+   } ADITimeDate;
+
+cpp_quote("#ifndef __cplusplus")
+typedef struct RecordTimeInfo
+   {
+   double mSecPerTick;
+   ADITimeDate mRecordTriggerTime;
+   ADITimeDate mFileStartTime;
+   TTickIndex mTrigTickMinusRecStartTick;
+   } RecordTimeInfo;
+   
+cpp_quote("#else")
+cpp_quote("struct RecordTimeInfo")
+cpp_quote("   {")
+cpp_quote("   double mSecPerTick;")
+cpp_quote("   ADITimeDate mRecordTriggerTime;")
+cpp_quote("   ADITimeDate mFileStartTime;")
+cpp_quote("   TTickIndex mTrigTickMinusRecStartTick;")
+cpp_quote("   ADITimeType TickToSecInRec(TTickIndex tickInRec) const")
+cpp_quote("      {")
+cpp_quote("      return (tickInRec-mTrigTickMinusRecStartTick) * mSecPerTick;")
+cpp_quote("      }")
+cpp_quote("   ADITimeDate RecStartTime () const")
+cpp_quote("      {")
+cpp_quote("      ADITimeDate startTime(mRecordTriggerTime);")
+cpp_quote("      startTime.mSeconds -= mTrigTickMinusRecStartTick * mSecPerTick;")
+cpp_quote("      return startTime;")
+cpp_quote("      }")
+cpp_quote("   ADITimeDate RecTickTime(TTickIndex tickInRec) const")
+cpp_quote("      {")
+cpp_quote("      ADITimeDate startTime(mRecordTriggerTime);")
+cpp_quote("      startTime.mSeconds += (tickInRec-mTrigTickMinusRecStartTick) * mSecPerTick;")
+cpp_quote("      return startTime;")
+cpp_quote("      }")
+//Should take mBias into account here!
+//cpp_quote("   ADITimeType TickToTimeFromStartOfFile(TTickIndex tickInRec) const")
+//cpp_quote("      {")
+//cpp_quote("      ADITimeType result(mRecordTriggerTime.mSeconds);")
+//cpp_quote("      result += TickToSecInRec(tickInRec) - mFileStartTime.mSeconds;")
+//cpp_quote("      return result;")
+//cpp_quote("      }")
+cpp_quote("   };")
+cpp_quote("#endif")
+
+
+
+typedef struct ChannelYDataRange
+    {
+   double m_top;
+   double m_bottom;
+   } ChannelYDataRange;
+
+cpp_quote(" } //extern \"C\" ")
+cpp_quote("inline bool operator == (const ChannelYDataRange& lhs, const ChannelYDataRange& rhs) {return lhs.m_top == rhs.m_top && lhs.m_bottom == rhs.m_bottom;}")
+cpp_quote("inline bool operator != (const ChannelYDataRange& lhs, const ChannelYDataRange& rhs) {return !(lhs==rhs);}")
+cpp_quote("extern \"C\"{")   
+
+
+typedef [public] enum EventFindTypes
+   {
+   kEFTFindForwards, //Find first event with pos >= searchPos.
+   kEFTFindBackwards //Find latest event with pos <= searchPos.
+   } EventFindTypes;

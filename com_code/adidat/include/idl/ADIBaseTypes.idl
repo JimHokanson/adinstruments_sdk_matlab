@@ -1,0 +1,329 @@
+/**
+* Copyright (c) 2011-2012 ADInstruments. All rights reserved.
+*
+* \ADIDatFileSDK_license_start
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. The name of ADInstruments may not be used to endorse or promote products derived
+*    from this software without specific prior written permission.
+*
+* 3. This is an unsupported product which you use at your own risk. For unofficial 
+*    technical support, please use http://www.adinstruments.com/forum .
+*
+* THIS SOFTWARE IS PROVIDED BY ADINSTRUMENTS "AS IS" AND ANY EXPRESS OR IMPLIED
+* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+* EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ADINSTRUMENTS BE LIABLE FOR
+* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+* \ADIDatFileSDK_license_end
+*/
+
+
+////////////////////////////////////////////////////////////////////////
+// basic types
+// There is a confusing overlap of MIDL, C++, Java, and Visual Basic
+// type names, and varying support for the different types in the
+// different languages, as well as potential implementation differences
+// for at least C++.
+//
+// So that the same name can get used everywhere and mean the same thing,
+// use the name in the left column below. For comparison, the other columns list
+// the closest matching type or typedef in the various languages. (No
+// prizes for guessing which compiler we started with!) There is nothing
+// wrong with the standard MIDL types (or C++ types or whatever), this is
+// just to give us a common set of names which are well supported.
+//
+//[Best]    | MIDL              | MSC             | Borland   | Apple    | MSJava   | VB
+// int32    | long              | __int32         | int32     | SInt32   | int      | Long
+// double   | double            | double          | double    | double   | double   | Double
+// AutoBool | VARIANT_BOOL      | __int8          | int8      | SInt8    | boolean  | Boolean
+//          |                   | [-1/0]          | [-1/0]    | [-1/0]   | [true/   | [TRUE/FALSE]
+//[OK]      |                   |                 |           |          |  false]  |
+// int8     | small             | __int8          | int8      | SInt8    | char     | Integer
+// int16    | short             | __int16         | int16     | SInt16   | short    | Integer
+//
+//[Drawbacks]
+// uint8    | unsigned small    | unsigned char   | uint8     | UInt8    | ?        | -
+// uint16   | unsigned short    | unsigned short  | uint16    | UInt16   | ?        | -
+// uint32   | unsigned long     | unsigned long   | uint32    | UInt32   | ?        | -
+// int64    | hyper             | __int64         | __int64   | SInt64   | long     | -
+// uint64   | unsigned hyper    | ?               | ?         | UInt64   | ?        | -
+// float    | float             | float           | float     | float    | float    | Single
+//
+// Pick a type from the first group -- unless there is a good reason not to!
+//
+////////////////////////////////////////////////////////////////////////////////////
+// Issues: Please feel free to add notes on portability issues as you
+// discover new ones, or update these as we learn more about the known issues.
+//
+// The 64 bit info is old, JGee added the Apple types and now there may even be VB ones for signed too.
+// If so, could shift the int64 line up into OK.
+//
+// unsigned: Visual Basic does not support unsigned. To allow the
+// generation of type libraries anyway, the unsigned integers get
+// typedef-ed as signed when generating type libraries (MAKEAUTOTLB).
+//
+// double: We assume double is likely to stay the same size in
+// everything for a fair while! (same with float)
+//
+// int8, int16, float: No tragic problems, just smaller ranges and potentially
+// slower code than int32 and double.
+
+import "wtypes.idl";
+import "oaidl.idl";
+//import "objidl.idl";
+
+
+
+//////////////////////////////////////////////////////
+// typedefs for MIDL
+
+cpp_quote("#if 0")
+typedef signed small int8;
+typedef signed short int16;
+typedef signed long int32;
+typedef signed hyper int64;
+
+#if !defined (MAKEAUTOTLB)
+   typedef unsigned small uint8;
+   typedef unsigned short uint16;
+   typedef unsigned long uint32;
+   typedef unsigned hyper uint64;
+#else	// Hack for some chance of working with Visual Basic
+   typedef int8 uint8;
+   typedef int16 uint16;
+   typedef int32 uint32;
+   typedef int64 uint64;
+#endif
+
+cpp_quote("#endif")
+
+//////////////////////////////////////////////////////
+// typedefs for all compilers 
+//typedef unsigned char uchar; replaced with BYTE to avoid conflict with UNICODE OWL _TUCHAR
+#if !defined (MAKEAUTOTLB)
+   typedef unsigned long ulong;
+#else	// Hack for some chance of working with Visual Basic (also .NET COM interop)
+   typedef long ulong;
+#endif
+
+//Hack to make const wchar_t * [in] string parameters appear as BSTR (.NET String) in typelibraries.
+#if !defined (MAKEAUTOTLB)
+   typedef const OLECHAR *CONST_BSTR;
+#else
+   typedef BSTR CONST_BSTR;
+#endif
+
+typedef unsigned short ushort;
+typedef unsigned int uint;
+
+enum AutoBoolValues
+   {
+   kAutoFalse = 0,
+   kAutoTrue = -1    //Need this because Visual Basic "Not" operator does bitwise complement!
+   };
+   
+cpp_quote("#ifndef __cplusplus")
+typedef VARIANT_BOOL AutoBool;
+cpp_quote("#else")
+cpp_quote("#pragma pack(push,1)")
+cpp_quote(" struct AutoBool                                                                           ")
+cpp_quote(" {                                                                                         ")
+cpp_quote(" VARIANT_BOOL X;                                                                            ")
+cpp_quote(" AutoBool () {X = kAutoFalse;}                                                              ")
+cpp_quote(" AutoBool (bool x) {X = x ? kAutoTrue : kAutoFalse;}                                        ")
+cpp_quote(" AutoBool (AutoBoolValues x) {X = x;}                                                       ")
+cpp_quote(" AutoBool (const AutoBool &x) {X = x.X ? kAutoTrue : kAutoFalse;}                           ")
+cpp_quote(" AutoBool &operator = (const AutoBool &x) {X = x.X ? kAutoTrue : kAutoFalse; return *this;} ")
+cpp_quote(" AutoBool &operator = (bool x) {X = x ? kAutoTrue : kAutoFalse; return *this;}              ")
+cpp_quote(" AutoBool &operator = (AutoBoolValues x) {X = x ? kAutoTrue : kAutoFalse; return *this;}    ")
+cpp_quote(" AutoBool &operator |= (AutoBoolValues x) {X |= x; return *this;}                           ")
+cpp_quote(" AutoBool &operator &= (AutoBoolValues x) {X &= x; return *this;}                           ")
+cpp_quote(" bool operator == (AutoBoolValues x) const {return (X==0) == (x==0);}")
+cpp_quote(" bool operator != (AutoBoolValues x) const {return (X==0) != (x==0);}")
+cpp_quote(" AutoBoolValues operator ! () {return X == 0 ? kAutoTrue : kAutoFalse;}                     ")
+cpp_quote(" operator bool () const {return X !=0 ;}                         ")
+cpp_quote(" };                                                                                         ")
+cpp_quote("#pragma pack(pop)")
+cpp_quote("#endif")
+   
+
+/*
+MIDL is not happy about [out] const GUID **x as a param, but if we use a typedef for the
+GUID it is happy.
+
+ie: [out] ConstGUID **x as a param
+*/
+typedef const GUID ConstGUID;
+
+cpp_quote("// int8, int16, int32, uint8, uint16, uint32")
+////////////////////////////////////////////////////////
+// typedefs for Borland
+cpp_quote("")
+//cpp_quote("#if defined (__BORLANDC__)")
+//// Fix DECLSPEC_UUID "Declaration terminated incorrectly" error
+////cpp_quote("#if defined(__BORLANDC__)")
+////cpp_quote("#define uuid(p) uuid(#p)")
+////cpp_quote("#endif")
+//
+//cpp_quote("#if !defined (__SYSTYPES_H)")
+//cpp_quote("#include <systypes.h>")
+//cpp_quote("#endif")
+//
+////cpp_quote("typedef VARIANT_BOOL AutoBool;	// or int16?")
+//
+//cpp_quote("#elif defined(_MSC_VER)")
+//////////////////////////////////////////////////////////
+//// typedefs for MSC
+////cpp_quote("typedef __int8 int8;")
+////cpp_quote("typedef __int16 int16;")
+////cpp_quote("typedef __int32 int32;")
+//
+////cpp_quote("typedef unsigned char uint8;")
+////cpp_quote("typedef unsigned short uint16;")
+////cpp_quote("typedef unsigned long uint32;")
+//
+//cpp_quote("typedef signed char    int8;")
+//cpp_quote("typedef signed short   int16;")
+//cpp_quote("typedef signed long    int32;")
+//cpp_quote("typedef unsigned char  uint8;")
+//cpp_quote("typedef unsigned short uint16;")
+//cpp_quote("typedef unsigned long  uint32;")
+//
+//// If we want to allow compile without 64 bit types then need to add ADI_NO_INT64 or similar
+//cpp_quote("#if defined(ADI_HAS_STDINT_H) && !defined(ADI_HAS_MS_INT64)")
+//cpp_quote("#include <stdint.h>")
+//cpp_quote("typedef int64_t            int64;")
+//cpp_quote("typedef uint64_t           uint64;")
+//cpp_quote("#else")
+//cpp_quote("typedef signed __int64     int64;")
+//cpp_quote("typedef unsigned __int64   uint64;")
+//cpp_quote("#endif")
+//
+////cpp_quote("typedef VARIANT_BOOL AutoBool;	// or int16?")
+//cpp_quote("#else")
+cpp_quote("#include \"CrossPlatform/Utility/CrossTypes.h\" ")
+//cpp_quote("#endif")
+cpp_quote("")
+
+typedef uint32 TGenericFlags; //Temporary type for flags added to interface methods for future proofing, before an enum type with a meaningful name has been declared for the purpose. 
+typedef uint32 TEnumCount;    //Type for numbers passed to e.g. IEnumFloatEx::Next(TEnumCount requested,...). This should be at least 32 bits, but need not be 64 bits, since we cannot efficient deal with 1 block of 2 billion floats.
+typedef int32 TCount;         //Type for number parameters passed to interface methods that should be at least 32 bits, but need not be 64 bits.
+typedef uint32 TUCount;       //Type for number parameters passed to interface methods that should be at least 32 bits, but need not be 64 bits.
+
+typedef uint64 ADIStreamSize;  
+
+typedef uint32 TCAFIdRep;
+
+cpp_quote("#ifndef __cplusplus")
+typedef [public] TCAFIdRep TCAFId;
+cpp_quote("#else")
+cpp_quote("struct TCAFId")
+cpp_quote("{")
+cpp_quote("TCAFIdRep mRep;")
+cpp_quote("TCAFId(TCAFIdRep rep = 0) {mRep = rep;}")
+cpp_quote("TCAFIdRep& Val() {return mRep;}")
+cpp_quote("TCAFIdRep Val() const {return mRep;}")
+cpp_quote("bool operator == (const TCAFId& other) const {return mRep == other.mRep;}")
+cpp_quote("bool operator != (const TCAFId& other) const {return mRep != other.mRep;}")
+cpp_quote("bool operator < (const TCAFId& other) const {return mRep < other.mRep;}")
+cpp_quote("bool operator > (const TCAFId& other) const {return mRep > other.mRep;}")
+cpp_quote("bool operator <= (const TCAFId& other) const {return mRep <= other.mRep;}")
+cpp_quote("bool operator >= (const TCAFId& other) const {return mRep >= other.mRep;}")
+cpp_quote("bool IsNil() const {return mRep==0;}")
+cpp_quote("};")
+cpp_quote("#endif")
+
+typedef TCAFId TTypeId; 
+
+cpp_quote("#if defined(PUBLIC_OEM_UTIL) || !defined(__cplusplus)")
+/** Representation for rational numbers used for sampling rate related values.
+Representation note: Fractions are kept in normalized form at all
+times. normalized form is defined as gcd(num,den) == 1 and den > 0.
+*/
+/*
+typedef struct ADIRational32
+{//C.f. Boost rational template
+long num; ///< Numerator
+long den; ///< Denominator (> 0)
+} ADIRational32;
+*/
+cpp_quote("#if defined(__cplusplus)")
+cpp_quote("struct ADIRational64")
+cpp_quote("{//C.f. Boost rational template ")
+cpp_quote("   int64 num; ///< Numerator")
+cpp_quote("   int64 den; ///< Denominator (> 0)")
+cpp_quote("ADIRational64(int64 numIn = 0, int64 denIn = 1): num(numIn),den(denIn){}")
+cpp_quote("};")
+cpp_quote("#else")
+typedef struct ADIRational64
+   {//C.f. Boost rational template
+   int64 num; ///< Numerator
+   int64 den; ///< Denominator (> 0)
+   } ADIRational64;
+cpp_quote("#endif")
+cpp_quote("#else")
+cpp_quote(" }//extern C ")
+
+//cpp_quote(" #include <boost/rational.hpp> ")
+//cpp_quote(" typedef boost::rational<long> ADIRational32;                           ")
+cpp_quote(" #include \"Utility/ADIRationalDecl.h\" ")
+cpp_quote(" #include <boost/static_assert.hpp> ")
+
+cpp_quote(" namespace ADIRationalChecks                                          ")
+cpp_quote(" {                                                                    ")
+//cpp_quote(" BOOST_STATIC_ASSERT(sizeof(ADIRational32::num) == sizeof(long));       ")
+//cpp_quote(" BOOST_STATIC_ASSERT(sizeof(ADIRational32::den) == sizeof(long));       ")
+//cpp_quote(" BOOST_STATIC_ASSERT(sizeof(ADIRational32) == 2*sizeof(long));          ")
+cpp_quote(" BOOST_STATIC_ASSERT(sizeof(ADIRational64) == 2*sizeof(int64));          ")
+cpp_quote(" }")
+
+cpp_quote(" extern \"C\" {")
+cpp_quote("#endif")
+
+typedef ADIRational64 ADIRational;
+
+
+/** Representation for complex numbers.
+*/
+cpp_quote("#ifndef __cplusplus")
+typedef struct ADIComplexDouble
+{// cf _C_double_complex in <complex>
+double mReal;
+double mImag;
+} ADIComplexDouble;
+cpp_quote("#else")
+cpp_quote(" }//extern C ")
+
+cpp_quote(" #include <complex> ")
+cpp_quote(" typedef std::complex<double> ADIComplexDouble; ")
+
+cpp_quote("#if !defined(PUBLIC_OEM_UTIL) && defined(__cplusplus)")
+cpp_quote(" #include <boost/static_assert.hpp> ")
+
+cpp_quote(" namespace ADIComplexChecks")
+cpp_quote(" { ")
+cpp_quote(" BOOST_STATIC_ASSERT(sizeof(ADIComplexDouble) == 2*sizeof(double)); ")
+cpp_quote(" }")
+cpp_quote("#endif")
+
+cpp_quote(" extern \"C\" {")
+cpp_quote("#endif")
+
+typedef ADIComplexDouble ADIComplex;
+
+typedef long TTickIndex;
+typedef int64 TTickIndex64;
+typedef uint32 TUTickIndex;
+

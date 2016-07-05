@@ -1,0 +1,212 @@
+/**
+* Copyright (c) 2011-2012 ADInstruments. All rights reserved.
+*
+* \ADIDatFileSDK_license_start
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. The name of ADInstruments may not be used to endorse or promote products derived
+*    from this software without specific prior written permission.
+*
+* 3. This is an unsupported product which you use at your own risk. For unofficial 
+*    technical support, please use http://www.adinstruments.com/forum .
+*
+* THIS SOFTWARE IS PROVIDED BY ADINSTRUMENTS "AS IS" AND ANY EXPRESS OR IMPLIED
+* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+* EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ADINSTRUMENTS BE LIABLE FOR
+* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+* \ADIDatFileSDK_license_end
+*/
+
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+import "IADIDataTypes.idl";
+import "IADIEnums.idl";
+import "IADIComment.idl";
+
+/* IADIChannelDataSource: Interface implemented by an object that needs to supply data to an ADIData object*/
+	[
+		object,
+		oleautomation,
+		uuid(994F05AB-520E-47de-8F17-7FF5C2046286),
+		helpstring("IADIChannelDataSource Interface"),
+		pointer_default(unique)
+	]
+   interface IADIChannelDataSource : IUnknown
+   {
+      [helpstring("method GetChannelEnumShort")] HRESULT GetChannelEnumShort(TGenericFlags inputType,[in]TChanIndex chanIndex, [out,retval]IEnumShortEx **shortOut) const;
+      [helpstring("method GetChannelEnumFloat")] HRESULT GetChannelEnumFloat(TGenericFlags inputType,[in]TChanIndex chanIndex, [out,retval]IEnumFloatEx **floatOut) const;
+      [helpstring("method GetDataStreamEnum")] HRESULT GetDataStreamEnum(TGenericFlags inputType, [in]TChanIndex chanIndex, [in]REFIID iid,[out,retval] IUnknown **enumOut) const; //new for CFW6.0
+   };
+
+
+typedef enum ADIRecordFlags
+   {
+   kADIRecordFlagsNil                                         = 0,
+   kADIRecordFlagsFirstRecordedRecordInSamplingSession        = 0x20000000, //Optional. Set if the record is the first recorded record after the user pressed the Start button.
+   } ADIRecordFlags;
+
+
+/* IADIDataSink: interface implemented by an ADIData object to allow data from an IADIChannelDataSource to be
+added to be added. */
+	[
+		object,
+		oleautomation,
+		uuid(C594A482-908C-46fc-A106-F0E9417E75F3),
+		helpstring("IADIDataSink Interface"),
+		pointer_default(unique)
+	]
+   interface IADIDataSink : IUnknown
+   {
+   [helpstring("method SetChannelName: set the name (title) of the channel. Every record in the channel has the same name.")] 
+      HRESULT SetChannelName([in]ADIChannelId chanId,[in]CONST_BSTR name);
+
+   [helpstring("method SetupChannel: set whether or not the new record will contain data, and if so, the sample period and type of data, and units info. Each record in a channel may have different values for these parameters.")] 
+      HRESULT SetupChannel(
+         [in]ADIChannelId chanId,                           //Specify the channel space and index of the channel in that space
+         [in]AutoBool enabled,                              //Set true if this channel contains data for this record
+         [in]double secsPerSample,                          //Period of the samples in this channel for this record
+         [in]ADIDataValueId valueType,                      //Type of sample stored in this channel for this record (e.g. int16 or float)
+         [in]CONST_BSTR baseUnitsName,                  //Name of the unprefixed base unit, usually L"V".
+         [in,defaultvalue(0)]const BaseUnitsInfo *baseInfo, //Optional, may be null,specifies the scaling from ADCValues to base units (usually Volts). Null results in identity scaling.
+         [in,defaultvalue(0)]const UserUnitsInfo *userInfo, //Optional, may be null, specifies the scaling from Volts to a unit (such as mmHg).
+         [in,defaultvalue(0)]CONST_BSTR userUnitsName,  //Optional, may be null,name of the user unit, e.g. L"N".
+         [in,defaultvalue(0)]const IUnknown *extraSettings                      //Optional, may be null. Provide access to interfaces providing extra information about the data in the channel.
+         );
+
+
+   [helpstring("method GetLastErrorMsg: returns information about the last error that occurred while data was being added.")] 
+      HRESULT GetLastErrorMsg(TGenericFlags, [out]HRESULT *lastErrorHr, [out]IAutoADIString **msg, [out,retval]IAutoADIString **caption);
+   
+   
+   [helpstring("method CanSample : called when user starts sampling, prior to PrepareForSampling - can prevent sampling.")]
+      HRESULT CanSample([out]IAutoADIString **whyNot, [out,retval]AutoBool *canSample);
+
+/** PrepareForSampling
+
+   Opportunity for one off initialization when ampling is started and 
+   prior to the first OnRecordStart. Note that multiple calls to OnRecordStart and
+   OnRecordEnd may be made following PrepareForSampling.
+   
+   The flags parameter is reserved and should be set to 0.
+*/
+   [helpstring("method PrepareForSampling : User has clicked Start button, do stuff that does not need to be done on every RecordStart, esp. if setting have not changed.")]
+      HRESULT PrepareForSampling([in]TGenericFlags flags);
+
+/** OnRecordStart
+
+Creates a new record and sets various sampling related properties for the record.
+   
+   recordFlags: 
+
+   dataSrc: optional pointer to a interface on the data source that may be used to
+      supply extra information about the data in new record.
+   
+      May be NULL.
+
+   triggerTickTime: timestamp for the trigger tick.
+   
+      This is the 0 time tick for the record. Note that the trigger tick need
+      not be the first tick in the record. It is possible that the trigger tick 
+      is not actually part of the recorded data where pre or post triggering has
+      been used.
+   
+   samplingTickAtRecordStart: tick number of the first record tick counted from when the
+      hardware started sampling.
+      
+      This is used in the multi-rate sampling case to calculate how far through a sample
+      the start of the record occurs for each channel. Records can start on any tick and 
+      in general this will be at a fractional sample position in a channel whose rate is 
+      lower than the tick rate. The assumption is that the samples in all channels coincided
+      at the time when samplingTickAtRecordStart was zero.
+
+   triggerMinusRecordStartTicks: tick delta between absStartTick and the notional
+      trigger point tick (+ve => pre-trigger, -ve => post-trigger)
+
+   recordMode: true if the data is to be recorded by the document.
+      Note that if either kSRFPhantomData or kSRFMonitorModeData is set then
+      recordMode must be false.
+*/
+   [helpstring("method OnRecordStart")]
+   HRESULT OnRecordStart
+      (
+      [in]ADIRecordFlags recordFlags,        //May be set to kADIRecordFlagsNil
+      [in]IUnknown *dataSrc,                 //Provides access to the data source (usually IADIDataSource) which supplies source data enumerators for the record.
+      [in]ADITimeDate triggerTickTime,       //Time of the tick when the trigger for the record occurred. 
+      [in]hyper samplingTickAtRecordStart,   //Number of the first record tick counted from when the hardware started sampling. Used to correctly split samples between records in the multi-rate case.
+      [in]TTickIndex triggerMinusRecordStartTicks, //ticks between samplingTickAtRecordStart and the trigger point tick (+ve => pre-trigger, -ve => post-trigger).
+      [in]AutoBool recordMode                //true if the record is to be recorded. No data will be stored unless this is set true.
+      );
+
+/** Update
+Adds up to a maximum of newTicks worth of samples to the record.
+
+The stored length of the record will be the sum of all newTicks passed to Update() 
+between OnRecordStart() and OnRecordEnd().
+
+Update may be called with newTicks set to 0 to allow delayed sample streams to catch up 
+with faster sample streams.
+*/
+   [helpstring("method Update")]
+   HRESULT Update([in]TTickIndex newTicks);
+
+/** OnRecordEnd
+Terminates the currently recording record and causes the ADIData object to release the channel source
+enumerators (IEnumShortEx and IEnumFloatEx) it holds references to.
+
+The flags parameter is reserved and should be set to 0.
+*/
+   [helpstring("method OnRecordEnd")]
+   HRESULT OnRecordEnd([in]TGenericFlags flags);   //Releases IEnums
+
+/** CleanUpAfterSampling
+Terminates the recording session (generally corresponds to the user clicking the Stop button).
+Tidies up any state set up by PrepareForSampling().
+*/
+   [helpstring("method CleanUpAfterSampling : User has clicked Stop button, or sampling has stopped until restarted by user, do stuff that does not need to be done on every RecordEnd")]
+   HRESULT CleanUpAfterSampling([in]AutoBool repaintData);
+
+/** OnEvent
+
+OnEvent provides notification of recording events. 
+The eventId parameter specifies the type of event.
+The optional eventInfo parameter references a COM object
+supplying any information associated with the event.
+*/
+   [helpstring("method OnEvent")]
+   HRESULT OnEvent([in]TCAFId eventId, [in]IUnknown *eventInfo);
+   
+/** AddComment
+Adds a new comment at the specified position in the existing data.
+Params:        chanId            - channel to add the comment to. Virtual channels not currenly supported. The mChan member should be -1 for all-channel comments.
+               text              - comment text
+               tickPos           - specifies record and tick within record at which to position the comment. 
+                                   Optional - if 0 and sampling is in progress, comment is added at the end of the sampling record.
+               cafid             - optional comment type identifier. 0 for user comments.
+               addedCommentOut   - optional reference to the added comment. May be 0.
+*/
+   [helpstring("method AddComment: Adds a comment at the position tickPos")]
+   HRESULT AddComment(ADIChannelId chanId, CONST_BSTR text,[in,defaultvalue(0)]const ADIPosition *tickPos, [in,defaultvalue(0)]TCAFId cafid, [in,defaultvalue(0)]IADIComment **addedCommentOut);
+
+/** RemoveComment
+Removes the comment passed in from the ADIData object.
+Params:        comment           - reference to the comment to be removed
+Return:   S_OK on success, E_INVALIDARG if comment is not found in the ADIData object.
+*/
+   [helpstring("method RemoveComment: removes comment from the ADIData object")]
+   HRESULT RemoveComment(IADIComment *comment);
+ 
+   };

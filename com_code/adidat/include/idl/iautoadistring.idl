@@ -1,0 +1,77 @@
+/**
+* Copyright (c) 2011-2012 ADInstruments. All rights reserved.
+*
+* \ADIDatFileSDK_license_start
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. The name of ADInstruments may not be used to endorse or promote products derived
+*    from this software without specific prior written permission.
+*
+* 3. This is an unsupported product which you use at your own risk. For unofficial 
+*    technical support, please use http://www.adinstruments.com/forum .
+*
+* THIS SOFTWARE IS PROVIDED BY ADINSTRUMENTS "AS IS" AND ANY EXPRESS OR IMPLIED
+* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
+* EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ADINSTRUMENTS BE LIABLE FOR
+* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+* ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+* \ADIDatFileSDK_license_end
+*/
+
+
+import "wtypes.idl";
+import "oaidl.idl";
+
+import "ADIBaseTypes.idl";
+
+//Automation compatible interface to the low-level string representation object pointed to by ADI::String.
+//This allows ADI::Strings to converted to BSTR and thereby .NET String objects, via the GetBStr() method.
+
+//N.B. Historically, the VB editor required that methods whose names were prefixed with "Get"
+//have [out,retval] attributes for the final parameter!
+
+
+[
+   object,
+   oleautomation,
+   uuid(3904AA0E-3E8D-11D1-997F-00C0DF492697),
+   helpstring("IAutoADIString Interface"),
+   pointer_default(unique)
+]
+interface IAutoADIString : IUnknown
+{
+[helpstring("method SetBStr: Sets the contents of the string. However, if the new length exceeds the capacity, the result will be truncated.")] 
+   HRESULT SetBStr([in] CONST_BSTR bStr);
+[helpstring("method GetBStr: Allocates a BSTR, initialises it with the string and returns the BSTR")] 
+   HRESULT GetBStr([out,retval] BSTR *retval) const;
+[helpstring("method IsEmpty: returns true int16(-1) if the string is empty")] 
+   HRESULT IsEmpty([out, retval] AutoBool *retval) const;
+[helpstring("method GetLength: returns the length of the string, not including the null terminator (i.e. like strlen()).")] 
+   HRESULT GetLength([out, retval] TCount *retval) const;  //does NOT include null
+[helpstring("method IsEqual: returns true if the other string equals this string (case sensitive)")] 
+   HRESULT IsEqual([in]const IAutoADIString* other,[out, retval] AutoBool *retval) const;
+[helpstring("method IsShared: returns true if this string is multiply referenced")] 
+   HRESULT IsShared([out, retval] AutoBool *retval) const;
+[helpstring("method IsStringRep: returns a custom HRESULT containing the version number of the string object's binary representation")] 
+   HRESULT IsStringRep() const;  //for use by C++ String class to check for binary compatibility
+[helpstring("method CopyBytesFromFirstChar: copies characters from the string into the supplied buffer")] 
+   HRESULT CopyBytesFromFirstChar([in] long bufSizeBytes, [out,size_is(bufSizeBytes)] BYTE buf[]) const;
+[helpstring("method LengthAndCharSize: returns the number of characters (not including the null terminator) and the size (in bytes) of each character.")] 
+   HRESULT LengthAndCharSize([out] long *nChars, [out] long *charSize) const; //does NOT include null
+[helpstring("method GetCapacity: returns the maximum number of characters this object can hold.")] 
+   HRESULT GetCapacity([out, retval] long *nChars) const;  //max possible length NOT including null
+[helpstring("method CreateNewString: creates a new, empty string object with the specified capacity.")] 
+   HRESULT CreateNewString([in] long capacity, [out, retval] IAutoADIString **newStr) const; //Create new empty string with specified capacity
+};
+
