@@ -1,4 +1,5 @@
 function flag = contains(input_string,string_to_match,varargin)
+%x Checks whether or not a string contains another string
 %
 %   sl.str.contains(s1,str_to_match,varargin)
 %

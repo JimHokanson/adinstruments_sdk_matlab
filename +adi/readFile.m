@@ -65,6 +65,14 @@ else
     sdk = adi.sdk;
 end
 
-file_h   = sdk.openFile(file_path);
-file_obj = adi.file(file_path,file_h,sdk,in);
+file_h = adi.sdk.openFile(file_path,'read_and_write',in.allow_editing);
+
+%TODO: For now we'll only support of editing on the main SDK
+if in.allow_editing
+    data_writer_h = adi.sdk.createDataWriter(file_h);
+else
+    data_writer_h = [];
+end
+
+file_obj = adi.file(file_path,file_h,sdk,data_writer_h,in);
 end

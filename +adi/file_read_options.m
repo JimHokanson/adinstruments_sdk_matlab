@@ -15,6 +15,7 @@ classdef file_read_options < handle
        %    include when reading the file.
        
        %conversion_max_
+       allow_editing = false
     end
     
     properties %Mat file format only

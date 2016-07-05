@@ -5,6 +5,11 @@ function file_writer = createFile(file_path,varargin)
 %   This is a work in progress
 %
 
+%{
+file_path = 'C:\Users\Jim\Desktop\temp_edited\wtf.adicht';
+file_writer = adi.createFile(file_path);
+%}
+
 in.copy_blank_when_new = false;
 in = adi.sl.in.processVarargin(in,varargin);
 

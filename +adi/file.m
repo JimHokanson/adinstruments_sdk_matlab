@@ -12,12 +12,22 @@ classdef (Hidden) file < handle
     %   See Also:
     %   adi.readFile
     
+    %{
+        %add comment testing
+        file_path = 'C:\Users\Jim\Desktop\temp_edited\160524_J_01_Wistar_PGE2_split_prep_with_tie_off.adicht'
+        f = adi.readFile(file_path,'allow_editing',true);
+        f.addComment(3,10,'This is a comment 10 seconds in on record 3')
+        adi.sdk.commitFile(obj.data_writer_h)
+        clear f
+    %}
+    
     properties
         file_path  %Full path to the file from which this class was populated.
     end
     
     properties (Hidden)
-       file_h 
+       file_h
+       data_writer_h
     end
     
     properties
@@ -48,7 +58,7 @@ classdef (Hidden) file < handle
     %Constructor
     %--------------------------------
     methods
-        function obj = file(file_path,file_h,sdk,in)
+        function obj = file(file_path,file_h,sdk,data_writer_h,in)
             %
             %   This should be created by adi.readFile
             %
@@ -68,6 +78,7 @@ classdef (Hidden) file < handle
             
             obj.file_path = file_path;
             obj.file_h    = file_h;
+            obj.data_writer_h = data_writer_h;
             
             %Could try switching these to determine what is causing
             %the crash. Is it records or the first call to the sdk after
@@ -120,6 +131,27 @@ classdef (Hidden) file < handle
         function all_comments = getAllComments(obj)
            all_records = obj.records;
            all_comments = [all_records.comments]; 
+        end
+        
+        function comment_number = addComment(obj,record_I,comment_time,comment_string,varargin)
+            
+            %TODO: Check that we are in edit mode
+            
+            in.channel = -1;
+            in = adi.sl.in.processVarargin(in,varargin);
+            
+            current_record = obj.records(record_I);
+            
+            tick_position = round(comment_time/current_record.tick_dt);
+            
+            comment_number = adi.sdk.addComment(obj.file_h,in.channel,record_I,tick_position,comment_string);
+            
+            %This might fail if the file is open in Labchart ...
+            adi.sdk.commitFile(obj.data_writer_h)
+        end
+        
+        function deleteComment(obj,comment_number)
+            adi.sdk.deleteComment(obj.file_h,comment_number)
         end
         function summarizeRecords(obj)
             %x Not Yet Implemented

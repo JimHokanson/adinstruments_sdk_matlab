@@ -146,7 +146,7 @@ classdef (Hidden) sdk
             pointer_value = adi.handle_manager.checkFilePointer(file_path);
             
             if (pointer_value == 0)            
-                adi.handle_logger.logOperation(file_path,'openFile',-1)
+                %adi.handle_logger.logOperation(file_path,'openFile',-1)
                 %fprintf(2,'ADI SDK - Opening: %s\n',file_path);
                 %TODO: Change this so we can call the same function but with
                 %an additional input that specifies reading or writing
@@ -160,7 +160,7 @@ classdef (Hidden) sdk
 
                 adi.handle_manager.openFile(file_path,pointer_value)
 
-                adi.handle_logger.logOperation(file_path,'openFile',pointer_value)
+                %adi.handle_logger.logOperation(file_path,'openFile',pointer_value)
             end
             
             file_h = adi.file_handle(pointer_value,file_path);
@@ -175,7 +175,7 @@ classdef (Hidden) sdk
                 [result_code,pointer_value] = sdk_mex(17,h__toWChar(file_path));
                 adi.sdk.handleErrorCode(result_code)
                 adi.handle_manager.openFile(file_path,pointer_value)
-                adi.handle_logger.logOperation(file_path,'createFile',pointer_value)
+                %adi.handle_logger.logOperation(file_path,'createFile',pointer_value)
             end
             
             file_h = adi.file_handle(pointer_value,file_path);
@@ -230,7 +230,7 @@ classdef (Hidden) sdk
            %related functions.
             
             [result_code,writer_pointer] = sdk_mex(19,file_h.pointer_value);
-            writer_h = adi.data_writer_handle(writer_pointer);
+            writer_h = adi.w.data_writer_handle(writer_pointer);
             adi.sdk.handleErrorCode(result_code) 
         end
         function commitFile(writer_h)

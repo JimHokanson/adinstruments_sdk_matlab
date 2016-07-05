@@ -37,6 +37,20 @@ classdef (Hidden) file_writer < handle
     %}
     
     %{
+        file_path = 'C:\Users\Jim\Desktop\temp_edited\160524_J_01_Wistar_PGE2_split_prep_with_tie_off.adicht'
+        file_path = 'C:\Users\Jim\Desktop\temp_edited\wtf.adicht';
+        file_writer = adi.createFile(file_path);
+        chan1 = file_writer.addChannel(8,'cheese',1000,'none');
+        file_writer.startRecord
+        chan1.addSamples(repmat(1:1000,1,10))
+        file_writer.stopRecord
+        file_writer.save
+        clear chan1
+        clear file_writer
+    %}
+    
+    
+    %{
     TODO: I need to determine how this interface should be organized.
     I'd like to generate a set of commands that the user would execute then
     implement those commands.
@@ -121,7 +135,7 @@ classdef (Hidden) file_writer < handle
             %specs from the file ...
             obj.is_new = is_new;
             if ~is_new
-               temp_file = adi.file(file_path,file_h,adi.sdk,adi.file_read_options);
+               temp_file = adi.file(file_path,file_h,adi.sdk,data_writer_h,adi.file_read_options);
                obj.last_record = temp_file.n_records;
                %TODO: Do we want to instantiate writers for all the
                %channels ???? - Yes
@@ -148,11 +162,12 @@ classdef (Hidden) file_writer < handle
                records = temp_file.records;
                if ~isempty(records)
                
-               obj.comments = [records.comments];               obj.record_durations = [records.duration];
+               obj.comments = [records.comments];               
+               obj.record_durations = [records.duration];
                obj.record_dts = [records.tick_dt];
-               %
-               %Need to add the record times
-               error('Not yet implemented')
+              
+               obj.record_trigger_times = sl.datetime.matlabToUnix([records.record_start]);
+               %error('Not yet implemented')
                end
             end
         end
@@ -221,7 +236,7 @@ classdef (Hidden) file_writer < handle
             %
             %   Outputs:
             %   --------
-            %   new_chan : 
+            %   new_chan : adi.channel_writer
             %
             new_chan = adi.channel_writer(obj,id,name,fs,units);
             

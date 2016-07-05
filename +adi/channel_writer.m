@@ -9,7 +9,6 @@ classdef (Hidden) channel_writer < handle
     %   adi.sdk.setChannelInfo
     %   adi.sdk.addChannelSamples
     
-    
     properties
         id
     end

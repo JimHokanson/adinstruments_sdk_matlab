@@ -17,7 +17,11 @@ classdef (Hidden) data_writer_handle < handle
             obj.pointer_value = pointer_value;
         end
         function delete(obj)
-           adi.sdk.closeWriter(obj.pointer_value) 
+            %TODO: Why is this throwing an error on closing
+            try
+                adi.sdk.closeWriter(obj.pointer_value) 
+            catch
+            end
         end
     end
     
