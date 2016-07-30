@@ -89,7 +89,10 @@ classdef (Hidden) record < handle
            h5writeatt(save_path,group_name,'data_start',[objs.data_start]);
            h5writeatt(save_path,group_name,'trigger_minus_rec_start_samples',[objs.trigger_minus_rec_start_samples]);
            
-           exportToHDF5File([objs.comments],fobj,save_path,conversion_options)
+           all_comments = [objs.comments];
+           if ~isempty(all_comments)
+              exportToHDF5File(all_comments,fobj,save_path,conversion_options)
+           end
         end
         function exportToMatFile(objs,m,conversion_options)
             
@@ -100,8 +103,11 @@ classdef (Hidden) record < handle
                'record_start',  {objs.record_start},...
                'data_start',    {objs.data_start},...
                'trigger_minus_rec_start_samples',{objs.trigger_minus_rec_start_samples});
-               
-           exportToMatFile([objs.comments],m,conversion_options)
+           
+           all_comments = [objs.comments];
+           if ~isempty(all_comments)
+              exportToMatFile(all_comments,m,conversion_options)
+           end
         end
     end
     
