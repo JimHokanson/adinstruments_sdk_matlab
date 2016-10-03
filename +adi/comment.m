@@ -94,6 +94,29 @@ classdef (Hidden) comment < handle
                 end
             end
         end
+        function objs_out = filterByIDs(objs_in,ids_to_get,varargin)
+            %
+            %
+            %   objs_out = filterByIDs(objs_in,ids_to_get,varargin)
+            
+            in.order = 'input_id';
+            %Other orders: NYI
+            % - object order 1st object, 2nd 3rd, etc (based on order of
+            % objs_in => sort loc before returning ...
+            in = adi.sl.in.processVarargin(in,varargin);
+            
+            all_ids = [objs_in.id];
+            
+            [mask,loc] = ismember(ids_to_get,all_ids);
+            
+            if ~all(mask)
+               error('One of the requested ids is missing') 
+            end
+            
+            objs_out = objs_in(loc);
+            
+            
+        end
         function objs_out = filterByRecord(objs_in,record_id)
            keep_mask = [objs.record] == record_id;
            objs_out  = objs_in(keep_mask);
