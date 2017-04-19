@@ -11,12 +11,6 @@ function save_path = convert(file_path_or_paths,varargin)
 %
 %   Once converted, the converted file can be read by this program as well.
 %
-%   Current Status:
-%   ---------------
-%   Things are working however the HDF5 format will likely change soon as I
-%   develop my HDF5 Matlab library:
-%       https://github.com/JimHokanson/hdf5_matlab
-%
 %   Optional Inputs:
 %   ----------------
 %   file_path_or_paths : str or cellstr (default: prompts user)
@@ -62,6 +56,7 @@ in.save_path = '';
 in.save_root = '';
 in.root_path = ''; %To match for save root
 in.no_exist_only = false;
+in.verbose = false;
 in = adi.sl.in.processVarargin(in,varargin);
 
 if in.format(1) == '.'
@@ -70,38 +65,42 @@ end
    
 if nargin == 0 || isempty(file_path_or_paths)
     
-    [file_path_or_paths,file_root] = adi.uiGetChartFile('prompt','Pick a file to convert','start_path',base_path,'multi_select',true);
+    file_path_or_paths = adi.uiGetChartFile('prompt','Pick a file to convert','start_path',base_path,'multi_select',true);
     
     if isnumeric(file_path_or_paths)
         return
     end
     
-    base_path = file_root;
-    
 else
-    if ischar(file_path_or_paths)
-        base_path = fileparts(file_path_or_paths);
-    else
-        base_path = fileparts(file_path_or_paths{1});
+    if ischar(file_path_or_paths) && exist(file_path_or_paths,'dir') == 7
+       %Get list of adicht files ... 
+       folder_path = file_path_or_paths;
+       files = dir(fullfile(folder_path,'*.adicht'));
+       file_path_or_paths = adi.sl.dir.fullfile(folder_path,{files.name});
     end
 end
+
+if ischar(file_path_or_paths)
+    file_path_or_paths = {file_path_or_paths};
+end
+%This may need to change with files from different directories ...
+base_path = fileparts(file_path_or_paths{1});
 
 for iFile = 1:length(file_path_or_paths)
 
     cur_file_path = file_path_or_paths{iFile};
     
+    %This may be empty, which yields control of the save path
+    %to the convertor
     save_path = h__getSavePath(in,cur_file_path);
     
-% % %     if ~isempty(save_path)
-% % %         
-% % %     end
-% % %     
-% % %     if in.no_exist_only && exist(
-    
-    file_obj = adi.readFile(cur_file_path);
-
-    %This is a hack ...
-    
+    if in.verbose
+        %TODO: Print out what is being converted
+        [~,file_name] = fileparts(cur_file_path);
+        fprintf('Converting: %s\n',file_name);
+    end
+ 
+    file_obj = adi.readFile(cur_file_path);    
     
     switch in.format
         case 'h5'

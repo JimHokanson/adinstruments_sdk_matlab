@@ -94,7 +94,7 @@ classdef (Hidden) record < handle
               exportToHDF5File(all_comments,fobj,save_path,conversion_options)
            end
         end
-        function exportToMatFile(objs,m,conversion_options)
+        function m = exportToMatFile(objs,m,conversion_options)
             
            m.record_version = 1; 
            m.record_meta = struct(...
@@ -106,7 +106,7 @@ classdef (Hidden) record < handle
            
            all_comments = [objs.comments];
            if ~isempty(all_comments)
-              exportToMatFile(all_comments,m,conversion_options)
+              m = exportToMatFile(all_comments,m,conversion_options);
            end
         end
     end

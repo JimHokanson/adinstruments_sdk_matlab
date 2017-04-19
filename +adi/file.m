@@ -210,10 +210,6 @@ classdef (Hidden) file < handle
             %
             %   Converts the file to a mat file.
             %
-            %   This is rediculously SLOW. Unfortunately we don't have much
-            %   control over how mat files are saved, even though the
-            %   underlying HDF5 format provides tons of flexibility. To
-            %   remedy this problem the HDF5 conversion code was created.
             
             if nargin < 3 || isempty(conversion_options)
                 conversion_options = adi.mat_conversion_options;
@@ -238,14 +234,15 @@ classdef (Hidden) file < handle
             end
             
             %http://www.mathworks.com/help/matlab/ref/matfile.html
-            m = matfile(save_path);
+            %m = matfile(save_path);
             
+            m = struct;
             m.file_version = 1;
             m.file_meta    = struct('n_records',obj.n_records,'n_channels',obj.n_channels);
             
-            obj.records.exportToMatFile(m,conversion_options);
-            obj.channel_specs.exportToMatFile(m,conversion_options)
-            
+            m = obj.records.exportToMatFile(m,conversion_options);
+            m = obj.channel_specs.exportToMatFile(m,conversion_options);
+            save(save_path,'-struct','m','-v7.3');
         end
     end
     

@@ -150,7 +150,7 @@ classdef (Hidden) comment < handle
            h5writeatt(save_path,group_name,'record',[objs.record]); 
            h5writeatt(save_path,group_name,'tick_dt',[objs.tick_dt]); 
         end
-        function exportToMatFile(objs,m,conversion_options)
+        function m = exportToMatFile(objs,m,conversion_options)
             
            m.comment_version = 1;
            

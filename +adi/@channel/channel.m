@@ -333,7 +333,7 @@ classdef (Hidden) channel < handle
     end
     methods (Hidden)
         exportToHDF5File(objs,fobj,save_path,conversion_options)
-        function exportToMatFile(objs,m,conversion_options)
+        function m = exportToMatFile(objs,m,conversion_options)
             
             MAX_SAMPLES_AT_ONCE = 1e7;
             
@@ -359,29 +359,29 @@ classdef (Hidden) channel < handle
                 for iRecord = 1:n_records %#ok<PROP>
                     cur_n_samples = cur_chan.n_samples(iRecord);
                     chan_name = sprintf('data__chan_%d_rec_%d',iChan,iRecord);
-                    if cur_n_samples < MAX_SAMPLES_AT_ONCE
+                    %if cur_n_samples < MAX_SAMPLES_AT_ONCE
                         %(obj,record_id,get_as_samples)
                         m.(chan_name) = cur_chan.getData(iRecord,'leave_raw',true,'return_object',false);
-                    else
-                        
-                        start_I = 1:MAX_SAMPLES_AT_ONCE:cur_n_samples;
-                        end_I   = MAX_SAMPLES_AT_ONCE:MAX_SAMPLES_AT_ONCE:cur_n_samples;
-                        
-                        if length(end_I) < length(start_I)
-                            end_I(end+1) = cur_n_samples; %#ok<AGROW>
-                        end
-                        
-                        %I am assuming that the output is single.
-                        m.(chan_name)(cur_n_samples,1) = single(0); %Initialize output
-                        for iChunk = 1:length(start_I)
-                            cur_start = start_I(iChunk);
-                            cur_end   = end_I(iChunk);
-                            %n_samples_get = cur_end-cur_start + 1;
-                            m.(chan_name)(cur_start:cur_end,1) = ...
-                                cur_chan.getData(iRecord,'data_range',[cur_start cur_end],...
-                                'leave_raw',true,'return_object',false);
-                        end
-                    end
+%                     else
+%                         
+%                         start_I = 1:MAX_SAMPLES_AT_ONCE:cur_n_samples;
+%                         end_I   = MAX_SAMPLES_AT_ONCE:MAX_SAMPLES_AT_ONCE:cur_n_samples;
+%                         
+%                         if length(end_I) < length(start_I)
+%                             end_I(end+1) = cur_n_samples; %#ok<AGROW>
+%                         end
+%                         
+%                         %I am assuming that the output is single.
+%                         m.(chan_name)(cur_n_samples,1) = single(0); %Initialize output
+%                         for iChunk = 1:length(start_I)
+%                             cur_start = start_I(iChunk);
+%                             cur_end   = end_I(iChunk);
+%                             %n_samples_get = cur_end-cur_start + 1;
+%                             m.(chan_name)(cur_start:cur_end,1) = ...
+%                                 cur_chan.getData(iRecord,'data_range',[cur_start cur_end],...
+%                                 'leave_raw',true,'return_object',false);
+%                         end
+%                     end
                 end
             end
         end
