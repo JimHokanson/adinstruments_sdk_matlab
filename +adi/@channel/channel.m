@@ -330,6 +330,14 @@ classdef (Hidden) channel < handle
                 end
             end
         end
+        function output = isValidForRecord(obj, record)
+            % tells whether there is valid data in a given record
+            % if there are samples in a given record, output is true
+            % otherwise, output it false
+            %
+            % (GREG)
+            output  = ~(obj.n_samples(record) == 0); 
+        end
     end
     methods (Hidden)
         exportToHDF5File(objs,fobj,save_path,conversion_options)

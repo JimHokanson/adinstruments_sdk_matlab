@@ -117,6 +117,25 @@ classdef (Hidden) file < handle
         end
     end
     methods
+        function output = isChannelInRecord(obj, channel_num, record)
+            % (greg)
+            % get the channel
+            % ask the channel
+            
+            channel = obj.channel_specs(channel_num);
+            output = channel.isValidForRecord(record);
+        end
+        function output = channelsInRecord(obj, record_number)
+            % get a list of the channels in the given record_number with
+            % samples recorded/valid
+            
+            mask = false(1,obj.n_channels);
+            for i = 1:obj.n_channels
+                mask(i) = obj.isChannelInRecord(i,record_number);
+            end
+            
+            output = obj.channel_names(mask);
+        end
         function all_comments = getAllComments(obj)
            all_records = obj.records;
            all_comments = [all_records.comments]; 
