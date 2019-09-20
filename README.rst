@@ -10,6 +10,9 @@ General parts include:
 - sdk class/package (see adi.sdk) - this is the Matlab code that directly interfaces with the mex code
 - sdk_mex (see +adi/private directory) - this is the actual mex code which calls the ADInstruments dll
 
+Note, I've also written a similar, slightly less polished version for Python.
+https://github.com/JimHokanson/adinstruments_sdk_python
+
 ==========
 Motivation
 ==========
