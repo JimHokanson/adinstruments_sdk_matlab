@@ -42,6 +42,7 @@ classdef (Hidden) record < handle
            %    Inputs:
            %    -------
            %    file_h : .file_handle, .h5_file_h, .mat_file_h
+           %    sdk : adi.sdk, adi.mat_file_sdk, adi.h5_file_sdk
            
            
            obj.file_h = file_h;
@@ -64,9 +65,15 @@ classdef (Hidden) record < handle
                   
            obj.data_start_str = datestr(obj.data_start);
            
-
-           
+           %This is really complicated so we'll add absolute times
+           %into the instantiated objects rather than during creation
            obj.comments = sdk.getAllCommentsForRecord(file_h,obj.id,obj.tick_dt,obj.trigger_minus_rec_start);
+           
+           for i = 1:length(obj.comments)
+               %data_start is normally the same ...
+               obj.comments(i).record_start_datetime = obj.record_start;
+           end
+           
         end
     end
     

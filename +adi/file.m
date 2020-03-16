@@ -105,6 +105,8 @@ classdef (Hidden) file < handle
             if ~isempty(in.channels_remove)
                mask = ismember(in.channels_remove,obj.channel_names);
                if ~all(mask)
+                   warning('JAH:adi:file:missing_remove_channel',...
+                       'At least one of the channels specified to be removed were not in the file')
                    %Some of the channels that were requested to be removed
                    %are not in the file
                   %TODO: Print warning message 
@@ -137,6 +139,8 @@ classdef (Hidden) file < handle
             output = obj.channel_names(mask);
         end
         function all_comments = getAllComments(obj)
+            %
+            %   record : adi.record
            all_records = obj.records;
            all_comments = [all_records.comments]; 
         end
