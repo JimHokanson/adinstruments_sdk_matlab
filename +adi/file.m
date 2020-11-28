@@ -172,6 +172,38 @@ classdef (Hidden) file < handle
             
             chan = temp.getChannelByName(channel_name,in);
         end
+        function varargout = getChannelData(obj,...
+                    channel_number_1b_or_name, ...
+                    block_number_1b,varargin)
+            %   
+            %
+            %   This is really a shortcut call for the following:
+            %   chan = obj.getChannelByName(name,varargin)
+            %   data = chan.getData(block_number,varargin)
+            %   
+            %   Optional Inputs
+            %   ---------------
+            %   See adi.channel.getData
+            %
+            %   See Also
+            %   --------
+            %   adi.channel.getData
+            
+            if isnumeric(channel_number_1b_or_name)
+                spec = obj.channel_specs(channel_number_1b_or_name);
+            else
+                spec = obj.getChannelByName(channel_number_1b_or_name);
+            end
+            
+            if nargout == 2
+                [data,time] = spec.getData(block_number_1b,varargin{:});
+                varargout{1} = data;
+                varargout{2} = time;
+            else
+                data = spec.getData(block_number_1b,varargin{:});
+                varargout{1} = data;
+            end
+        end
     end
     
     %TODO: These should be in their own class
