@@ -22,9 +22,9 @@ classdef (Hidden) file < handle
     
     properties
         n_records
-        n_channels %# of channels in the file (across all records). This may
-        %be reduced if some channels have no data and the input options to 
-        %the constructor specify to remove empty channels.
+        n_channels %Number of channels in the file (across all records). 
+        %This may be reduced if some channels have no data and the 
+        %input options to the constructor specify to remove empty channels.
         records       %adi.record
         channel_specs %adi.channel These classes hold information
         %about each of the channels used.
@@ -120,9 +120,12 @@ classdef (Hidden) file < handle
     end
     methods
         function output = isChannelInRecord(obj, channel_num, record)
-            % (greg)
-            % get the channel
-            % ask the channel
+            %
+            %   output = isChannelInRecord(obj, channel_num, record)
+            %
+            %   Inputs
+            %   ------
+            %   1 based
             
             channel = obj.channel_specs(channel_num);
             output = channel.isValidForRecord(record);
@@ -146,10 +149,11 @@ classdef (Hidden) file < handle
         end
         function summarizeRecords(obj)
             %x Not Yet Implemented
-            %For each record:
-            %# of comments
-            %which channels contain data
-            %duration of the record
+            % For each record:
+            % # of comments
+            % which channels contain data
+            % duration of the record
+            error('Not yet implemented')
             keyboard
         end
         function chan = getChannelByName(obj,channel_name,varargin)
@@ -265,6 +269,10 @@ classdef (Hidden) file < handle
             %
             %   Converts the file to a mat file.
             %
+            %   See Also
+            %   --------
+            %   adi.convert
+            %   adi.mat_conversion_options
             
             if nargin < 3 || isempty(conversion_options)
                 conversion_options = adi.mat_conversion_options;
@@ -275,8 +283,6 @@ classdef (Hidden) file < handle
             else
                save_path = adi.sl.dir.changeFileExtension(save_path,'mat'); 
             end
-            
-            
             
             if strcmp(save_path,obj.file_path)
                error('Conversion path and file path are the same') 
@@ -293,11 +299,12 @@ classdef (Hidden) file < handle
             
             m = struct;
             m.file_version = 1;
-            m.file_meta    = struct('n_records',obj.n_records,'n_channels',obj.n_channels);
+            m.file_meta = struct('n_records',obj.n_records,'n_channels',obj.n_channels);
             
             m = obj.records.exportToMatFile(m,conversion_options);
             m = obj.channel_specs.exportToMatFile(m,conversion_options);
-            save(save_path,'-struct','m','-v7.3');
+            
+            save(save_path,'-struct','m',conversion_options.version);
         end
     end
     

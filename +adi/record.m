@@ -10,7 +10,7 @@ classdef (Hidden) record < handle
     
     properties
         id        %record number (1 based)
-        n_ticks   %# of samples of highest sampling rate channel
+        n_ticks   % Number of samples of highest sampling rate channel
         comments  %adi.comment
         tick_dt   %The highest sampling rate of any channel in this record.
         tick_fs   %Sampling frequency, computed for convenience from tick_dt
@@ -113,6 +113,7 @@ classdef (Hidden) record < handle
            
            all_comments = [objs.comments];
            if ~isempty(all_comments)
+               %adi.comment.exportToMatFile
               m = exportToMatFile(all_comments,m,conversion_options);
            end
         end

@@ -108,6 +108,9 @@ for iFile = 1:length(file_path_or_paths)
             save_path = file_obj.exportToHDF5File(save_path,in.conversion_options);
         case 'mat'
             %adi.file.exportToMatFile
+            if ~isempty(in.conversion_options)
+                in.conversion_options.verify()
+            end
             save_path = file_obj.exportToMatFile(save_path,in.conversion_options);
         otherwise
             error('Unrecognized format option: %s',in.format);

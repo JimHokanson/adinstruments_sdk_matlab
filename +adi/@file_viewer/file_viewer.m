@@ -3,6 +3,9 @@ classdef file_viewer
     %   Class:
     %   adi.file_viewer
     %
+    %   This class was a work in progress. I'm not currently working
+    %   on finishing it ...
+    %
     
     properties
     end
