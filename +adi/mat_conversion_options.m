@@ -31,7 +31,7 @@ classdef mat_conversion_options
             obj.verifyVersion()
         end
         function verifyVersion(obj)
-            switch obj.version
+            switch lower(obj.version)
                 case '-v7.3'
                 case '-v7'
                 case '-v6'
