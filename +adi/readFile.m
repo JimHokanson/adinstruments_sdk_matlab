@@ -15,7 +15,7 @@ function file_obj = readFile(file_path,varargin)
 %
 %   Optional Inputs:
 %   ----------------
-%   file_path : str
+%   file_path : char array, string, or struct from dir()
 %       Path of the file to read. An empty or missing input prompts the
 %       user.
 %
@@ -51,6 +51,11 @@ if nargin == 0 || isempty(file_path)
     if isnumeric(file_path)
         return
     end
+elseif isstring(file_path)
+    file_path = char(file_path);
+elseif isstruct(file_path)
+    s = file_path;
+    file_path = fullfile(s.folder,s.name);
 end
 
 [~,~,file_extension] = fileparts(file_path);
