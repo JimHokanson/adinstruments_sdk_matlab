@@ -72,13 +72,7 @@ classdef (Hidden) comment < handle
             obj.tick_position = NaN;
         end
     end
-    
-    
-    
 
-    
-
-    
     methods
         function obj = comment(...
                 comment_string,...
@@ -97,12 +91,61 @@ classdef (Hidden) comment < handle
             obj.tick_dt       = tick_dt;
             obj.trigger_minus_rec_start = trigger_minus_rec_start;
         end
+        function t = toTable(objs)
+            s = struct();
+            s.str = {objs.str}';
+            s.id = [objs.id]';
+            s.tick_position = [objs.tick_position]';
+            s.channel = [objs.channel]';
+            s.record = [objs.record]';
+            s.tick_dt = [objs.tick_dt]';
+            s.trigger_minus_rec_start = [objs.trigger_minus_rec_start]';
+            s.time = [objs.time]';
+            s.absolute_time = [objs.absolute_time]';
+            t = struct2table(s);
+        end
+        function mask = contains(objs,strings_or_patterns,varargin)
+            %
+            %
+            %   contains(data,strings_or_patterns,varargin)    
+            %
+            %   Inputs
+            %   ------
+            %   data : cellstr
+            %   strings_or_patterns : char or cellstr
+            %       
+            %   Optional Inputs
+            %   ---------------
+            %   case_sensitive : logical (default false)
+            %   regexp : logical (default false)
+            %
+            %       The default behavior is to OR the matches, i.e. true if any of
+            %       the strings match. For AND, all the strings must match.
+            %   use_or: logical (default [])
+            %       - true - OR
+            %       - false - AND
+            %   use_and: logical (default [])
+            %       - true - AND
+            %       - false - OR
+            
+            in.use_or = []; 
+            in.use_and = [];
+            in.case_sensitive = false;
+            in.regexp = false;
+            in = adi.sl.in.processVarargin(in,varargin);
+            
+            strings = {objs.str};
+            
+            mask = adi.sl.cellstr.contains(strings,strings_or_patterns,in);
+            
+        end
         %         function objs = sortByID(objs)
         %
         %         end
-        function changeTimeBasis(objs)
-            
-        end
+%         function changeTimeBasis(objs)
+%             %   NOT YET IMPLEMENTED
+%             error('Not yet implemented')
+%         end
         function pretty_print(objs)
             %
             %

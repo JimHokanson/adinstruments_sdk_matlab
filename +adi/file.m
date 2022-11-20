@@ -141,11 +141,29 @@ classdef (Hidden) file < handle
             
             output = obj.channel_names(mask);
         end
-        function all_comments = getAllComments(obj)
+        function all_comments = getAllComments(obj,varargin)
             %
             %   record : adi.record
-           all_records = obj.records;
-           all_comments = [all_records.comments]; 
+            %
+            %   Optional Inputs
+            %   ---------------
+            %   output : 
+            %       - 'obj' default
+            %           Returns array of comment objects
+            %       - 'table'
+            %           Returns information as a table
+            
+            in.output = 'obj';
+            in = adi.sl.in.processVarargin(in,varargin);
+            
+            all_records = obj.records;
+            all_comments = [all_records.comments]; 
+            switch in.output
+                case 'obj'
+                    %do nothing
+                case 'table'
+                    keyboard
+            end
         end
         function summarizeRecords(obj)
             %x Not Yet Implemented
