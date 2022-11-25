@@ -276,14 +276,20 @@ classdef (Hidden) channel < handle
             if obj.n_samples(record_id) == 0
                 data = [];
             else
+                if in.data_range(1) > in.data_range(2)
+                    fprintf(2,'range1: %g\n',in.data_range(1));
+                    fprintf(2,'range1: %g\n',in.data_range(2));
+                    error('Specified data range must be increasing')
+                end
+                
                 if any(in.data_range > obj.n_samples(record_id))
-                    %TODO: Make this error more explicit
+                    n_samples_max = obj.n_samples(record_id);
+                    fprintf(2,'Requested samples %d:%d but record %d has only %d samples\n',...
+                        in.data_range(1),in.data_range(2),record_id,n_samples_max)
                     error('Data requested out of range')
                 end
 
-                if in.data_range(1) > in.data_range(2)
-                    error('Specified data range must be increasing')
-                end
+                
 
                 data = obj.sdk.getChannelData(...
                     obj.file_h,...
