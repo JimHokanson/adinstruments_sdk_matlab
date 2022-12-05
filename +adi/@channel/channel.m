@@ -245,6 +245,16 @@ classdef (Hidden) channel < handle
             %       likely they will be returned as type 'single'). This is
             %       mostly used when converting from the adicht format to
             %       another file format.
+            %   truncate_to_record: (default false)
+            %       This is if we want to go to the end of the record.
+            %       Rather than trying to exactly hit that last sample
+            %       we can specify a larger enough number and it will
+            %       change the last sample to the last sample in the
+            %       record. Let's say we had 1001 samples at 1000 Hz
+            %       sampling. Rather than specifying 1.001s (this problem
+            %       often happens with time notation) we could just saying
+            %       2s (for example) and set this flag to true and it would
+            %       adjust to using that last sample
             %
             %   Outputs:
             %   --------
@@ -260,6 +270,7 @@ classdef (Hidden) channel < handle
             in.time_range     = []; %Seconds, TODO: Document this ...
             in.get_as_samples = true; %Alternatively ...
             in.leave_raw      = false;
+            in.truncate_to_record = false;
             in = adi.sl.in.processVarargin(in,varargin);
             
             in.return_object = in.return_object && logical(exist('sci.time_series.data','class'));
@@ -277,16 +288,23 @@ classdef (Hidden) channel < handle
                 data = [];
             else
                 if in.data_range(1) > in.data_range(2)
+                    %This often occurs on block rollover
                     fprintf(2,'range1: %g\n',in.data_range(1));
                     fprintf(2,'range1: %g\n',in.data_range(2));
                     error('Specified data range must be increasing')
                 end
                 
                 if any(in.data_range > obj.n_samples(record_id))
-                    n_samples_max = obj.n_samples(record_id);
-                    fprintf(2,'Requested samples %d:%d but record %d has only %d samples\n',...
-                        in.data_range(1),in.data_range(2),record_id,n_samples_max)
-                    error('Data requested out of range')
+                    if in.truncate_to_record
+                        in.data_range(2) = obj.n_samples(record_id);
+                        %TODO: Make a suprressable warning
+                        fprintf(2,'adi.channel.getData:Truncating data request to match record length\n')
+                    else
+                        n_samples_max = obj.n_samples(record_id);
+                        fprintf(2,'Requested samples %d:%d but record %d has only %d samples\n',...
+                            in.data_range(1),in.data_range(2),record_id,n_samples_max)
+                        error('Data requested out of range')
+                    end
                 end
 
                 
