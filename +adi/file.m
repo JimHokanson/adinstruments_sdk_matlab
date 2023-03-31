@@ -17,13 +17,13 @@ classdef (Hidden) file < handle
     end
     
     properties (Hidden)
-       file_h 
+        file_h
     end
     
     properties
         n_records
-        n_channels %Number of channels in the file (across all records). 
-        %This may be reduced if some channels have no data and the 
+        n_channels %Number of channels in the file (across all records).
+        %This may be reduced if some channels have no data and the
         %input options to the constructor specify to remove empty channels.
         records       %adi.record
         channel_specs %adi.channel These classes hold information
@@ -103,18 +103,40 @@ classdef (Hidden) file < handle
             end
             
             if ~isempty(in.channels_remove)
-               mask = ismember(in.channels_remove,obj.channel_names);
-               if ~all(mask)
-                   warning('JAH:adi:file:missing_remove_channel',...
-                       'At least one of the channels specified to be removed were not in the file')
-                   %Some of the channels that were requested to be removed
-                   %are not in the file
-                  %TODO: Print warning message 
-               end
-               
-               mask = ismember(obj.channel_names,in.channels_remove);
-               obj.channel_specs(mask) = [];
+                mask = ismember(in.channels_remove,obj.channel_names);
+                if ~all(mask)
+                    warning('JAH:adi:file:missing_remove_channel',...
+                        'At least one of the channels specified to be removed were not in the file')
+                    %Some of the channels that were requested to be removed
+                    %are not in the file
+                    %TODO: Print warning message
+                end
+                
+                mask = ismember(obj.channel_names,in.channels_remove);
+                obj.channel_specs(mask) = [];
             end
+            
+            if ~isempty(in.channel_name_mapping)
+                old_names = in.channel_name_mapping(1:2:end);
+                new_names = in.channel_name_mapping(2:2:end);
+                [mask,loc] = ismember(old_names,obj.channel_names);
+                %TODO: We can have an option to hide this
+                if ~all(mask)
+                    warning('JAH:adi:file:missing_remove_channel',...
+                        'At least one of the channels specified to be renamed were not in the file')
+                    %Some of the channels that were requested to be removed
+                    %are not in the file
+                    %TODO: Print warning message
+                end
+                for i = 1:length(mask)
+                   if mask(i)
+                      chan_obj = obj.channel_specs(loc(i));
+                      chan_obj.name = new_names{i};
+                   end
+                end
+                
+            end
+            
             obj.n_channels = length(obj.channel_specs);
         end
     end
@@ -147,7 +169,7 @@ classdef (Hidden) file < handle
             %
             %   Optional Inputs
             %   ---------------
-            %   output : 
+            %   output :
             %       - 'obj' default
             %           Returns array of comment objects
             %       - 'table'
@@ -157,7 +179,7 @@ classdef (Hidden) file < handle
             in = adi.sl.in.processVarargin(in,varargin);
             
             all_records = obj.records;
-            all_comments = [all_records.comments]; 
+            all_comments = [all_records.comments];
             switch in.output
                 case 'obj'
                     %do nothing
@@ -175,7 +197,7 @@ classdef (Hidden) file < handle
             keyboard
         end
         function chan = getChannelByName(obj,channel_name,varargin)
-            %x Returns channel object for a given channel name 
+            %x Returns channel object for a given channel name
             %
             %   chan = ad_sdk.adi.getChannelByName(obj,channel_name,varargin)
             %
@@ -195,14 +217,14 @@ classdef (Hidden) file < handle
             chan = temp.getChannelByName(channel_name,in);
         end
         function varargout = getChannelData(obj,...
-                    channel_number_1b_or_name, ...
-                    block_number_1b,varargin)
-            %   
+                channel_number_1b_or_name, ...
+                block_number_1b,varargin)
+            %
             %
             %   This is really a shortcut call for the following:
             %   chan = obj.getChannelByName(name,varargin)
             %   data = chan.getData(block_number,varargin)
-            %   
+            %
             %   Optional Inputs
             %   ---------------
             %   See adi.channel.getData
@@ -253,17 +275,17 @@ classdef (Hidden) file < handle
             end
             
             if ~exist('save_path','var') || isempty(save_path)
-               save_path = adi.sl.dir.changeFileExtension(obj.file_path,'h5');
+                save_path = adi.sl.dir.changeFileExtension(obj.file_path,'h5');
             else
-               save_path = adi.sl.dir.changeFileExtension(save_path,'h5'); 
+                save_path = adi.sl.dir.changeFileExtension(save_path,'h5');
             end
             
             if strcmp(save_path,obj.file_path)
-               error('Conversion path and file path are the same') 
+                error('Conversion path and file path are the same')
             end
             
             if exist(save_path,'file')
-               delete(save_path); 
+                delete(save_path);
             end
             
             adi.sl.dir.createFolderIfNoExist(fileparts(save_path));
@@ -297,19 +319,19 @@ classdef (Hidden) file < handle
             end
             
             if ~exist('save_path','var') || isempty(save_path)
-               save_path = adi.sl.dir.changeFileExtension(obj.file_path,'mat');
+                save_path = adi.sl.dir.changeFileExtension(obj.file_path,'mat');
             else
-               save_path = adi.sl.dir.changeFileExtension(save_path,'mat'); 
+                save_path = adi.sl.dir.changeFileExtension(save_path,'mat');
             end
             
             if strcmp(save_path,obj.file_path)
-               error('Conversion path and file path are the same') 
+                error('Conversion path and file path are the same')
             end
             
             adi.sl.dir.createFolderIfNoExist(fileparts(save_path));
             
             if exist(save_path,'file')
-               delete(save_path); 
+                delete(save_path);
             end
             
             %http://www.mathworks.com/help/matlab/ref/matfile.html

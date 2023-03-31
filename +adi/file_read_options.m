@@ -7,12 +7,16 @@ classdef file_read_options < handle
     
     properties %All file formats:
        %adi.file
-       remove_empty_channels = true; %If true, channels without data for 
-       %all records are removed.
-       channels_remove = {} %TODO: On setting ensure it is a cell array
-       %
+       
+       %If true, channels without data for all records are removed.
+       remove_empty_channels = true; 
+       
        %    This should be a cell array of channels which you wish to not
        %    include when reading the file.
+       channels_remove = {} %TODO: On setting ensure it is a cell array
+
+       % This should be pairs of <old_names>,<new_names>
+       channel_name_mapping = {};
        
        %conversion_max_
     end
