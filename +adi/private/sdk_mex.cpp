@@ -151,7 +151,7 @@ ADI_CommentsHandle getCommentsHandle(const mxArray *prhs[])
 }
 
 ADI_WriterHandle getWriterHandle(const mxArray *prhs[]){
-    return ADI_WriterHandle(getLongInput(prhs,1));
+    return ADI_WriterHandle(getInt64Input(prhs,1));
 }
 
 wchar_t *getStringOutputPointer(mxArray *plhs[],int index)
@@ -607,6 +607,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //   [result_code,file_h] = sdk_mex(17,file_path)
         //    
         //   Implemented via sdk.createFile
+        //
+        //  See also 19 - ADI_CreateWriter
         
         wchar_t *w_file_path = (wchar_t *)mxGetData(prhs[1]);
         
@@ -636,6 +638,8 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         //   [result_code,writer_h] = sdk_mex(19,file_h)
         //
         //  Implemented via sdk.createDataWriter
+        //
+        //  See also 17 - ADI_CreateFile
         
         ADI_WriterHandle writerH(0);
         
@@ -664,6 +668,10 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         ADIDataLimits limits;
         limits.mMaxLimit = temp_limits[1];
         limits.mMinLimit = temp_limits[0];
+        //limits.mMaxLimit = 12.0;
+        //limits.mMinLimit = -12.0;
+        
+        //out_result[0] = ADI_SetChannelInfo(writerH, channel, true, seconds_per_sample, L"mV", &limits);
         
         out_result[0] = ADI_SetChannelInfo(writerH, channel, enabled, seconds_per_sample, units, &limits);
         

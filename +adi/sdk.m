@@ -169,6 +169,22 @@ classdef (Hidden) sdk
             
         end
         function file_h = createFile(file_path)
+            %
+            %   See Also
+            %   --------
+            %   adi.createFile
+            %   adi.sdk.createDataWriter
+            
+            [root,file_name,file_ext] = fileparts(file_path); %#ok<ASGLU>
+            %We could fix this automatically but I think I prefer forcing
+            %the user to change this. Maybe if empty we add it???
+            if ~strcmp(file_ext,'.adidat')
+                error('File to create must have the extension ''.adidat''');
+            end
+            
+            if exist(file_path,'file')
+                error('File exists already, delete or ask Jim to create append functionality')
+            end
             
             pointer_value = adi.handle_manager.checkFilePointer(file_path);
             if pointer_value == 0
@@ -236,6 +252,9 @@ classdef (Hidden) sdk
         function commitFile(writer_h)
             %
             %   adi.sdk.commitFile(writer_h)
+            %
+            %   See Also
+            %   adi.file_writer.save
             
            result_code = sdk_mex(24,writer_h.pointer_value);
            adi.sdk.handleErrorCode(result_code)
@@ -421,9 +440,24 @@ classdef (Hidden) sdk
         function comment_number = addComment(file_h,channel,record,tick_position,comment_string)
             %
             %   comment_number = adi.sdk.addComment(channel,record,tick_position,comment_string)
+            %
+            %   See Also
+            %   --------
+            %   adi.file_writer>addComment
+            
+            if channel == -1
+                channel = 0;
+                %-1 is all channels
+                %
+                %we use 1 based indexing, so if we input -1, we want -1
+                %
+                %below we subtract 1 from the input, so we ultimately get
+                % 0 - 1 => -1
+            end
+            
             
             [result_code,comment_number] = sdk_mex(26,file_h.pointer_value,...
-                clong(channel), c0(record), clong(tick_position), h__toWChar(comment_string));
+                c0(channel), c0(record), clong(tick_position), h__toWChar(comment_string));
             adi.sdk.handleErrorCode(result_code);
         end
         function deleteComment(file_h,comment_number)
@@ -612,6 +646,10 @@ classdef (Hidden) sdk
            %    this need to be done every time or does a default carry
            %    over? Does setting this create a new record or only get
            %    updated when a new record is started?
+           %
+           %    See Also
+           %    ---------
+           %    adi.channel_writer
            
            in.enabled_for_record = true;
            in.limits = [-Inf Inf];

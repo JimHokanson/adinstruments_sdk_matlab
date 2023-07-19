@@ -10,14 +10,21 @@ classdef (Hidden) data_writer_handle < handle
     
     properties
        pointer_value
+       closed = false
     end
     
     methods
         function obj = data_writer_handle(pointer_value)
             obj.pointer_value = pointer_value;
         end
+        function close(obj)
+            if ~obj.closed
+                adi.sdk.closeWriter(obj.pointer_value)
+                obj.closed = true;
+            end 
+        end
         function delete(obj)
-           adi.sdk.closeWriter(obj.pointer_value) 
+            obj.close();
         end
     end
     

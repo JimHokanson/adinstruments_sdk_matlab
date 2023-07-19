@@ -11,50 +11,64 @@ classdef (Hidden) test_SDK
     
     methods (Static)
         function run_tests()
-           %
-           %
-           %    adi.test_SDK.run_tests
-           %
-           %    See Also:
-           
-           %This is a simple write test which eventually should be moved to
-           %its own function ...
-           
-           
-
+            %
+            %
+            %    adi.test_SDK.run_tests
+            %
+            %    See Also:
+            
+            %This is a simple write test which eventually should be moved to
+            %its own function ...
+            
+            
+            
         end
         function writeChannelTest()
-           
             
-           COPY_BLANK = false;
-           %This option is temporary as I was having problems getting
-           %things to work.
-           
-           %If true a blank Labchart file - created in Labchart 8 - is
-           %copied from this repo to the destination location and a
-           %openFile with read/write support is called. 
-           %If false then a create_file command is issued instead.
-           
-           %This code might move or the function might be renamed ...
-           temp_file_path = [tempname() '.adicht'];
-           fprintf(2,'Temporary file being created at:\n%s',temp_file_path)
-           
-           file_writer = adi.createFile(temp_file_path,'copy_blank_when_new',COPY_BLANK);
-           
-           fw = file_writer; %Let's shorten things
-           
-           pres_chan = fw.addChannel(1,'pressure',1000,'cmH20');
-           
-           fw.startRecord();
-           
-           pres_chan.addSamples(1:1000);
-           
-           fw.stopRecord();
-           
-           fw.save();
-           fw.close();
-           
-           %TODO: I think I need to delete the temp file from the disk 
+            file_path = 'C:\repos\test.adidat';
+            fw = adi.createFile(file_path); %fw : file_writer
+            
+            fs1 = 100;
+            chan = 1;
+            pres_chan = fw.addChannel(chan,'pressure',fs1,'cmH20');
+            
+            fs2 = 1000;
+            chan = 2;
+            emg_chan = fw.addChannel(chan,'emg',fs2,'mV');
+            
+            fw.startRecord();
+            
+            y1 = [1:1/fs1:10 10:-1/fs1:1 1:1/fs1:10 10:-1/fs1:1];
+            pres_chan.addSamples(y1);
+            
+            %record gets truncated to shortest channel
+            t = (1:length(y1)*(fs2/fs1)).*1/fs2;
+            y2 = sin(2*pi*1/10*t);
+            emg_chan.addSamples(y2);
+            
+            fw.stopRecord();
+            
+            comment_time = 2;
+            comment_string = 'Best EMG signal ever!';
+            record = -1; %-1 is current record (or last record if stopped)
+            comment_channel = 2;
+            fw.addComment(record,comment_time,comment_string,'channel',comment_channel);
+            
+            comment_time = 9;
+            comment_string = 'Best time ever';
+            record = -1; %-1 is current record (or last record if stopped)
+            comment_channel = -1;
+            fw.addComment(record,comment_time,comment_string,'channel',comment_channel);
+            fw.save();
+            fw.close();
+            
+            clear fw emg_chan pres_chan %if you want to open it in ADInstruments
+            %or this
+            %clearvars
+            
+            %Or this should work
+            %fw.saveAndClose();
+            
         end
     end
     

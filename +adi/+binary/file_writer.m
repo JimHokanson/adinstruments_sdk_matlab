@@ -89,7 +89,7 @@ classdef file_writer < handle
         end
         function addNewChannel(obj,channel_name,units,fs,data)
             %TODO: one could provide the object instead. => addChannel
-            temp = adi.binary_channel_writer(channel_name,units,fs,data);
+            temp = adi.binary.channel_writer(channel_name,units,fs,data);
             if isempty(obj.channels)
                 obj.channels = temp;
             else
@@ -134,6 +134,10 @@ classdef file_writer < handle
             end
            
             fid = fopen(obj.file_path,'w'); 
+            
+            if fid == -1
+                error('Error creating file:\n  %s\ncheck that folders exist',obj.file_path)
+            end
            
             fwrite(fid, 'CFWB', '*char');
             fwrite(fid, 1, 'long');
