@@ -35,7 +35,7 @@ classdef (Hidden) file_writer < handle
     %   Example
     %   -----------------------------
     %   %***** EDIT, PATH MUST EXIST  *******
-    %   file_path = 'C:\repos\test.adidat';
+    %   file_path = 'D:\repos\test.adidat';
     %   fw = adi.createFile(file_path); %fw : file_writer
     %
     %   fs1 = 100;
@@ -46,7 +46,8 @@ classdef (Hidden) file_writer < handle
     %   chan = 2;
     %   emg_chan = fw.addChannel(chan,'emg',fs2,'mV');
     %
-    %   fw.startRecord();
+    %   start_date_time = datenum(2023,7,19,18,0,0);
+    %   fw.startRecord('trigger_time',start_date_time);
     %
     %   y1 = [1:1/fs1:10 10:-1/fs1:1 1:1/fs1:10 10:-1/fs1:1];
     %   pres_chan.addSamples(y1);
@@ -310,8 +311,7 @@ classdef (Hidden) file_writer < handle
             %
             %   Optional Inputs:
             %   ----------------
-            %   trigger_time : datenum
-            %       TODO: Support datetime as well
+            %   trigger_time : datenum or datetime
             %       *** Note, this only respects down to a resolution of
             %       seconds
             %       - by default, the first record starts "now" and
@@ -329,14 +329,16 @@ classdef (Hidden) file_writer < handle
             %       When trigger time is not specified, this is the amount
             %       of time, in seconds, between one record ending and the
             %       next beginning
+            %
             %   Improvements
             %   ------------
-            %   - support datetime for trigger_time
+            %   
             %
             %   Example
             %   -------
             %                          (Y,MO,D, H, MI,S) 
             %   start_time = datenum(2001,12,19,18,0,0);
+            %   %or start_time = datetime('now')
             %   fw.startRecord('trigger_time',start_time); 
             
             h__errorIfClosed(obj)
@@ -356,11 +358,11 @@ classdef (Hidden) file_writer < handle
             
             obj.current_record = obj.last_record + 1;
             
-            %I don't know that this is needed ...
-            if ~isempty(in.record_to_copy)
-                %TODO: Populate in based on these properties ...
-            end
-            in = rmfield(in,'record_to_copy');
+% %             %I don't know that this is needed ...
+% %             if ~isempty(in.record_to_copy)
+% %                 %TODO: Populate in based on these properties ...
+% %             end
+% %             in = rmfield(in,'record_to_copy');
             
             if isempty(in.trigger_time)
                 %If record 2, add duration of record 1 to this value
@@ -370,18 +372,23 @@ classdef (Hidden) file_writer < handle
                     in.trigger_time = obj.record_trigger_times(end) + obj.record_durations(end)+in.record_spacing;
                     %Add duration of last record to last record start time
                 else
-                    in.trigger_time = sl.datetime.matlabToUnix(now);
+                    in.trigger_time = adi.sl.datetime.matlabToUnix(now,0);
                 end
+            else
+                %Convert to Unix time, and handle datetime input (if given)
+                if isa(in.trigger_time,'datetime')
+                    in.trigger_time = datenum(in.trigger_time);
+                end
+                
+                in.trigger_time = adi.sl.datetime.matlabToUnix(in.trigger_time,0);
             end
             
             all_chans = [obj.channels{:}];
             
             all_chans.initializeRecord(obj.current_record);
             
+            in = rmfield(in,'record_spacing');
             adi.sdk.startRecord(obj.data_writer_h,in);
-            
-            %in.trigger_time
-            
             
             %TODO: Check if the channel is enabled or not for determining
             %which has the highest fs

@@ -678,6 +678,7 @@ classdef (Hidden) sdk
             %         float* data, long nSamples, long *newTicksAdded);
             
             [result_code,new_ticks_added] = sdk_mex(22,writer_h.pointer_value,c0(channel),single(data));
+            %disp(new_ticks_added)
             adi.sdk.handleErrorCode(result_code)
         end
         %Helper functions
