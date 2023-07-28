@@ -310,17 +310,43 @@ classdef (Hidden) file_writer < handle
             %
             %   Optional Inputs:
             %   ----------------
+            %   trigger_time : datenum
+            %       TODO: Support datetime as well
+            %       *** Note, this only respects down to a resolution of
+            %       seconds
+            %       - by default, the first record starts "now" and
+            %       subsequent records start after the first plus some
+            %       buffer (see 'record_spacing' below)
+            %   fractional_seconds : default 0
+            %       provides fractional second resolution for 'trigger_time'
+            %   trigger_minus_rec_start : default 0
+            %       By default the record starts at the same time as the 
+            %       trigger. Haven't tested extensively but from ADI it
+            %       says "Specifies the difference between the time of 
+            %       trigger tick and the first tick in the record. This +ve 
+            %       for pre-trigger delay and -ve for post-trigger delay."
+            %   record_spacing : default 30
+            %       When trigger time is not specified, this is the amount
+            %       of time, in seconds, between one record ending and the
+            %       next beginning
+            %   Improvements
+            %   ------------
+            %   - support datetime for trigger_time
             %
-            %   I think 'old_record' was meant to allow instantiating
-            %   things based on the previous record
+            %   Example
+            %   -------
+            %                          (Y,MO,D, H, MI,S) 
+            %   start_time = datenum(2001,12,19,18,0,0);
+            %   fw.startRecord('trigger_time',start_time); 
             
             h__errorIfClosed(obj)
             
-            in.record_to_copy = [];
+            %in.record_to_copy = [];
             %What are the units on trigger time???
             %This should probably be afer the last record, rather than now
             in.trigger_time = [];
             in.fractional_seconds = 0;
+            in.record_spacing = 30;
             in.trigger_minus_rec_start = 0;
             in = adi.sl.in.processVarargin(in,varargin);
             
@@ -341,7 +367,7 @@ classdef (Hidden) file_writer < handle
                 if obj.current_record > 1
                     %trigger_times are in Unix time (seconds)
                     %Do we need to add a slight offset ????
-                    in.trigger_time = obj.record_trigger_times(end) + obj.record_durations(end)+30;
+                    in.trigger_time = obj.record_trigger_times(end) + obj.record_durations(end)+in.record_spacing;
                     %Add duration of last record to last record start time
                 else
                     in.trigger_time = sl.datetime.matlabToUnix(now);
