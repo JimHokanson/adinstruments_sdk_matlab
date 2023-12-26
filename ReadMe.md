@@ -5,7 +5,7 @@ to MATLAB.
 
 It allows you to read LabChart files into MATLAB and to create your own LabChart files.
 
-**Only works with Windows. This is a ADInstruments issue. I can't fix it**
+**Only works with Windows. This is an ADInstruments issue. I can't fix it**
 
 My less-polished Python version:
 https://github.com/JimHokanson/adinstruments_sdk_python
