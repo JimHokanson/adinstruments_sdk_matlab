@@ -259,25 +259,68 @@ classdef (Hidden) channel < handle
             %   Outputs:
             %   --------
             %   data_object : 
-            %   
+            %
+            %   :: return_object = true
+            %       data_object : sci.time_series.data
+            %   :: return_object = false
+            %       data = numeric vector
+            %       :: in.datetime_out = false
+            %           :: in.time_as_object = false
+            %               time = numeric vector
+            %           :: in.time_as_object = true
+            %               time = big_plot.time
+            %       :: in.datetime_out = true
+            %           :: in.time_as_object = false
+            %               time = datetime array
+            %           :: in.time_as_object = true
+            %               time = big_plot.datetime
             
             if record_id < 1 || record_id > obj.n_records
                 error('Record input: %d, out of range: [1 %d]',record_id,obj.n_records);
             end
 
+            in.datetime_out   = false;
             in.return_object  = true;
             in.data_range     = [1 obj.n_samples(record_id)];
+            in.time_as_object = false;
             in.time_range     = []; %Seconds, TODO: Document this ...
-            in.get_as_samples = true; %Alternatively ...
+            in.get_as_samples = true; 
+                %true - returns samples at sampled rate
+                %false - upsamples to tick rate
             in.leave_raw      = false;
             in.truncate_to_record = false;
             in = adi.sl.in.processVarargin(in,varargin);
             
             in.return_object = in.return_object && logical(exist('sci.time_series.data','class'));
+            in.time_as_object = in.time_as_object && ~isempty(which('big_plot'));
             
+            record_start_datetime = datetime(obj.data_starts(record_id),'ConvertFrom','datenum');
+
             %TODO: This is not right if get_as_samples is false
             if isempty(in.time_range)
                 %We populate this for comment retrieval
+                in.time_range = (in.data_range-1)/obj.fs(record_id);
+                %
+                %Note, in.data_range needs to be valid
+            elseif isa(in.time_range,'datetime')
+                start_time = in.time_range(1);
+                
+                start_time_seconds = seconds(start_time - record_start_datetime);
+                stop_time_seconds = start_time_seconds + seconds(diff(in.time_range));
+                in.data_range(1) = floor(start_time_seconds*obj.fs(record_id))+1;
+
+                %A bit of an adjustment if the conversion is slightly off
+                if in.data_range(1) == 0
+                    in.data_range(1) = 1;
+                end
+                in.data_range(2) = ceil(stop_time_seconds*obj.fs(record_id))+1;
+                if in.data_range(2) == obj.n_samples(record_id) + 1
+                    in.data_range(2) = obj.n_samples(record_id);
+                end
+
+                %old_time_range = in.time_range;
+
+                %For comment retrieval
                 in.time_range = (in.data_range-1)/obj.fs(record_id);
             else
                 in.data_range(1) = floor(in.time_range(1)*obj.fs(record_id))+1;
@@ -307,8 +350,8 @@ classdef (Hidden) channel < handle
                     end
                 end
 
-                
-
+                %Request to SDK for data ...
+                %------------------------------------------------
                 data = obj.sdk.getChannelData(...
                     obj.file_h,...
                     record_id,...
@@ -323,6 +366,9 @@ classdef (Hidden) channel < handle
                 end
             end
             
+
+            %Returning the data
+            %--------------------------------------------------------------
             if in.return_object
                 comments = obj.getRecordComments(record_id,'time_range',in.time_range);
                 
@@ -333,13 +379,23 @@ classdef (Hidden) channel < handle
                         [comments.time],'values',[comments.id],...
                         'msgs',{comments.str});
                 end
-                
+
                 %TODO: This is not right if get_as_samples is false
-                time_object = sci.time_series.time(...
-                    obj.dt(record_id),...
-                    length(data),...
-                    'sample_offset',in.data_range(1),...
-                    'start_datetime',obj.data_starts(record_id));
+                if in.datetime_out
+                    time_object = sci.time_series.time(...
+                        obj.dt(record_id),...
+                        length(data),...
+                        'sample_offset',in.data_range(1),...
+                        'start_datetime',record_start_datetime);
+                else
+                    
+                    time_object = sci.time_series.time(...
+                        obj.dt(record_id),...
+                        length(data),...
+                        'sample_offset',in.data_range(1),...
+                        'start_datetime',obj.data_starts(record_id));
+                end
+
                 varargout{1} = sci.time_series.data(data,...
                     time_object,...
                     'units',obj.units{record_id},...
@@ -348,9 +404,41 @@ classdef (Hidden) channel < handle
                     'history',sprintf('File: %s\nRecord: %d',obj.file_path,record_id),...
                     'events',time_events);
             else
+                %Not returning as an object
+                %-------------------------------------------------
                 varargout{1} = data;
                 if nargout == 2
-                    varargout{2} = (0:(length(data)-1)).*obj.dt(record_id);
+                    if isempty(data)
+                        varargout{2} = [];
+                    else
+    
+                        %TODO: This is not right if get_as_samples is false
+
+                        dt_local = obj.dt(record_id);
+                        n_samples2 = length(data);
+                        
+                        t0 = in.time_range(1);
+                        start_datetime = record_start_datetime + seconds(in.time_range(1));
+                        
+                        if in.time_as_object
+                            if in.datetime_out
+                                out = big_plot.datetime(dt_local,n_samples2,'start_datetime',start_datetime);
+                            else
+                                out = big_plot.time(dt_local,n_samples2,'start_offset',t0);
+                            end
+                        else
+                            s1 = in.data_range(1)-1;
+                            s2 = in.data_range(2)-1;
+                            if in.datetime_out
+                                out = record_start_datetime + seconds(((s1:s2).*obj.dt(record_id))');
+                            else
+                                out = ((s1:s2).*obj.dt(record_id))';
+                            end
+                        end
+                        varargout{2} = out;
+                    end
+                    %JAH 7/4/2024 : Bug fix, time was not correct for subsets
+                    %varargout{2} = (0:(length(data)-1)).*obj.dt(record_id);
                 end
             end
         end

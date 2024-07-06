@@ -26,7 +26,6 @@ LabChart provides functionality for exporting data to a '.mat' file, although I 
 Like most of my more recent readers, the raw channel data are not returned unless specifically requested. Instead a lightweight (low memory) handle is returned with relevant meta data and the raw channel data can be requested via subsequent method calls.
 
 ```
-
 	f = adi.readFile;
 	pres_chan = f.getChannelByName('pressure');
 	raw_pres_data = pres_chan.getData(1); %Get data from the first record
@@ -39,12 +38,18 @@ To read these files on a Mac first requires converting the 'adicht' format into 
 ```
 	f = adi.readFile('/Users/Jim/Work/example_file.mat');
 ```
+
+If you want to extract all comments into table, do this:
+
+```
+    t = adi.getFileComments
+    %or
+    t = adi.getFileComments('/Users/Jim/Work/example_file.mat')
+```
 	
 # File Writing Notes
 
-Writing is partially implemented, see [here](documentation/writing.md)
-
-I can't remember exactly what part of writing I haven't implemented!
+See [here for writing LabChart files](documentation/writing.md)
 	
 # Requirements & Installation
 

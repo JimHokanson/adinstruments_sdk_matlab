@@ -176,6 +176,7 @@ classdef (Hidden) file < handle
             %           Returns information as a table
             
             in.output = 'obj';
+            in.use_datetime = false;
             in = adi.sl.in.processVarargin(in,varargin);
             
             all_records = obj.records;
@@ -183,8 +184,24 @@ classdef (Hidden) file < handle
             switch in.output
                 case 'obj'
                     %do nothing
+                    %
+                    %TODO: respect in.use_datetime
+                    if in.use_datetime
+                        error('Unsupported task')
+                    end
                 case 'table'
-                    keyboard
+                    c = all_comments;
+                    t = table;
+                    t.text = string({c.str})';
+                    t.id = [c.id]';
+                    t.channel = [c.channel]';
+                    t.record = [c.record]';
+                    t.time = [c.time]';
+                    t.absolute_time = [c.absolute_time]';
+                    if in.use_datetime
+                        t.absolute_time = datetime(t.absolute_time,'ConvertFrom','datenum');
+                    end
+                    all_comments = t;
             end
         end
         function summarizeRecords(obj)

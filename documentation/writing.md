@@ -10,6 +10,8 @@ LabChart supports at least 3 different file types:
 
 I haven't tested this but my impression is that you can switch formats if need be using LabChart.
 
+**If you want to write to a .adicht file, write to .adidat and convert using LabChart**
+
 # Limitations #
 
 - It should be possible to move comments, but I haven't figured out how. I can't remember if it is a bug with the API or with my code
@@ -81,7 +83,7 @@ Note, I recommend that you don't add all of your samples at once. If you want to
 Note, the writing process locks the file. If you want to view it in LabChart you should call:
 
 ```
-clear fw emg_chan pres_chan
+clear fw emg_chan pres_chan %modify based on your variables
 %OR
 clearvars
 ```
