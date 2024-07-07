@@ -307,15 +307,19 @@ classdef (Hidden) channel < handle
                 
                 start_time_seconds = seconds(start_time - record_start_datetime);
                 stop_time_seconds = start_time_seconds + seconds(diff(in.time_range));
-                in.data_range(1) = floor(start_time_seconds*obj.fs(record_id))+1;
+                in.data_range(1) = round(start_time_seconds*obj.fs(record_id))+1;
 
                 %A bit of an adjustment if the conversion is slightly off
                 if in.data_range(1) == 0
                     in.data_range(1) = 1;
                 end
-                in.data_range(2) = ceil(stop_time_seconds*obj.fs(record_id))+1;
+                in.data_range(2) = round(stop_time_seconds*obj.fs(record_id))+1;
+                
                 if in.data_range(2) == obj.n_samples(record_id) + 1
                     in.data_range(2) = obj.n_samples(record_id);
+                end
+                if in.data_range(2) > obj.n_samples(record_id)
+                    keyboard
                 end
 
                 %old_time_range = in.time_range;
