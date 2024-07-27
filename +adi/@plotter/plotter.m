@@ -230,7 +230,7 @@ classdef plotter < handle
 
             colors = colororder(obj.h_fig_plot);
             if n_channels2 > size(colors,1)
-                colors = repmat(colors,n_channels2/ceil(size(colors,1)),1);
+                colors = repmat(colors,ceil(n_channels2/ceil(size(colors,1))),1);
             end
 
             h_axes = cell(1,n_channels2);
