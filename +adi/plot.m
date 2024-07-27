@@ -1,7 +1,30 @@
-function plot()
-%
+function plot(file_path)
+%x Launches the plotter GUI
 %   
+%   The plotting GUI allows you to show an individual record OR to print
+%   the entire study to PDF
 %
+%   Calling Forms
+%   -------------
+%   adi.plot()
+%
+%   adi.plot(file_path)
+%
+%   Inputs
+%   ------
+%   file_path : string
+%       Of type .adicht
+%
+%   See Also
+%   --------
+%   adi.plotter
+%
+%   Improvements
+%   ------------
+%   1) Add a scrollbar for easier reviewing
+%   2) Expose options for printing to file (and any other options)
+%   3) Show if "fast plotting" is detected (i.e., is the plotBig library
+%      present)
 
 persistent root_folder;
 

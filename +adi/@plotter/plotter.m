@@ -15,6 +15,9 @@ classdef plotter < handle
     %   ------------
     %   - allow calculated channels
     %   - add scroll bar
+    %   - Expose options for printing to file (and any other options)
+    %   - Show if "fast plotting" is detected (i.e., is the plotBig library
+    %      present)
 
     properties
         file_path
@@ -23,9 +26,16 @@ classdef plotter < handle
         h_fig_plot
         h_table
         h_record
+
+        %Button to redraw
         h_redraw
+        
+        %Button to print the study
         h_print_study
+
+        %Name of the loaded file
         h_file_label
+        h_fast_plot_enabled
         h_status_label
 
         n_records
@@ -34,6 +44,10 @@ classdef plotter < handle
 
     methods
         function obj = plotter(file_path)
+
+            %                    width height
+            CONTROL_PANEL_SIZE = [670 420];
+
 
             obj.file_path = file_path;
 
@@ -44,23 +58,40 @@ classdef plotter < handle
 
             obj.h_fig = uifigure('Units','pixels');
             obj.h_fig.CloseRequestFcn = @(~,~)obj.closeFigureCallback;
-            obj.h_fig.Position(3:4) = [670 420];
+            obj.h_fig.Position(3:4) = CONTROL_PANEL_SIZE;
 
             items_data = 1:obj.n_records;
             items = arrayfun(@(x) sprintf('record: %d',x),items_data,'un',0);
 
+            %   Layout
+            %
+            %   ==========================================================
             %   -----  file_name label ---------------
             %
             %   record_select  redraw button  print_file
             %
             %   table
-            %   ==========================================================
-            %   ==========================================================
+            %   ----------------------------------------------------------
+            %   ----------------------------------------------------------
+            %   ----------------------------------------------------------
             %   ==========================================================
 
             [~,file_name] = fileparts(file_path);
             label_text = sprintf('file: %s.adicht',file_name);
-            obj.h_file_label = uilabel(obj.h_fig,'Text',label_text,'Position',[10 380 200 20]);
+            label_width = 350; %CONTROL_PANEL_SIZE(1)-20;
+            file_label_bottom = 380;
+            obj.h_file_label = uilabel(obj.h_fig,'Text',label_text,'Position',[10 file_label_bottom label_width 20]);
+
+            fast_plot_enabled = ~isempty(which('plotBig'));
+            if fast_plot_enabled
+                display_text = 'fast plotting enabled';
+            else
+                display_text = 'slow plotting (missing plotBig lib)';
+            end
+            fast_plot_width = 200;
+            left_bound = CONTROL_PANEL_SIZE(1) - 10 - fast_plot_width;
+            obj.h_fast_plot_enabled = uilabel(obj.h_fig,'Text',display_text,'Position',[left_bound file_label_bottom fast_plot_width 20]);
+
             obj.h_status_label = uilabel(obj.h_fig,'Text','','Position',[10 350 200 20]);
 
             obj.h_record = uidropdown(obj.h_fig,'Items',items,...
@@ -198,9 +229,13 @@ classdef plotter < handle
             end
         end
         function s = plotRecord(obj,record_id,varargin)
+            %
+            %
+            %   TODO: Update documentation
 
             s = struct;
 
+            %Note, we don't really expose these options yet ...
             in.link_x = true;
             in.time_range = [];
             in.axes = [];
@@ -211,7 +246,6 @@ classdef plotter < handle
             in.bottom_border = 0.05;
             in.clear_figure = true;
             in = adi.sl.in.processVarargin(in,varargin);
-
 
             obj.h_status_label.Text = 'plotting';
 
@@ -244,7 +278,9 @@ classdef plotter < handle
                 hold(h_axes{i},'on')
 
                 cur_channel_index = enabled_channel_indices(i);
-                obj.h_status_label.Text = sprintf('Plotting: %d',cur_channel_index);
+                channel_name = obj.h_table.Data.name{cur_channel_index};
+                obj.h_status_label.Text = sprintf('Loading %d/%d, %s',i,n_channels2,channel_name);
+                drawnow
 
                 if ~isempty(in.time_range)
                     time_options = {'time_range',in.time_range};
@@ -308,6 +344,8 @@ classdef plotter < handle
                 ylabel(h_axes{i},y_label)
             end
 
+            obj.h_status_label.Text = 'Done loading, working on layout';
+            drawnow
 
             h_axes = [h_axes{:}];
 
@@ -381,6 +419,8 @@ classdef plotter < handle
 
             %Comment drawing
             %----------------------------------------------------------
+            obj.h_status_label.Text = 'Processing comments';
+            drawnow
             comments = obj.h_file.getAllComments('output','table','use_datetime',true);
             comments = comments(comments.record == record_id,:);
             if ~isempty(in.time_range)
@@ -415,7 +455,6 @@ classdef plotter < handle
             obj.h_status_label.Text = '';
 
             s.h_axes = h_axes;
-
         end
     end
 
