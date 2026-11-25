@@ -87,6 +87,11 @@ classdef (Hidden) file < handle
             end
             
             obj.records = [temp{:}];
+            if isempty(obj.records)
+                %e.g. a file without any data: keep the class so that
+                %methods and property access still work
+                obj.records = adi.record.empty(1,0);
+            end
             
             %Get channel objects
             %-------------------------------------------
@@ -97,6 +102,9 @@ classdef (Hidden) file < handle
             end
             
             obj.channel_specs = [temp{:}];
+            if isempty(obj.channel_specs)
+                obj.channel_specs = adi.channel.empty(1,0);
+            end
             
             if in.remove_empty_channels
                 obj.channel_specs = obj.channel_specs.removeEmptyObjects();

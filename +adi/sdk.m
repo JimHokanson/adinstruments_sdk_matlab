@@ -799,7 +799,14 @@ classdef (Hidden) sdk
             
             %str_length - apparently contains the null character, we'll
             %ignore the null character here ...
-            str = char(int16_data(1:str_length-1));
+            %
+            %The data are UTF-16 code units returned as int16. Reinterpret
+            %them as uint16 before converting: char() of an int16 above
+            %32767 (e.g. CJK characters) does not give the right character.
+            %The SDK truncates text that does not fit in the buffer, while
+            %str_length is the full length, so clip it.
+            n = min(double(str_length)-1,numel(int16_data));
+            str = char(typecast(int16_data(1:n),'uint16'));
         end
     end
     
